@@ -1,0 +1,12 @@
+{
+  "name": "docent",
+  "version": "0.0.1",
+  "description": "소스 코드를 분석해 화면 목록·사용자 매뉴얼·소개 문서를 만드는 플러그인",
+  "author": {
+    "name": "kwangtaeko"
+  },
+  "homepage": "https://github.com/kwangtaeko/tgx-docent",
+  "repository": "https://github.com/kwangtaeko/tgx-docent",
+  "license": "MIT",
+  "keywords": ["documentation", "user-manual", "screen-list", "screenshots"]
+}
