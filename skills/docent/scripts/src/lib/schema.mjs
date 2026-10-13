@@ -1,4 +1,4 @@
-// 중간 산출물(inventory.json, screens/*.json)의 JSON Schema 검증.
+// 중간 산출물(inventory.json, inventory.agent.json, screens/*.json)의 JSON Schema 검증.
 import { readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 
@@ -17,3 +17,4 @@ function compile(name) {
 
 export const validateInventory = compile('inventory');
 export const validateScreen = compile('screen');
+export const validateInventoryAgent = compile('inventory-agent');

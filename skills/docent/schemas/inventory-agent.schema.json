@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwangtaeko/tgx-docent/schemas/inventory-agent.schema.json",
+  "title": "docent inventory.agent.json (에이전트가 찾은 화면 후보)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["screens"],
+  "properties": {
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["route", "kind", "files", "evidence"],
+        "properties": {
+          "route": { "type": ["string", "null"] },
+          "kind": { "enum": ["page", "modal", "popup"] },
+          "parentRoute": { "type": "string" },
+          "name": { "type": "string", "minLength": 1 },
+          "files": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "evidence": { "type": "string" }
+        },
+        "if": { "properties": { "kind": { "const": "page" } } },
+        "then": { "properties": { "route": { "type": "string" } } },
+        "else": { "required": ["parentRoute", "name"] }
+      }
+    }
+  }
+}

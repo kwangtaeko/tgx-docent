@@ -2,17 +2,6 @@
   "version": 1,
   "screens": [
     {
-      "id": "login",
-      "route": "/login",
-      "kind": "page",
-      "files": [
-        "app/login/page.tsx",
-        "app/login/actions.ts"
-      ],
-      "evidence": "app/login/page.tsx:3",
-      "source": "detector:nextjs"
-    },
-    {
       "id": "home",
       "route": "/",
       "kind": "page",
@@ -24,6 +13,34 @@
         "대시보드"
       ],
       "evidence": "app/page.tsx:6",
+      "source": "detector:nextjs"
+    },
+    {
+      "id": "admin-users",
+      "route": "/admin/users",
+      "kind": "page",
+      "files": [
+        "app/admin/users/page.tsx",
+        "app/admin/users/actions.ts",
+        "lib/auth.ts",
+        "lib/store.ts"
+      ],
+      "menuPath": [
+        "관리자",
+        "사용자 관리"
+      ],
+      "evidence": "app/admin/users/page.tsx:7",
+      "source": "detector:nextjs"
+    },
+    {
+      "id": "login",
+      "route": "/login",
+      "kind": "page",
+      "files": [
+        "app/login/page.tsx",
+        "app/login/actions.ts"
+      ],
+      "evidence": "app/login/page.tsx:3",
       "source": "detector:nextjs"
     },
     {
@@ -39,6 +56,30 @@
         "주문 목록"
       ],
       "evidence": "app/orders/page.tsx:8",
+      "source": "detector:nextjs"
+    },
+    {
+      "id": "orders-id",
+      "route": "/orders/[id]",
+      "kind": "page",
+      "files": [
+        "app/orders/[id]/page.tsx",
+        "app/orders/[id]/delete-button.tsx",
+        "lib/store.ts"
+      ],
+      "evidence": "app/orders/[id]/page.tsx:10",
+      "source": "detector:nextjs"
+    },
+    {
+      "id": "orders-id-edit",
+      "route": "/orders/[id]/edit",
+      "kind": "page",
+      "files": [
+        "app/orders/[id]/edit/page.tsx",
+        "app/orders/[id]/edit/edit-form.tsx",
+        "lib/store.ts"
+      ],
+      "evidence": "app/orders/[id]/edit/page.tsx:7",
       "source": "detector:nextjs"
     },
     {
@@ -67,47 +108,6 @@
       ],
       "evidence": "app/orders/new/order-form.tsx:18",
       "source": "agent"
-    },
-    {
-      "id": "orders-id",
-      "route": "/orders/[id]",
-      "kind": "page",
-      "files": [
-        "app/orders/[id]/page.tsx",
-        "app/orders/[id]/delete-button.tsx",
-        "lib/store.ts"
-      ],
-      "evidence": "app/orders/[id]/page.tsx:10",
-      "source": "detector:nextjs"
-    },
-    {
-      "id": "orders-id-edit",
-      "route": "/orders/[id]/edit",
-      "kind": "page",
-      "files": [
-        "app/orders/[id]/edit/page.tsx",
-        "app/orders/[id]/edit/edit-form.tsx",
-        "lib/store.ts"
-      ],
-      "evidence": "app/orders/[id]/edit/page.tsx:7",
-      "source": "detector:nextjs"
-    },
-    {
-      "id": "admin-users",
-      "route": "/admin/users",
-      "kind": "page",
-      "files": [
-        "app/admin/users/page.tsx",
-        "app/admin/users/actions.ts",
-        "lib/auth.ts",
-        "lib/store.ts"
-      ],
-      "menuPath": [
-        "관리자",
-        "사용자 관리"
-      ],
-      "evidence": "app/admin/users/page.tsx:7",
-      "source": "detector:nextjs"
     }
   ]
 }
