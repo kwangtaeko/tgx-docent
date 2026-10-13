@@ -271,7 +271,8 @@ auth:
   - review.md: failures가 있으면 `## 캡처·녹화 실패` 섹션 `- [ ] <id> 캡처 실패: <reason> (media/fail/<id>.png) <!-- key: media|capture|<id> -->`(record는 `녹화 실패: <n>번째 단계 — <reason>`)
 
 - [ ] **Step 1: Write the failing tests** — 테스트 사이트(로그인 흐름 포함)와 inventory(page `/`, `/items/[id]`, `/secret`(보호), modal 하나), scenarios(`items-id`에 `path: /items/1`, modal에 `path: /`·`setup: 버튼 클릭`)
-  - 저장된 로그인 상태로 `runCapture` → `home`, `items-id`, `secret`, modal PNG 생성(PNG 시그니처 확인), modal 캡처는 setup 이후 대화상자 문구가 보이는 상태(캡처 전 DOM에 대화상자 존재 확인을 onBeforeShot 훅 없이 — 대신 이미지 크기가 아닌 failures에 없는 것으로 확인)
+  - 저장된 로그인 상태로 `runCapture` → `home`, `items-id`, `secret`, modal PNG 생성(PNG 시그니처 확인), failures 없음
+  - modal의 setup 단계가 실패하도록(없는 버튼 라벨) 바꾸면 modal은 실패로 기록되고 PNG가 생기지 않음 — setup이 캡처 전에 실제로 실행된다는 확인
   - 시나리오 없는 동적 화면 → skipped
   - 로그인 상태 파일 삭제 후 `secret` → 실패 "로그인 필요", `media/img/secret.png` 없음, `media/fail/secret.png` 있음
   - 404 경로 → 실패 "404"
