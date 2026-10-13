@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwangtaeko/tgx-docent/schemas/screen.schema.json",
+  "title": "docent screen",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "kind",
+    "route",
+    "title",
+    "purpose",
+    "roles",
+    "sections",
+    "fields",
+    "actions",
+    "messages",
+    "unknowns",
+    "readFiles",
+    "sourceHash"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "kind": {
+      "enum": [
+        "page",
+        "modal",
+        "popup"
+      ]
+    },
+    "parentId": {
+      "$ref": "#/$defs/id"
+    },
+    "route": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "evidence"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "menuPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "evidence"
+      ],
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      }
+    },
+    "purpose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "evidence",
+        "confidence"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "evidence",
+          "confidence"
+        ],
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          },
+          "confidence": {
+            "$ref": "#/$defs/confidence"
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "evidence"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "type",
+          "required",
+          "evidence",
+          "confidence"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "text",
+              "textarea",
+              "number",
+              "date",
+              "select",
+              "checkbox",
+              "radio",
+              "file",
+              "password",
+              "email",
+              "other"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "section": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          },
+          "confidence": {
+            "$ref": "#/$defs/confidence"
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "effect",
+          "evidence",
+          "confidence"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "effect": {
+            "type": "string"
+          },
+          "navigatesTo": {
+            "$ref": "#/$defs/id"
+          },
+          "opens": {
+            "$ref": "#/$defs/id"
+          },
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          },
+          "confidence": {
+            "$ref": "#/$defs/confidence"
+          }
+        }
+      }
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "when",
+          "evidence"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "when": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "readFiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "page"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "route": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "parentId"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "evidence": {
+      "type": "string",
+      "pattern": "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
+    }
+  }
+}
