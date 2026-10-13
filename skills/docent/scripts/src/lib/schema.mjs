@@ -1,12 +1,14 @@
-// 중간 산출물(inventory.json, inventory.agent.json, screens/*.json)의 JSON Schema 검증.
-import { readFileSync } from 'node:fs';
+// 중간 산출물(inventory.json, inventory.agent.json, screens/*.json, summary.json)의 JSON Schema 검증.
+// 스키마는 import로 불러와 번들(dist)에 함께 들어가게 한다.
 import Ajv2020 from 'ajv/dist/2020.js';
+import inventoryAgentSchema from '../../../schemas/inventory-agent.schema.json' with { type: 'json' };
+import inventorySchema from '../../../schemas/inventory.schema.json' with { type: 'json' };
+import screenSchema from '../../../schemas/screen.schema.json' with { type: 'json' };
+import summarySchema from '../../../schemas/summary.schema.json' with { type: 'json' };
 
-const SCHEMA_DIR = new URL('../../../schemas/', import.meta.url);
 const ajv = new Ajv2020({ allErrors: true });
 
-function compile(name) {
-  const schema = JSON.parse(readFileSync(new URL(`${name}.schema.json`, SCHEMA_DIR), 'utf8'));
+function compile(schema) {
   const validate = ajv.compile(schema);
   return (data) => {
     const valid = validate(data);
@@ -15,7 +17,7 @@ function compile(name) {
   };
 }
 
-export const validateInventory = compile('inventory');
-export const validateScreen = compile('screen');
-export const validateInventoryAgent = compile('inventory-agent');
-export const validateSummary = compile('summary');
+export const validateInventory = compile(inventorySchema);
+export const validateScreen = compile(screenSchema);
+export const validateInventoryAgent = compile(inventoryAgentSchema);
+export const validateSummary = compile(summarySchema);

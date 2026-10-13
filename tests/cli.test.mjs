@@ -1,0 +1,56 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { cp, readFile, stat, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { copyFixture, EXPECTED, writeAgentModal } from './helpers/fixture.mjs';
+
+const CLI = resolve('skills/docent/scripts/dist/docent.mjs');
+
+function run(args, cwd) {
+  return spawnSync('node', [CLI, ...args], { cwd, encoding: 'utf8' });
+}
+
+test('번들 CLI로 init → inventory → validate → build', async () => {
+  const dir = await copyFixture();
+  let r = run(['init'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  await writeAgentModal(dir);
+  r = run(['inventory', '--project', dir], '/');
+  assert.equal(r.status, 0, r.stderr);
+  const docent = join(dir, '.docent');
+  await cp(join(EXPECTED, 'screens'), join(docent, 'screens'), { recursive: true });
+  await cp(join(EXPECTED, 'summary.json'), join(docent, 'summary.json'));
+  r = run(['validate'], dir);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  r = run(['review'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  r = run(['build'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok((await stat(join(docent, 'out', 'html', 'assets', 'mermaid.min.js'))).size > 100_000);
+  assert.ok((await readFile(join(docent, 'out', 'README.md'), 'utf8')).startsWith('# nextjs-sample'));
+});
+
+test('validate 실패는 exit 1', async () => {
+  const dir = await copyFixture();
+  run(['init'], dir);
+  await writeFile(join(dir, '.docent', 'inventory.json'), '{');
+  const r = run(['validate'], dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stdout + r.stderr, /inventory\.json/);
+});
+
+test('session start/end', async () => {
+  const dir = await copyFixture();
+  run(['init'], dir);
+  assert.equal(run(['session', 'start'], dir).status, 0);
+  assert.match(await readFile(join(dir, '.docent', '.session'), 'utf8'), /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(run(['session', 'end'], dir).status, 0);
+  await assert.rejects(stat(join(dir, '.docent', '.session')));
+});
+
+test('알 수 없는 명령은 exit 2', () => {
+  const r = run(['nope'], '.');
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /사용법/);
+});

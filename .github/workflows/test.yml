@@ -15,6 +15,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: 번들이 소스와 같은지 확인
+        run: npm run build && git diff --exit-code skills/docent/scripts/dist skills/docent/assets
 
   fixture-build:
     runs-on: ubuntu-latest

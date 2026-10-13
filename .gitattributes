@@ -1,1 +1,3 @@
 * text=auto eol=lf
+skills/docent/scripts/dist/** linguist-generated=true -diff
+skills/docent/assets/mermaid.min.js linguist-generated=true -diff
