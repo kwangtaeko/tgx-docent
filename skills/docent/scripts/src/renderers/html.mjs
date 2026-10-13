@@ -126,7 +126,7 @@ function renderScreen(input, entry) {
   if (s.menuPath) meta.push(`<dt>메뉴 위치</dt><dd>${h(s.menuPath.value.join(' › '))} ${ev(s.menuPath.evidence)}</dd>`);
   meta.push(s.route ? `<dt>경로</dt><dd><code>${h(s.route)}</code></dd>` : `<dt>상위 화면</dt><dd>${link(screens, s.parentId)}</dd>`);
   meta.push(`<dt>목적</dt><dd>${flag(s.purpose)}${h(s.purpose.value)} ${ev(s.purpose.evidence)}</dd>`);
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)} ${ev(r.evidence)}`).join(', ') : '로그인 없이 사용';
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)}${ev(r.evidence)}`).join(', ') : '로그인 없이 사용';
   meta.push(`<dt>사용 역할</dt><dd>${roles}</dd>`);
 
   const sections = s.sections.length

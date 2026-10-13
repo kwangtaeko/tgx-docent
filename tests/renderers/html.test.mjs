@@ -61,3 +61,9 @@ test('특수문자', async () => {
   const comments = html.match(/<!--[\s\S]*?-->/g) ?? [];
   for (const c of comments) assert.ok(!c.slice(4, -3).includes('--'), c);
 });
+
+test('근거 주석 때문에 쉼표 앞에 공백이 생기지 않는다', async () => {
+  const html = renderSite(await loadGolden()).get('screens/orders.html');
+  const text = html.replace(/<!--[\s\S]*?-->/g, '');
+  assert.ok(text.includes('영업담당, 관리자'), text.match(/사용 역할.*$/m)?.[0]);
+});

@@ -78,3 +78,16 @@ test('라벨 문구가 근거 근처에 없으면 실패', async () => {
   const { problems } = await runValidate(dir);
   assert.ok(problems.some((p) => p.startsWith('login:') && p.includes('사용자 ID')), problems.join('\n'));
 });
+
+test('화면이 하나뿐인 워크플로우는 실패', async () => {
+  const { dir, docent } = await golden();
+  const summary = await readJsonFile(join(docent, 'summary.json'));
+  const path = join(docent, 'screens', 'admin-users.json');
+  const screen = await readJsonFile(path);
+  screen.actions[0].navigatesTo = 'admin-users';
+  await writeJsonFile(path, screen);
+  summary.workflows.push({ name: '권한 변경', description: '같은 화면', steps: ['admin-users', 'admin-users'] });
+  await writeJsonFile(join(docent, 'summary.json'), summary);
+  const { problems } = await runValidate(dir);
+  assert.ok(problems.some((p) => p.includes('권한 변경') && p.includes('화면 2개 이상')), problems.join('\n'));
+});

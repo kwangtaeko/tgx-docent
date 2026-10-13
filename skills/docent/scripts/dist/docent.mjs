@@ -15006,7 +15006,7 @@ function renderScreen(input, entry) {
   if (s.menuPath) meta.push(`<dt>\uBA54\uB274 \uC704\uCE58</dt><dd>${escapeHtml(s.menuPath.value.join(" \u203A "))} ${ev(s.menuPath.evidence)}</dd>`);
   meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(screens, s.parentId)}</dd>`);
   meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)} ${ev(s.purpose.evidence)}</dd>`);
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)} ${ev(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${ev(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
   meta.push(`<dt>\uC0AC\uC6A9 \uC5ED\uD560</dt><dd>${roles}</dd>`);
   const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)} ${ev(x.evidence)}</li>`).join("")}</ul>` : "";
   const fields = table(
@@ -15838,6 +15838,10 @@ function checkSummary(summary, screens, known, problems) {
     const missing = wf.steps.filter((id) => !exists2(id));
     if (missing.length) {
       problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${missing.join(", ")}`);
+      continue;
+    }
+    if (new Set(wf.steps).size < 2) {
+      problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4`);
       continue;
     }
     for (let i = 0; i + 1 < wf.steps.length; i++) {

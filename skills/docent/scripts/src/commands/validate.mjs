@@ -67,6 +67,10 @@ function checkSummary(summary, screens, known, problems) {
       problems.push(`summary.json: 워크플로우 "${wf.name}"의 없는 화면 ${missing.join(', ')}`);
       continue;
     }
+    if (new Set(wf.steps).size < 2) {
+      problems.push(`summary.json: 워크플로우 "${wf.name}"는 화면 2개 이상을 오가야 합니다`);
+      continue;
+    }
     for (let i = 0; i + 1 < wf.steps.length; i++) {
       const [a, b] = [wf.steps[i], wf.steps[i + 1]];
       if (!loaded(a) || !loaded(b)) continue;
