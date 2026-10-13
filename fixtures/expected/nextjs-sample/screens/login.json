@@ -7,7 +7,7 @@
     "evidence": "app/login/page.tsx:8"
   },
   "purpose": {
-    "value": "아이디와 비밀번호로 시스템에 로그인한다",
+    "value": "아이디와 비밀번호로 시스템에 로그인합니다",
     "evidence": "app/login/page.tsx:9-20",
     "confidence": "high"
   },
@@ -32,7 +32,7 @@
   "actions": [
     {
       "label": "로그인",
-      "effect": "계정을 확인하고 대시보드로 이동한다. 계정이 틀리면 오류 메시지를 표시한다",
+      "effect": "계정을 확인하고 대시보드로 이동합니다. 계정이 틀리면 오류 메시지를 표시합니다",
       "navigatesTo": "home",
       "evidence": "app/login/page.tsx:19",
       "confidence": "high"

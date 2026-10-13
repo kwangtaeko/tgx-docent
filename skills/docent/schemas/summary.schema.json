@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwangtaeko/tgx-docent/schemas/summary.schema.json",
+  "title": "docent summary (프로젝트 소개·워크플로우)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["oneLiner", "features", "workflows"],
+  "properties": {
+    "oneLiner": { "$ref": "#/$defs/claim" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["menu", "value", "screens"],
+        "properties": {
+          "menu": { "type": "string", "minLength": 1 },
+          "value": { "type": "string", "minLength": 1 },
+          "screens": { "$ref": "#/$defs/ids" }
+        }
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description", "steps"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "steps": { "type": "array", "minItems": 2, "items": { "type": "string" } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ids": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "screens"],
+      "properties": {
+        "value": { "type": "string", "minLength": 1 },
+        "screens": { "$ref": "#/$defs/ids" }
+      }
+    }
+  }
+}

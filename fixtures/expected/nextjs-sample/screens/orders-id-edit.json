@@ -7,7 +7,7 @@
     "evidence": "app/orders/[id]/edit/page.tsx:14"
   },
   "purpose": {
-    "value": "주문의 납기일·수량·비고를 수정한다",
+    "value": "주문의 납기일·수량·비고를 수정합니다",
     "evidence": "app/orders/[id]/edit/edit-form.tsx:11-28",
     "confidence": "high"
   },
@@ -50,7 +50,7 @@
   "actions": [
     {
       "label": "저장",
-      "effect": "입력값을 검증해 주문을 수정하고 주문 상세 화면으로 이동한다",
+      "effect": "입력값을 검증해 주문을 수정하고 주문 상세 화면으로 이동합니다",
       "navigatesTo": "orders-id",
       "evidence": "app/orders/[id]/edit/edit-form.tsx:26",
       "confidence": "high"

@@ -14,7 +14,7 @@
     "evidence": "components/nav.tsx:16"
   },
   "purpose": {
-    "value": "거래처를 골라 신규 주문을 등록한다",
+    "value": "거래처를 골라 신규 주문을 등록합니다",
     "evidence": "app/orders/new/order-form.tsx:11-45",
     "confidence": "high"
   },
@@ -64,14 +64,14 @@
   "actions": [
     {
       "label": "거래처 찾기",
-      "effect": "거래처 찾기 창을 연다",
+      "effect": "거래처 찾기 창을 엽니다",
       "opens": "orders-new--customer-search",
       "evidence": "app/orders/new/order-form.tsx:18",
       "confidence": "high"
     },
     {
       "label": "저장",
-      "effect": "입력값을 검증하고 여신 확인을 거쳐 주문을 저장한 뒤 주문 목록으로 이동한다. 여신 확인을 통과하지 못하면 저장하지 않는다",
+      "effect": "입력값을 검증하고 여신 확인을 거쳐 주문을 저장한 뒤 주문 목록으로 이동합니다. 여신 확인을 통과하지 못하면 저장하지 않습니다",
       "navigatesTo": "orders",
       "evidence": "app/orders/new/order-form.tsx:32",
       "confidence": "low"

@@ -13,7 +13,7 @@
     "evidence": "components/nav.tsx:11"
   },
   "purpose": {
-    "value": "오늘 들어온 주문 수를 확인하고 주문 목록·주문 등록으로 이동한다",
+    "value": "오늘 들어온 주문 수를 확인하고 주문 목록·주문 등록으로 이동합니다",
     "evidence": "app/page.tsx:10-19",
     "confidence": "high"
   },
@@ -34,14 +34,14 @@
   "actions": [
     {
       "label": "주문 목록",
-      "effect": "주문 목록 화면으로 이동한다",
+      "effect": "주문 목록 화면으로 이동합니다",
       "navigatesTo": "orders",
       "evidence": "app/page.tsx:17",
       "confidence": "high"
     },
     {
       "label": "주문 등록",
-      "effect": "주문 등록 화면으로 이동한다",
+      "effect": "주문 등록 화면으로 이동합니다",
       "navigatesTo": "orders-new",
       "evidence": "app/page.tsx:17",
       "confidence": "high"

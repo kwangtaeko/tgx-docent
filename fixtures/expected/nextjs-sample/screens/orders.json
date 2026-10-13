@@ -14,7 +14,7 @@
     "evidence": "components/nav.tsx:15"
   },
   "purpose": {
-    "value": "주문을 거래처명과 상태로 검색하고 상세·등록 화면으로 이동한다",
+    "value": "주문을 거래처명과 상태로 검색하고 상세·등록 화면으로 이동합니다",
     "evidence": "app/orders/page.tsx:13-48",
     "confidence": "high"
   },
@@ -50,20 +50,20 @@
   "actions": [
     {
       "label": "검색",
-      "effect": "입력한 조건으로 주문 목록을 다시 조회한다",
+      "effect": "입력한 조건으로 주문 목록을 다시 조회합니다",
       "evidence": "app/orders/page.tsx:31",
       "confidence": "high"
     },
     {
       "label": "신규 등록",
-      "effect": "주문 등록 화면으로 이동한다",
+      "effect": "주문 등록 화면으로 이동합니다",
       "navigatesTo": "orders-new",
       "evidence": "app/orders/page.tsx:33",
       "confidence": "high"
     },
     {
       "label": "번호",
-      "effect": "목록에서 주문 번호를 누르면 주문 상세 화면으로 이동한다",
+      "effect": "목록에서 주문 번호를 누르면 주문 상세 화면으로 이동합니다",
       "navigatesTo": "orders-id",
       "evidence": "app/orders/page.tsx:41",
       "confidence": "high"

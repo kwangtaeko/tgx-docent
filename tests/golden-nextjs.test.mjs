@@ -114,3 +114,25 @@ test('워크플로우 연결', () => {
     assert.ok(edges.has(e), e);
   }
 });
+
+test('summary가 스키마를 통과하고 workflow 간선이 실제 동작 간선이다', async () => {
+  const { validateSummary } = await import('../skills/docent/scripts/src/lib/schema.mjs');
+  const summary = await readJson(join(EXP, 'summary.json'));
+  const r = validateSummary(summary);
+  assert.ok(r.valid, r.errors.join('\n'));
+  for (const wf of summary.workflows) {
+    for (let i = 0; i + 1 < wf.steps.length; i++) {
+      const [a, b] = [wf.steps[i], wf.steps[i + 1]];
+      const viaAction = screens.get(a).actions.some((x) => x.navigatesTo === b || x.opens === b);
+      const closeToParent = screens.get(a).parentId === b; // 하위 화면을 닫고 부모로 돌아감
+      assert.ok(viaAction || closeToParent, `${wf.name}: ${a} → ${b}`);
+    }
+  }
+});
+
+test('골든 서술은 합니다체다', () => {
+  for (const s of screens.values()) {
+    assert.match(s.purpose.value, /니다$/, s.id);
+    for (const a of s.actions) assert.match(a.effect, /니다\.?$/, `${s.id} ${a.label}`);
+  }
+});

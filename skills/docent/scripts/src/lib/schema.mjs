@@ -18,3 +18,4 @@ function compile(name) {
 export const validateInventory = compile('inventory');
 export const validateScreen = compile('screen');
 export const validateInventoryAgent = compile('inventory-agent');
+export const validateSummary = compile('summary');

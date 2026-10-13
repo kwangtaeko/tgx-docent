@@ -1,0 +1,67 @@
+{
+  "oneLiner": {
+    "value": "거래처 주문을 등록하고 조회·수정·삭제하는 주문 관리 시스템입니다",
+    "screens": [
+      "orders",
+      "orders-new",
+      "orders-id",
+      "orders-id-edit"
+    ]
+  },
+  "features": [
+    {
+      "menu": "대시보드",
+      "value": "오늘 들어온 주문 수를 확인하고 주문 업무로 바로 이동합니다",
+      "screens": [
+        "home"
+      ]
+    },
+    {
+      "menu": "주문관리",
+      "value": "주문을 검색하고 신규 주문을 등록·수정·삭제합니다",
+      "screens": [
+        "orders",
+        "orders-new",
+        "orders-id-edit"
+      ]
+    },
+    {
+      "menu": "관리자",
+      "value": "사용자별 권한을 영업담당·관리자로 변경합니다",
+      "screens": [
+        "admin-users"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "로그인",
+      "description": "아이디와 비밀번호로 로그인하면 대시보드로 이동합니다",
+      "steps": [
+        "login",
+        "home"
+      ]
+    },
+    {
+      "name": "주문 등록",
+      "description": "주문 목록에서 신규 등록으로 들어가 거래처를 찾아 고르고 저장하면 주문 목록으로 돌아옵니다",
+      "steps": [
+        "orders",
+        "orders-new",
+        "orders-new--customer-search",
+        "orders-new",
+        "orders"
+      ]
+    },
+    {
+      "name": "주문 수정",
+      "description": "주문 목록에서 주문을 열어 수정하고 저장하면 주문 상세로 돌아옵니다",
+      "steps": [
+        "orders",
+        "orders-id",
+        "orders-id-edit",
+        "orders-id"
+      ]
+    }
+  ]
+}

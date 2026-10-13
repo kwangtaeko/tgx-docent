@@ -14,7 +14,7 @@
     "evidence": "components/nav.tsx:23"
   },
   "purpose": {
-    "value": "사용자별 권한(영업담당·관리자)을 변경한다",
+    "value": "사용자별 권한(영업담당·관리자)을 변경합니다",
     "evidence": "app/admin/users/page.tsx:14-38",
     "confidence": "high"
   },
@@ -38,7 +38,7 @@
   "actions": [
     {
       "label": "저장",
-      "effect": "변경한 권한을 저장하고 같은 화면에 결과를 표시한다",
+      "effect": "변경한 권한을 저장하고 같은 화면에 결과를 표시합니다",
       "evidence": "app/admin/users/page.tsx:37",
       "confidence": "high"
     }

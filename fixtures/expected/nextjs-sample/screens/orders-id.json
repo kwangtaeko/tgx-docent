@@ -7,7 +7,7 @@
     "evidence": "app/orders/[id]/page.tsx:18"
   },
   "purpose": {
-    "value": "주문 정보를 확인하고 수정하거나 삭제한다",
+    "value": "주문 정보를 확인하고 수정하거나 삭제합니다",
     "evidence": "app/orders/[id]/page.tsx:17-30",
     "confidence": "high"
   },
@@ -28,14 +28,14 @@
   "actions": [
     {
       "label": "수정",
-      "effect": "주문 수정 화면으로 이동한다",
+      "effect": "주문 수정 화면으로 이동합니다",
       "navigatesTo": "orders-id-edit",
       "evidence": "app/orders/[id]/page.tsx:27",
       "confidence": "high"
     },
     {
       "label": "삭제",
-      "effect": "확인창에서 확인하면 주문을 삭제하고 주문 목록으로 이동한다",
+      "effect": "확인창에서 확인하면 주문을 삭제하고 주문 목록으로 이동합니다",
       "navigatesTo": "orders",
       "evidence": "app/orders/[id]/delete-button.tsx:13",
       "confidence": "high"

@@ -8,7 +8,7 @@
     "evidence": "app/orders/new/customer-search.tsx:19"
   },
   "purpose": {
-    "value": "거래처명으로 거래처를 검색해 주문 등록 화면의 거래처 항목에 채운다",
+    "value": "거래처명으로 거래처를 검색해 주문 등록 화면의 거래처 항목에 채웁니다",
     "evidence": "app/orders/new/customer-search.tsx:17-33",
     "confidence": "high"
   },
@@ -37,13 +37,13 @@
   "actions": [
     {
       "label": "선택",
-      "effect": "고른 거래처를 주문 등록 화면의 거래처 항목에 채우고 창을 닫는다",
+      "effect": "고른 거래처를 주문 등록 화면의 거래처 항목에 채우고 창을 닫습니다",
       "evidence": "app/orders/new/customer-search.tsx:27",
       "confidence": "high"
     },
     {
       "label": "닫기",
-      "effect": "창을 닫는다",
+      "effect": "창을 닫습니다",
       "evidence": "app/orders/new/customer-search.tsx:31",
       "confidence": "high"
     }
