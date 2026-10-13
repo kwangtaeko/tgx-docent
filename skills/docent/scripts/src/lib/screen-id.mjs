@@ -31,15 +31,26 @@ export function childId(parentId, name) {
   return `${parentId}--${slug(name)}`;
 }
 
-export function assignIds(routes) {
+// previous: 이전 실행의 라우트 → ID 맵. 남아 있는 라우트는 같은 ID를 유지해,
+// 새 라우트가 추가돼도 기존 화면의 ID(증분 갱신·캡처·GIF의 키)가 바뀌지 않게 한다.
+export function assignIds(routes, previous = new Map()) {
   const ids = new Map();
   const taken = new Set();
-  for (const route of [...routes].sort()) {
+  const sorted = [...routes].sort();
+  for (const route of sorted) {
+    const kept = previous.get(route);
+    if (kept !== undefined && !taken.has(kept)) {
+      ids.set(route, kept);
+      taken.add(kept);
+    }
+  }
+  for (const route of sorted) {
+    if (ids.has(route)) continue;
     const base = routeToId(route);
     let id = base;
     for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
     taken.add(id);
     ids.set(route, id);
   }
-  return ids;
+  return new Map(routes.map((route) => [route, ids.get(route)]));
 }

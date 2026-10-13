@@ -25,7 +25,10 @@ before(async () => {
   await mkdir(root);
   await writeFile(join(root, 'page.tsx'), LINES.join('\n') + '\n');
   await writeFile(join(root, 'crlf.tsx'), LINES.join('\r\n') + '\r\n');
-  await writeFile(join(root, 'actions.ts'), 'export async function handleSave() {}\n');
+  await writeFile(
+    join(root, 'actions.ts'),
+    ['export async function handleSave() {}', '', '', '', '', '', '', '', "const far = '저장';"].join('\n') + '\n',
+  );
   // 루트 밖 파일: 존재해도 읽으면 안 된다.
   await writeFile(join(base, 'outside.ts'), '저장\n');
 });
@@ -84,4 +87,9 @@ test('함수명 근거', async () => {
 test('형식이 틀린 근거는 예외 대신 실패 결과', async () => {
   const r = await checkEvidence(root, 'page.tsx');
   assert.equal(r.ok, false);
+});
+
+test('함수명 근거의 문구는 그 함수 위치 ±5줄 안에서만 찾는다', async () => {
+  assert.equal((await checkEvidence(root, 'actions.ts:handleSave', { expectText: 'handleSave' })).ok, true);
+  assert.equal((await checkEvidence(root, 'actions.ts:handleSave', { expectText: '저장' })).ok, false);
 });

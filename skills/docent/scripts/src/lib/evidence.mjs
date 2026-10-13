@@ -49,10 +49,12 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
   let window;
   if ('symbol' in ev) {
     const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
-    if (!lines.some((line) => pattern.test(line))) {
+    const hits = lines.flatMap((line, i) => (pattern.test(line) ? [i] : []));
+    if (hits.length === 0) {
       return { ok: false, reason: `${ev.file}에 ${ev.symbol} 없음` };
     }
-    window = lines;
+    // 심볼이 나오는 각 위치의 ±TEXT_WINDOW줄
+    window = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
   } else {
     const { startLine, endLine } = ev;
     if (startLine < 1 || startLine > endLine || endLine > lines.length) {

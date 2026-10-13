@@ -43,3 +43,17 @@ test('충돌 접미어가 다른 라우트의 기본 ID와 겹치지 않는다',
   const ids = assignIds(['/a/b', '/a-b', '/a-b-2']);
   assert.equal(new Set(ids.values()).size, 3);
 });
+
+test('기존 ID는 새 라우트가 추가돼도 유지된다', () => {
+  const before = assignIds(['/a/b', '/a/b-2']);
+  const after = assignIds(['/a/b', '/a/b-2', '/a-b'], before);
+  assert.equal(after.get('/a/b'), before.get('/a/b'));
+  assert.equal(after.get('/a/b-2'), before.get('/a/b-2'));
+  assert.equal(new Set(after.values()).size, 3);
+});
+
+test('사라진 라우트의 ID는 이전 맵에 있어도 쓰이지 않는다', () => {
+  const before = assignIds(['/x']);
+  const after = assignIds(['/y'], before);
+  assert.deepEqual([...after.keys()], ['/y']);
+});
