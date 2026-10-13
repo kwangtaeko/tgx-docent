@@ -1,0 +1,16 @@
+{
+  "description": "docent 분석 세션 중 비밀 파일(.env, appsettings*.json 등) 읽기를 막는다",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/block-secrets.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
