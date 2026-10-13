@@ -1,7 +1,7 @@
 # tgx-docent 기획서
 
 > 소스 코드를 분석해 사용자 매뉴얼과 화면 목록 초안을 만드는 크로스 에이전트 플러그인
-> 기준일: 2026-10-07
+> 기준일: 2026-10-13 (소개 README·화면 GIF 기능 추가)
 
 ## 개요
 
@@ -20,9 +20,10 @@
 
 **비목표**
 
-- 개발자용 기술 문서(README, API 레퍼런스) 생성
+- 개발자용 기술 문서(설치·빌드 방법, API 레퍼런스, 아키텍처) 생성 — 단, 최종 사용자 관점의 **시스템 소개 README**는 만듭니다
 - 사람 검토 없이 바로 납품 가능한 완성본
-- 영상 튜토리얼, 별도 SaaS 호스팅, 수익화
+- 나레이션·편집이 들어간 영상 튜토리얼 — 화면 단위의 짧은 **조작 GIF**까지만 다룹니다
+- 별도 SaaS 호스팅, 수익화
 
 ## 포지셔닝과 차별점
 
@@ -33,7 +34,7 @@
 | 소스 기반 개발자 문서 | DocuWriter.ai, AutoCodeDocs, DocDog | 소스 코드 | README, API 문서, 아키텍처 | 최종 사용자 관점 없음 |
 | 화면 녹화형 가이드 | Scribe, Tango | 사용자 조작 캡처 | 단계별 사용법 | 사람이 화면마다 직접 시연해야 함, 전체 화면 커버 불가 |
 | 개인 실험 | Classmethod의 tsumiki 확장 | 소스 코드 | 조작 매뉴얼 초안 | 비공개, 일본어·자사 환경 한정 |
-| **docent** | — | 소스 코드 (+ 선택적 화면 검증) | 화면 목록, 사용자·운영자 매뉴얼 초안 | — |
+| **docent** | — | 소스 코드 (+ 선택적 화면 검증) | 화면 목록, 사용자·운영자 매뉴얼 초안, 시스템 소개 README, 화면 조작 GIF | — |
 
 **차별점 세 가지**
 
@@ -48,12 +49,13 @@ v0.1은 **Next.js App Router와 ASP.NET WebForms 두 스택**, **화면 목록�
 | 버전 | 지원 스택 | 산출물 | 기타 |
 | --- | --- | --- | --- |
 | v0.1 (MVP) | Next.js App Router, ASP.NET WebForms | 화면 목록, 사용자 매뉴얼 (Markdown) | 증분 갱신(git diff 기준) |
-| v0.2 | Spring MVC (JSP·Thymeleaf), React Router SPA | 운영자·관리자 매뉴얼, 메뉴 구조도(Mermaid) | 사용자 템플릿 교체, docx 내보내기 |
-| v0.3 | 커뮤니티 어댑터 기여 구조 | 화면 정의서 | 브라우저 화면 검증·스크린샷 삽입 |
+| v0.2 | Spring MVC (JSP·Thymeleaf), React Router SPA | 운영자·관리자 매뉴얼, 메뉴 구조도(Mermaid), 시스템 소개 README | 사용자 템플릿 교체, docx 내보내기 |
+| v0.3 | 커뮤니티 어댑터 기여 구조 | 화면 정의서, 화면 조작 GIF | 브라우저 화면 검증·스크린샷 삽입 |
 
 **v0.1에서 제외**
 
-- 스크린샷 자동 캡처와 실제 화면 대조
+- 스크린샷 자동 캡처, 조작 GIF 녹화, 실제 화면 대조
+- 시스템 소개 README (화면 JSON이 안정된 뒤 v0.2에서 템플릿으로 추가)
 - 운영자 매뉴얼(권한·코드 관리·배치 등 시스템 운영 영역)
 - docx/hwp 출력 — Markdown만 생성하고, 변환은 사용자가 pandoc 등으로 처리
 - 다국어 매뉴얼 (매뉴얼 본문은 한국어 기본, 설정으로 영어 선택)
@@ -70,28 +72,36 @@ flowchart LR
     analyze["3 · analyze<br/>화면별 병렬 분석<br/>screens/*.json"]
     review["4 · review<br/>확인 필요 모음<br/>review.md"]
     build["5 · build<br/>템플릿 렌더링<br/>out/*.md"]
+    scenario["scenario (선택)<br/>녹화 시나리오 작성<br/>scenarios/*.json"]
+    record["record (선택)<br/>브라우저 녹화·GIF 변환<br/>out/gif/*.gif"]
 
     init --> scan --> analyze
     update -- 변경 화면만 --> analyze
     analyze --> review
     review -- 사용자 답변·DB 덤프 반영 후 재분석 --> analyze
     review -- 확인 완료 --> build
+    review -- 확인 완료 --> scenario --> record
+    record -- GIF 경로 삽입 --> build
 
     classDef agent fill:#e8f0fe,stroke:#3b6fd8,stroke-width:2px
     classDef script fill:#ffffff,stroke:#9aa0a6
+    classDef optional fill:#ffffff,stroke:#9aa0a6,stroke-dasharray:4 3
     class analyze,review agent
     class init,scan,update,build script
+    class scenario agent
+    class record optional
 ```
 
-> 파란 박스 = 에이전트(LLM) 해석, 흰 박스 = 스크립트(같은 입력이면 같은 결과)
+> 파란 박스 = 에이전트(LLM) 해석, 흰 박스 = 스크립트(같은 입력이면 같은 결과), 점선 = 선택 기능(Playwright·ffmpeg 설치 시에만 동작)
 
 | 명령 | 하는 일 | 주체 |
 | --- | --- | --- |
 | `/docent-init` | 스택 감지, `.docent/config.yaml` 생성 | 스크립트 |
 | `/docent-scan` | 화면·메뉴 추출 → `inventory.json` | 스크립트 |
 | `/docent-analyze [화면ID \| all]` | 화면별 서브에이전트 병렬 분석 → `screens/*.json`, `review.md` | 에이전트 |
-| `/docent-build [list \| user]` | 템플릿 렌더링 → `out/*.md` | 스크립트 |
-| `/docent-update` | git diff 기준 변경 화면만 재분석 후 재렌더링 | 스크립트 + 에이전트 |
+| `/docent-build [list \| user \| intro]` | 템플릿 렌더링 → `out/*.md` (`intro` = 시스템 소개 README) | 스크립트 |
+| `/docent-record [화면ID \| all]` | 시나리오가 없거나 낡은 화면만 시나리오 작성 → 녹화 → GIF 변환 | 에이전트 + 스크립트 |
+| `/docent-update` | git diff 기준 변경 화면만 재분석 후 재렌더링 (GIF가 있는 화면은 시나리오 낡음 표시) | 스크립트 + 에이전트 |
 | `/docent` | 위 단계를 한 번에 실행 (첫 실행용) | 전체 |
 
 ## 플러그인/레포 구조
@@ -113,17 +123,20 @@ tgx-docent/
 │  │     └─ aspnet-webforms.md
 │  ├─ templates/
 │  │  ├─ screen-list.md.hbs
-│  │  └─ user-manual.md.hbs
+│  │  ├─ user-manual.md.hbs
+│  │  └─ intro.md.hbs           # 시스템 소개 README (v0.2)
 │  └─ scripts/
 │     ├─ detect-stack.mjs       # 스택 감지
 │     ├─ scan.mjs               # 어댑터 호출 → inventory.json
 │     ├─ adapters/nextjs.mjs
 │     ├─ adapters/webforms.mjs
 │     ├─ diff.mjs               # git diff → 재분석 대상 화면
-│     └─ render.mjs             # screens/*.json + 템플릿 → Markdown
+│     ├─ render.mjs             # screens/*.json + 템플릿 → Markdown
+│     └─ record.mjs             # scenarios/*.json → Playwright 녹화 → ffmpeg GIF (v0.3, 선택 의존성)
 ├─ commands/                    # /docent-init, /docent-scan, /docent-build 등
 ├─ agents/
-│  └─ screen-analyzer.md        # 화면 1개 분석 전담 서브에이전트
+│  ├─ screen-analyzer.md        # 화면 1개 분석 전담 서브에이전트
+│  └─ scenario-writer.md        # 화면 JSON → 녹화 시나리오 작성 (v0.3)
 ├─ fixtures/                    # 샘플 프로젝트 + 기대 산출물(골든 파일)
 │  ├─ nextjs-sample/
 │  └─ webforms-sample/
@@ -139,6 +152,7 @@ tgx-docent/
 - Claude Code: 플러그인 마켓플레이스로 `/plugin marketplace add`
 - Codex 및 SKILL.md를 읽는 에이전트: `skills/docent/`을 그대로 복사해 사용
 - 스크립트는 Node 표준 라이브러리 위주로 작성하고, 외부 의존성은 템플릿 엔진 정도로 최소화
+- GIF 녹화용 Playwright·ffmpeg는 **선택 의존성**입니다. 설치되지 않았으면 `/docent-record`만 설치 안내를 출력하고 끝나며, 다른 명령은 영향을 받지 않습니다.
 
 ## 스택별 분석 규칙
 
@@ -173,9 +187,14 @@ tgx-docent/
 ├─ screens/
 │  └─ ORD1010.json      # 화면별 분석 결과 (에이전트 생성)
 ├─ review.md            # 확인 필요 항목 모음
+├─ scenarios/           # 선택: 화면별 녹화 시나리오 (에이전트 생성, 사람이 수정 가능)
+│  └─ ORD1010.json
 └─ out/
    ├─ 화면목록.md
-   └─ 사용자매뉴얼.md
+   ├─ 사용자매뉴얼.md
+   ├─ README.md         # 시스템 소개 README
+   └─ gif/
+      └─ ORD1010.gif
 ```
 
 **화면 JSON 예시**
@@ -212,6 +231,74 @@ tgx-docent/
 
 `sourceHash`는 화면 관련 파일들의 해시로, 증분 갱신 시 변경된 화면만 재분석하는 기준입니다.
 
+## 시스템 소개 README (v0.2)
+
+개발자용 README(설치·빌드·API)가 아니라, **처음 보는 사용자·발주처·인수자에게 "이 시스템이 무엇을 하는가"를 설명하는 소개 문서**입니다. 새 분석 없이 `inventory.json`과 `screens/*.json`을 `intro.md.hbs` 템플릿으로 렌더링합니다.
+
+**구성**
+
+| 섹션 | 데이터 출처 | 생성 방식 |
+| --- | --- | --- |
+| 시스템 한 줄 소개 | 화면별 `purpose` 종합 | 에이전트 요약 (근거: 대표 화면 ID 목록) |
+| 주요 기능 | 메뉴 1depth별 화면 `purpose` | 템플릿 + 에이전트 요약 |
+| 메뉴 구조 | `menuPath` | 스크립트 (Mermaid 또는 목록) |
+| 사용자 역할 | 화면별 `roles` 합집합 | 스크립트 |
+| 화면 미리보기 | `out/gif/*.gif` (있을 때만) | 스크립트 |
+| 더 보기 | 사용자 매뉴얼·화면 목록 링크 | 스크립트 |
+
+- 요약 서술도 신뢰성 규칙을 따릅니다. 근거가 되는 화면 ID를 주석으로 남기고, `confidence: low`인 화면만으로 뒷받침되는 기능은 소개에 넣지 않습니다.
+- 기존 레포에 README.md가 있으면 덮어쓰지 않고 `out/README.md`에만 생성합니다.
+
+## 화면 조작 GIF (v0.3)
+
+매뉴얼의 주요 화면마다 "입력하고 버튼을 누르면 이렇게 된다"를 보여 주는 **5~15초짜리 GIF**를 만듭니다. 나레이션·자막·편집이 들어간 데모 영상은 만들지 않습니다.
+
+**흐름**
+
+1. **시나리오 작성 (에이전트)**: `scenario-writer`가 화면 JSON의 `fields`·`actions`·`messages`를 보고 녹화 시나리오를 `scenarios/*.json`으로 씁니다. 근거 없는 동작은 넣지 않습니다.
+2. **녹화 (스크립트)**: `record.mjs`가 Playwright로 시나리오를 실행하고 `recordVideo`로 webm을 남깁니다.
+3. **변환 (스크립트)**: ffmpeg로 팔레트 최적화 GIF를 만듭니다. 너비 800px, 10fps, 2MB 이하가 기본값입니다.
+4. **삽입 (스크립트)**: `build` 단계에서 매뉴얼과 소개 README의 해당 화면 섹션에 GIF 경로를 넣습니다.
+
+**시나리오 예시**
+
+```json
+{
+  "screenId": "ORD1010",
+  "baseUrl": "${DOCENT_BASE_URL}",
+  "login": "default",
+  "steps": [
+    { "do": "goto", "url": "/order/ORD1010.aspx" },
+    { "do": "select", "label": "거래처", "value": "(주)샘플상사", "evidence": "ORD1010.aspx:112" },
+    { "do": "fill", "label": "납기일", "value": "2026-11-01", "evidence": "ORD1010.aspx:131" },
+    { "do": "click", "label": "저장", "evidence": "ORD1010.aspx.cs:btnSave_Click" },
+    { "do": "expectText", "text": "저장되었습니다.", "evidence": "ORD1010.aspx.cs:204" }
+  ],
+  "sourceHash": "a1b2c3d"
+}
+```
+
+- 요소는 셀렉터가 아니라 **라벨·역할(role)로 찾습니다**. 마크업이 조금 바뀌어도 시나리오가 덜 깨집니다.
+- 시나리오는 파일로 남기 때문에 **다시 녹화할 때는 LLM 없이 스크립트만 실행**합니다. 화면의 `sourceHash`가 바뀌면 시나리오를 낡음으로 표시하고 다시 작성합니다.
+- 사람이 시나리오를 직접 고쳐도 되며, 이때는 `"locked": true`로 재작성을 막습니다.
+
+**사용자가 준비할 것**
+
+- 실행 중인 대상 앱의 URL (`DOCENT_BASE_URL`). docent는 앱을 직접 띄우지 않습니다.
+- 녹화용 테스트 계정. `.docent/config.yaml`에는 환경변수 이름만 적고 값은 저장하지 않습니다.
+- 목록·상세 화면이 비어 보이지 않을 정도의 테스트 데이터.
+- Playwright(Chromium)와 ffmpeg 설치.
+
+**비용**
+
+- 별도 LLM API 키가 필요 없습니다. 시나리오 작성은 사용자가 쓰는 에이전트(Claude Code, Codex 등) 안에서 이루어지고, 녹화·변환은 로컬 오픈소스 도구로 처리합니다.
+- CI에서 분석부터 녹화까지 전부 무인으로 돌릴 때만 에이전트 실행용 키가 필요합니다. 저장된 시나리오로 다시 녹화만 할 때는 키가 필요 없습니다.
+
+**실패 처리**
+
+- 단계가 실패하면(요소를 못 찾음, 기대 메시지가 나오지 않음) 그 화면의 GIF는 만들지 않고, 실패한 단계와 스크린샷을 `review.md`에 남깁니다. 실패한 화면을 그럴듯하게 녹화한 GIF는 내보내지 않습니다.
+- 녹화 결과는 화면 검증(아래)의 입력으로도 씁니다. 시나리오에 적힌 라벨을 실제 화면에서 찾지 못하면 그 자체가 JSON과 화면이 어긋났다는 신호입니다.
+
 ## 신뢰성 설계
 
 이 플러그인의 생명은 **"틀린 걸 그럴듯하게 쓰지 않는 것"**입니다. 한 번 틀린 매뉴얼을 받은 사용자는 다시 쓰지 않습니다.
@@ -228,10 +315,11 @@ tgx-docent/
 - 분석은 사용자의 로컬 에이전트 안에서만 일어나고, 플러그인 자체는 외부 전송을 하지 않습니다.
 - `.env`, `web.config`의 `connectionStrings`, `appsettings*.json`의 비밀값은 스캔 단계에서 마스킹합니다.
 - 사내 소스에 적용할 때는 사용 중인 에이전트(모델 API)로 소스가 전송된다는 점을 README에 명시합니다.
+- 스크린샷·GIF에는 화면에 보이는 데이터가 그대로 찍힙니다. 녹화는 테스트 계정·테스트 데이터 환경에서 하도록 안내하고, `config.yaml`의 마스킹 셀렉터(예: 주민번호·전화번호 칼럼)는 녹화 전에 블러 처리합니다. 녹화 파일은 로컬에만 저장하고 외부로 올리지 않습니다.
 
 **화면 검증 (v0.3)**
 
-브라우저 자동화로 라우트에 접속해 실제 라벨·버튼과 JSON을 대조하고, 불일치는 `review.md`에 추가합니다. 스크린샷은 같은 단계에서 캡처해 매뉴얼에 삽입합니다.
+브라우저 자동화로 라우트에 접속해 실제 라벨·버튼과 JSON을 대조하고, 불일치는 `review.md`에 추가합니다. 스크린샷과 GIF는 같은 Playwright 세션에서 캡처·녹화해 매뉴얼에 삽입합니다.
 
 ## 마일스톤과 작업 순서
 
@@ -252,12 +340,12 @@ v0.1은 **픽스처와 스키마를 먼저 고정하고, 어댑터 → 분석 �
 - [ ] `diff.mjs` 증분 갱신
 - [ ] 픽스처 골든 테스트 통과
 - [ ] 실전 적용: 개인 프로젝트 1개 + 레거시 화면 몇 개로 체감 검증
-- [ ] README(한/영), 데모 GIF, 마켓플레이스 등록, v0.1.0 릴리스
+- [ ] docent 레포 자체의 README(한/영)·데모 GIF(수작업 녹화), 마켓플레이스 등록, v0.1.0 릴리스
 
 **이후**
 
-- v0.2: Spring MVC·React Router 어댑터, 운영자 매뉴얼, 템플릿 교체, docx 내보내기
-- v0.3: 브라우저 화면 검증, 스크린샷, 화면 정의서, 어댑터 기여 가이드
+- v0.2: Spring MVC·React Router 어댑터, 운영자 매뉴얼, 템플릿 교체, docx 내보내기, 시스템 소개 README(`intro.md.hbs`)
+- v0.3: 브라우저 화면 검증, 스크린샷, 화면 조작 GIF(`scenario-writer`, `record.mjs`), 화면 정의서, 어댑터 기여 가이드
 
 ## 검증 계획과 성공 기준
 
@@ -271,10 +359,14 @@ v0.1 릴리스 조건은 **픽스처 골든 테스트 통과 + 실전 적용에�
 | 확인 필요 처리 | DB 의존·권한 분기 화면에서 `[확인 필요]` 표시 여부 | 해당 화면 전부 표시 |
 | 첫 실행 경험 | 설정 파일 수정 없이 init → build까지 | 명령 3개 이내로 결과 생성 |
 | 실사용 효과 | 같은 화면 3~5개를 수작업 작성 vs 초안 수정 시간 기록 | 초안 수정이 확실히 빠름 |
+| 소개 README 근거 (v0.2) | 소개 문서의 기능 서술마다 근거 화면 ID 존재 여부 | 근거 없는 서술 0건 |
+| GIF 녹화 성공률 (v0.3) | Next.js 픽스처를 띄운 상태에서 시나리오 실행 | 픽스처 등록·목록 화면 전부 성공, 실패 시 `review.md` 기록 |
+| GIF 재현성 (v0.3) | 같은 시나리오로 LLM 없이 재녹화 | 같은 단계 순서·같은 결과 메시지 |
 
 **회귀 방지**
 
 - 픽스처 골든 테스트를 CI(GitHub Actions)에서 스크립트 단계만 자동 실행
+- GIF는 바이트 단위 비교가 불가능하므로, CI에서는 Next.js 픽스처를 띄워 저장된 시나리오가 끝까지 통과하는지만 검사
 - LLM 단계는 결과가 매번 다르므로 스키마 검증 + 근거 존재 여부만 자동 검사하고, 서술 품질은 릴리스 전 수동 리뷰
 
 ## 미정 사항
@@ -284,6 +376,8 @@ v0.1 릴리스 조건은 **픽스처 골든 테스트 통과 + 실전 적용에�
 - [ ] **test-guard와의 순서**: 병행 vs test-guard v0.1 이후 착수
 - [ ] **사내 소스 실전 적용 가능 여부**: 회사 보안 정책상 외부 모델로 소스 전송이 허용되는지 확인. 불가하면 실전 검증은 개인 프로젝트·공개 레거시 샘플로 대체
 - [ ] **첫 산출물 양식**: 범용 양식으로 갈지, 공공 SI 표준 산출물 목차에 맞출지
+- [ ] **WebForms GIF 지원 범위**: IIS·DB가 필요한 레거시 앱은 사용자가 띄운 URL에만 녹화하는 것으로 충분한지, WebForms 픽스처용 녹화 환경(IIS Express 등)까지 갖출지
+- [ ] **GIF 대상 화면 선정**: 전 화면 vs 등록·수정처럼 동작이 있는 화면만(기본값 후보) vs 사용자가 `config.yaml`에서 지정
 
 ## 참고 자료
 
