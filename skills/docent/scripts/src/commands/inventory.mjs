@@ -103,7 +103,15 @@ export async function runInventory(projectDir) {
   }
 
   const ids = assignIds([...pages.keys()], previousIds);
-  for (const [route, id] of Object.entries(idMap)) if (ids.has(route)) ids.set(route, id);
+  for (const [route, id] of Object.entries(idMap)) {
+    if (!ids.has(route) || ids.get(route) === id) continue;
+    const owner = [...ids].find(([r, x]) => x === id && r !== route);
+    if (owner) {
+      problems.push(`config.yaml: idMap의 ${route} → ${id}는 ${owner[0]} 화면의 ID와 겹쳐 적용하지 않았습니다`);
+      continue;
+    }
+    ids.set(route, id);
+  }
 
   const children = new Map(); // parent id → entries
   for (const entry of agentEntries.filter((e) => e.kind !== 'page')) {

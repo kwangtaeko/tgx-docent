@@ -14796,7 +14796,7 @@ var require__ = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname3, join as join11, resolve as resolve2 } from "node:path";
+import { dirname as dirname3, join as join12, resolve as resolve2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/build.mjs
@@ -15869,7 +15869,7 @@ async function runValidate(projectDir) {
   }
   for (const file of files) {
     const s = await load(join4(dir, "screens", file), `screens/${file}`, problems);
-    if (!s) continue;
+    if (s === void 0) continue;
     const r = validateScreen(s);
     if (!r.valid) {
       problems.push(`screens/${file}: ${r.errors.join("; ")}`);
@@ -15884,7 +15884,7 @@ async function runValidate(projectDir) {
   const allIds = /* @__PURE__ */ new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
   const summary = await load(join4(dir, "summary.json"), "summary.json", problems);
-  if (summary) {
+  if (summary !== void 0) {
     const r = validateSummary(summary);
     if (!r.valid) problems.push(`summary.json: ${r.errors.join("; ")}`);
     else checkSummary(summary, screens, allIds, problems);
@@ -16276,7 +16276,15 @@ async function runInventory(projectDir) {
     if (include.length && !matchesAny(route, include) || matchesAny(route, exclude)) pages.delete(route);
   }
   const ids = assignIds([...pages.keys()], previousIds);
-  for (const [route, id] of Object.entries(idMap)) if (ids.has(route)) ids.set(route, id);
+  for (const [route, id] of Object.entries(idMap)) {
+    if (!ids.has(route) || ids.get(route) === id) continue;
+    const owner = [...ids].find(([r, x]) => x === id && r !== route);
+    if (owner) {
+      problems.push(`config.yaml: idMap\uC758 ${route} \u2192 ${id}\uB294 ${owner[0]} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4`);
+      continue;
+    }
+    ids.set(route, id);
+  }
   const children = /* @__PURE__ */ new Map();
   for (const entry of agentEntries.filter((e) => e.kind !== "page")) {
     const label = entry.name;
@@ -16325,6 +16333,10 @@ async function runInventory(projectDir) {
   await writeJson(join8(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
+
+// skills/docent/scripts/src/commands/pending.mjs
+import { readFile as readFile8 } from "node:fs/promises";
+import { join as join10 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
 import { readFile as readFile7, writeFile as writeFile4 } from "node:fs/promises";
@@ -16397,15 +16409,56 @@ async function runReview(projectDir) {
   return { items: text.split("\n").filter((l) => LINE.test(l)).length };
 }
 
+// skills/docent/scripts/src/commands/pending.mjs
+async function runPending(projectDir) {
+  const dir = docentDir(projectDir);
+  const inventory = await readJson(join10(dir, "inventory.json"));
+  let answers = /* @__PURE__ */ new Map();
+  try {
+    answers = parseReview(await readFile8(join10(dir, "review.md"), "utf8"));
+  } catch {
+  }
+  const pending = [];
+  for (const { id } of inventory.screens) {
+    let screen;
+    try {
+      screen = await readJsonIfExists(join10(dir, "screens", `${id}.json`));
+    } catch {
+      screen = null;
+    }
+    if (screen === void 0) {
+      pending.push({ id, reason: "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C" });
+      continue;
+    }
+    if (!validateScreen(screen).valid) {
+      pending.push({ id, reason: "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C" });
+      continue;
+    }
+    let current;
+    try {
+      current = await hashFiles(projectDir, screen.readFiles);
+    } catch {
+      current = void 0;
+    }
+    if (current !== screen.sourceHash) {
+      pending.push({ id, reason: "\uC18C\uC2A4 \uBCC0\uACBD" });
+      continue;
+    }
+    const answered = [...answers].filter(([key, v]) => key.startsWith(`${id}|`) && v.checked && v.answer).length;
+    if (answered) pending.push({ id, reason: `\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 ${answered}\uAC74` });
+  }
+  return pending;
+}
+
 // skills/docent/scripts/src/commands/session.mjs
 import { mkdir as mkdir4, rm as rm2, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join10 } from "node:path";
+import { join as join11 } from "node:path";
 async function startSession(projectDir) {
   await mkdir4(docentDir(projectDir), { recursive: true });
-  await writeFile5(join10(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile5(join11(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm2(join10(docentDir(projectDir), ".session"), { force: true });
+  await rm2(join11(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/docent.mjs
@@ -16414,13 +16467,14 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
 \uBA85\uB839:
   init           \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
   inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
+  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4
   validate       \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join11(dirname3(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join12(dirname3(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -16450,6 +16504,12 @@ async function main() {
       console.log(`\uD654\uBA74 ${inventory.screens.length}\uAC1C (page ${pages}, \uD558\uC704 \uD654\uBA74 ${inventory.screens.length - pages})`);
       for (const s of inventory.screens) console.log(`- ${s.id}	${s.route ?? `(${s.parentId}\uC758 \uD558\uC704 \uD654\uBA74)`}	${s.source}`);
       listProblems("\uC81C\uC678\uD55C \uD56D\uBAA9:", problems);
+      return 0;
+    }
+    case "pending": {
+      const list = await runPending(project);
+      if (!list.length) console.log("\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      for (const { id, reason } of list) console.log(`${id}	${reason}`);
       return 0;
     }
     case "validate": {

@@ -81,6 +81,10 @@ function main() {
   if (!blocked && input.tool_name === 'Glob' && toolInput.pattern && globTargetsSecret(toolInput.pattern, patterns)) {
     blocked = toolInput.pattern;
   }
+  // Grep은 glob 인자로 검색 대상 파일을 고를 수 있다
+  if (!blocked && input.tool_name === 'Grep' && toolInput.glob && globTargetsSecret(toolInput.glob, patterns)) {
+    blocked = toolInput.glob;
+  }
   if (!blocked) return 0;
   process.stderr.write(
     `docent: 비밀 파일(${blocked})은 분석하지 않습니다. 환경변수 이름은 .env.example이나 코드의 process.env 참조에서 확인하세요.\n`,

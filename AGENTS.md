@@ -10,8 +10,7 @@ docent는 웹앱 프로젝트의 소스를 분석해 화면 목록·매뉴얼·�
 ## 구조
 
 - `.claude-plugin/` — 플러그인·마켓플레이스 매니페스트
-- `skills/docent/` — 스킬 진입점(`SKILL.md`), 스키마(`schemas/`), CLI 소스(`scripts/src/`)와 번들(`scripts/dist/`, 생성물), 자산(`assets/`, 생성물), 참고 문서(`references/`)
-- `agents/` — 서브에이전트 지시(screen-analyzer, route-explorer, summary-writer)
+- `skills/docent/` — 스킬 진입점(`SKILL.md`), 스키마(`schemas/`), CLI 소스(`scripts/src/`)와 번들(`scripts/dist/`, 생성물), 자산(`assets/`, 생성물), 참고 문서(`references/`), 서브에이전트 지시(`agents/` — plugin.json의 `agents`로 등록)
 - `commands/` — `/docent` 등 슬래시 명령
 - `hooks/` — 분석 중 비밀 파일 읽기 차단 훅
 - `scripts/` — 번들(`build.mjs`), 골든 비교(`compare-golden.mjs`) 개발 도구

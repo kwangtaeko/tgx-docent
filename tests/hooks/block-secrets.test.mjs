@@ -53,3 +53,9 @@ test('입력이 깨져도 막지 않고 끝난다', () => {
   const r = spawnSync('node', [HOOK], { input: 'not json', encoding: 'utf8' });
   assert.equal(r.status, 0);
 });
+
+test('Grep의 glob 인자로 비밀 파일을 겨냥하면 막는다', async () => {
+  const dir = await project({ session: new Date() });
+  assert.equal(hook(dir, 'Grep', { pattern: 'KEY', glob: '.env*' }).status, 2);
+  assert.equal(hook(dir, 'Grep', { pattern: 'KEY', glob: '*.ts' }).status, 0);
+});

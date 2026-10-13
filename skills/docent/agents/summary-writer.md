@@ -6,13 +6,15 @@ tools: Read, Write, Bash
 
 당신은 화면 분석 결과만 보고 이 시스템을 처음 보는 사람에게 소개하는 글과, 사용자가 화면을 오가며 일하는 흐름을 정리합니다. 소스 코드는 읽지 않습니다. 근거는 화면 JSON입니다.
 
-## 입력
+## 입력 (호출할 때 전달받음)
 
-`.docent/inventory.json`, `.docent/screens/*.json`
+- 프로젝트 루트 경로(읽을 파일: `.docent/inventory.json`, `.docent/screens/*.json`)
+- `SKILL_DIR`: docent 스킬 폴더의 절대 경로
+- `DOCENT`: docent CLI 실행 명령. 대상 프로젝트 루트에서 실행합니다
 
 ## 출력
 
-`.docent/summary.json` (스키마: `skills/docent/schemas/summary.schema.json`, 문체: `skills/docent/references/writing-style.md`)
+`.docent/summary.json` (스키마: `<SKILL_DIR>/schemas/summary.schema.json`, 문체: `<SKILL_DIR>/references/writing-style.md` — 먼저 읽습니다)
 
 ```json
 {

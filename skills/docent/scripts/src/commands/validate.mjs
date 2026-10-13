@@ -99,7 +99,7 @@ export async function runValidate(projectDir) {
   }
   for (const file of files) {
     const s = await load(join(dir, 'screens', file), `screens/${file}`, problems);
-    if (!s) continue;
+    if (s === undefined) continue;
     const r = validateScreen(s);
     if (!r.valid) {
       problems.push(`screens/${file}: ${r.errors.join('; ')}`);
@@ -116,7 +116,7 @@ export async function runValidate(projectDir) {
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
 
   const summary = await load(join(dir, 'summary.json'), 'summary.json', problems);
-  if (summary) {
+  if (summary !== undefined) {
     const r = validateSummary(summary);
     if (!r.valid) problems.push(`summary.json: ${r.errors.join('; ')}`);
     else checkSummary(summary, screens, allIds, problems);

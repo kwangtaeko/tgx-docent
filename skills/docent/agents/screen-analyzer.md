@@ -11,11 +11,12 @@ tools: Read, Grep, Glob, Write, Bash
 - 프로젝트 루트 경로
 - 화면 ID와 `.docent/inventory.json`의 그 화면 항목(`route`, `kind`, `parentId`, `files`, `evidence`)
 - `.docent/review.md`에서 이 화면에 대해 사용자가 답한 항목(있으면). 답은 근거가 있는 사실로 반영하되, 소스로 확인할 수 없으면 `evidence`는 답이 가리키는 소스 위치로 두고 `confidence`는 `medium`으로 둡니다
-- docent CLI 경로(`DOCENT`)
+- `SKILL_DIR`: docent 스킬 폴더의 절대 경로(참고 문서가 있는 곳)
+- `DOCENT`: docent CLI 실행 명령(예: `node <SKILL_DIR>/scripts/dist/docent.mjs`). 대상 프로젝트 루트에서 실행합니다
 
 ## 출력
 
-`.docent/screens/<화면ID>.json` 파일 하나만 씁니다. 형식은 `skills/docent/references/schema.md`와 `skills/docent/schemas/screen.schema.json`을 따릅니다. 문체는 `skills/docent/references/writing-style.md`를 따릅니다.
+`.docent/screens/<화면ID>.json` 파일 하나만 씁니다. 형식은 `<SKILL_DIR>/references/schema.md`와 `<SKILL_DIR>/schemas/screen.schema.json`을 따릅니다. 문체는 `<SKILL_DIR>/references/writing-style.md`를 따릅니다. 먼저 이 세 파일을 읽습니다.
 
 ## 절차
 
@@ -31,8 +32,8 @@ tools: Read, Grep, Glob, Write, Bash
    - `actions`: 버튼·링크. `label`은 화면 문구 그대로, `effect`는 누르면 일어나는 일, 다른 화면으로 가면 `navigatesTo`(화면 ID; 처리 후 같은 화면에 머물거나 같은 화면을 다시 보여 주면 적지 않음), 하위 화면(모달·팝업)을 열면 `opens`
    - `messages`: 사용자에게 보이는 안내·오류·확인 문구(검증 메시지 포함)와 나오는 때. 이 화면의 버튼 결과로 이동한 화면에 표시되는 결과 문구(예: 저장 후 목록에 나오는 "저장되었습니다.")도 이 화면에 적고, 근거는 문구가 있는 위치로 둡니다
    - `unknowns`: 소스만으로 확정할 수 없는 것(외부 API의 판정 기준, DB에 있는 메뉴·권한·코드값 등)
-4. `sourceHash`는 `$DOCENT hash <readFiles의 파일들…>`(프로젝트 루트에서 실행)이 출력한 `sha256:…` 값을 그대로 넣습니다.
-5. 다 쓰면 `$DOCENT validate`를 실행해 이 화면 ID로 시작하는 문제가 없는지 확인하고, 있으면 고칩니다(다른 화면의 문제는 무시).
+4. `sourceHash`는 `$DOCENT hash <readFiles의 파일들…>`이 출력한 `sha256:…` 값을 그대로 넣습니다.
+5. 다 쓰면 `$DOCENT validate`를 실행해 이 화면의 문제를 확인하고 고칩니다. 이 화면의 문제는 `<화면ID>:`나 `screens/<화면ID>.json:`으로 시작하는 줄입니다. 다른 화면의 문제는 무시합니다. 단, 아직 inventory에 없는 하위 화면을 가리키는 `opens`("…의 opens가 없는 화면 <화면ID>--…")는 예상된 문제이므로 고치지 말고 그대로 두고 하위 화면 후보로 보고합니다.
 
 ## confidence
 
@@ -42,7 +43,7 @@ tools: Read, Grep, Glob, Write, Bash
 
 ## 하위 화면
 
-모달·팝업이 자체 입력 항목이나 버튼 동작을 가지면 별도 화면입니다. 이 화면 JSON에는 그 화면을 여는 버튼에 `opens: "<이 화면ID>--<이름>"`을 적고, 분석을 마친 뒤 docent 스킬에 하위 화면 후보(`parentRoute`, `name`, `files`, `evidence`=여는 지점)를 보고합니다. 메시지와 확인 버튼뿐인 확인창은 하위 화면이 아니라 `messages`입니다. 탭·단계 입력은 `sections`입니다.
+모달·팝업이 자체 입력 항목이나 버튼 동작을 가지면 별도 화면입니다. 이 화면 JSON에는 그 화면을 여는 버튼에 `opens: "<이 화면ID>--<이름>"`을 적고(이름은 영문 소문자·숫자·`-`만, 예: `customer-search`), 분석을 마친 뒤 docent 스킬에 하위 화면 후보(`parentRoute`, `name`, `files`, `evidence`=여는 지점)를 보고합니다. 메시지와 확인 버튼뿐인 확인창은 하위 화면이 아니라 `messages`입니다. 탭·단계 입력은 `sections`입니다.
 
 ## 금지
 

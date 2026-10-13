@@ -91,3 +91,13 @@ test('화면이 하나뿐인 워크플로우는 실패', async () => {
   const { problems } = await runValidate(dir);
   assert.ok(problems.some((p) => p.includes('권한 변경') && p.includes('화면 2개 이상')), problems.join('\n'));
 });
+
+test('null 같은 객체가 아닌 JSON도 문제로 보고한다', async () => {
+  const { dir, docent } = await golden();
+  await writeFile(join(docent, 'summary.json'), 'null');
+  await writeFile(join(docent, 'screens', 'login.json'), 'null');
+  const { ok, problems } = await runValidate(dir);
+  assert.equal(ok, false);
+  assert.ok(problems.some((p) => p.startsWith('summary.json')), problems.join('\n'));
+  assert.ok(problems.some((p) => p.startsWith('screens/login.json')), problems.join('\n'));
+});

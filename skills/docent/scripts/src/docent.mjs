@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { runBuild } from './commands/build.mjs';
 import { runInit } from './commands/init.mjs';
 import { runInventory } from './commands/inventory.mjs';
+import { runPending } from './commands/pending.mjs';
 import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
 import { runValidate } from './commands/validate.mjs';
@@ -14,6 +15,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
 명령:
   init           프로젝트를 파악해 .docent/config.yaml을 만듭니다
   inventory      화면 목록(.docent/inventory.json)을 만듭니다
+  pending        다시 분석할 화면(결과 없음·소스 변경·확인 항목 답변)을 보여 줍니다
   validate       분석 결과의 스키마·근거·연결을 검사합니다
   review         확인 필요 항목(.docent/review.md)을 모읍니다
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
@@ -54,6 +56,12 @@ async function main() {
       console.log(`화면 ${inventory.screens.length}개 (page ${pages}, 하위 화면 ${inventory.screens.length - pages})`);
       for (const s of inventory.screens) console.log(`- ${s.id}\t${s.route ?? `(${s.parentId}의 하위 화면)`}\t${s.source}`);
       listProblems('제외한 항목:', problems);
+      return 0;
+    }
+    case 'pending': {
+      const list = await runPending(project);
+      if (!list.length) console.log('다시 분석할 화면이 없습니다.');
+      for (const { id, reason } of list) console.log(`${id}\t${reason}`);
       return 0;
     }
     case 'validate': {

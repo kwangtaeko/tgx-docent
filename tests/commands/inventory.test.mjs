@@ -127,3 +127,13 @@ test('분석된 화면의 menuPath를 inventory에 반영한다', async () => {
   const golden = await readJsonFile(join(EXPECTED, 'inventory.json'));
   assert.deepEqual(inventory, golden);
 });
+
+test('idMap이 다른 화면 ID와 겹치면 적용하지 않고 문제로 알린다', async () => {
+  const dir = await prepared();
+  await setConfig(dir, 'detectors: [nextjs]\nscreens:\n  idMap:\n    /orders: login\n');
+  const { inventory, problems } = await runInventory(dir);
+  const ids = inventory.screens.map((s) => s.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(inventory.screens.find((s) => s.route === '/orders').id, 'orders');
+  assert.ok(problems.some((p) => p.includes('idMap') && p.includes('login')), problems.join('\n'));
+});

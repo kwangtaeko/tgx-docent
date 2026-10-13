@@ -8,5 +8,15 @@
   "homepage": "https://github.com/kwangtaeko/tgx-docent",
   "repository": "https://github.com/kwangtaeko/tgx-docent",
   "license": "MIT",
-  "keywords": ["documentation", "user-manual", "screen-list", "screenshots"]
+  "keywords": [
+    "documentation",
+    "user-manual",
+    "screen-list",
+    "screenshots"
+  ],
+  "agents": [
+    "./skills/docent/agents/screen-analyzer.md",
+    "./skills/docent/agents/route-explorer.md",
+    "./skills/docent/agents/summary-writer.md"
+  ]
 }
