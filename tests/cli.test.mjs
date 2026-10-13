@@ -54,3 +54,11 @@ test('알 수 없는 명령은 exit 2', () => {
   assert.equal(r.status, 2);
   assert.match(r.stderr, /사용법/);
 });
+
+test('hash는 hashFiles와 같은 값을 출력한다', async () => {
+  const dir = await copyFixture();
+  const r = run(['hash', 'app/login/page.tsx', './lib/auth.ts'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  const { hashFiles } = await import('../skills/docent/scripts/src/lib/source-hash.mjs');
+  assert.equal(r.stdout.trim(), await hashFiles(dir, ['app/login/page.tsx', 'lib/auth.ts']));
+});

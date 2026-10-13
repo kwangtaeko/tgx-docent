@@ -122,11 +122,22 @@ export async function runInventory(projectDir) {
     children.set(parentId, list);
   }
 
+  // 메뉴 경로: 분석된 화면 JSON의 값 > 이전 inventory의 값
+  const menuOf = async (id) => {
+    try {
+      const analyzed = await readJsonIfExists(join(docentDir(projectDir), 'screens', `${id}.json`));
+      if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
+    } catch {
+      // 깨진 화면 파일은 validate가 보고한다
+    }
+    return previousMenus.get(id);
+  };
+
   const screens = [];
   for (const route of [...pages.keys()].sort()) {
     const page = pages.get(route);
     const id = ids.get(route);
-    const menuPath = previousMenus.get(id);
+    const menuPath = await menuOf(id);
     screens.push({
       id,
       route,
@@ -137,7 +148,7 @@ export async function runInventory(projectDir) {
       source: page.source,
     });
     for (const child of (children.get(id) ?? []).sort((a, b) => (a.id < b.id ? -1 : 1))) {
-      const childMenu = previousMenus.get(child.id);
+      const childMenu = await menuOf(child.id);
       screens.push(childMenu ? { ...child, menuPath: childMenu } : child);
     }
   }

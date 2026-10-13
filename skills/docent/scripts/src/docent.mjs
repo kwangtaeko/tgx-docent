@@ -7,6 +7,7 @@ import { runInventory } from './commands/inventory.mjs';
 import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
 import { runValidate } from './commands/validate.mjs';
+import { hashFiles } from './lib/source-hash.mjs';
 
 const USAGE = `사용법: docent <명령> [--project <디렉터리>]
 
@@ -16,6 +17,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   validate       분석 결과의 스키마·근거·연결을 검사합니다
   review         확인 필요 항목(.docent/review.md)을 모읍니다
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
+  hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
   session start  분석 세션 시작(비밀 파일 읽기 차단)
   session end    분석 세션 종료`;
 
@@ -68,6 +70,12 @@ async function main() {
     case 'build': {
       const { files } = await runBuild(project, { assetsDir: ASSETS_DIR });
       console.log(`산출물 ${files.length}개 → .docent/out/ (html/index.html, README.md)`);
+      return 0;
+    }
+    case 'hash': {
+      const files = args.slice(1);
+      if (!files.length) break;
+      console.log(await hashFiles(project, files));
       return 0;
     }
     case 'session':

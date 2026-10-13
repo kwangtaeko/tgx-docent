@@ -118,3 +118,12 @@ test('없는 파일을 가리키는 항목은 빠진다', async () => {
   const { problems } = await runInventory(dir);
   assert.match(problems[0], /nope\.tsx/);
 });
+
+test('분석된 화면의 menuPath를 inventory에 반영한다', async () => {
+  const { cp } = await import('node:fs/promises');
+  const dir = await prepared();
+  await cp(join(EXPECTED, 'screens'), join(dir, '.docent', 'screens'), { recursive: true });
+  const { inventory } = await runInventory(dir);
+  const golden = await readJsonFile(join(EXPECTED, 'inventory.json'));
+  assert.deepEqual(inventory, golden);
+});

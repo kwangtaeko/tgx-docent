@@ -16288,11 +16288,19 @@ async function runInventory(projectDir) {
     list.push({ id: childId(parentId, entry.name), route: null, kind: entry.kind, parentId, files, evidence: entry.evidence, source: "agent" });
     children.set(parentId, list);
   }
+  const menuOf = async (id) => {
+    try {
+      const analyzed = await readJsonIfExists(join8(docentDir(projectDir), "screens", `${id}.json`));
+      if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
+    } catch {
+    }
+    return previousMenus.get(id);
+  };
   const screens = [];
   for (const route of [...pages.keys()].sort()) {
     const page2 = pages.get(route);
     const id = ids.get(route);
-    const menuPath = previousMenus.get(id);
+    const menuPath = await menuOf(id);
     screens.push({
       id,
       route,
@@ -16303,7 +16311,7 @@ async function runInventory(projectDir) {
       source: page2.source
     });
     for (const child of (children.get(id) ?? []).sort((a, b) => a.id < b.id ? -1 : 1)) {
-      const childMenu = previousMenus.get(child.id);
+      const childMenu = await menuOf(child.id);
       screens.push(childMenu ? { ...child, menuPath: childMenu } : child);
     }
   }
@@ -16405,6 +16413,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   validate       \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
+  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
 var ASSETS_DIR = join11(dirname3(fileURLToPath(import.meta.url)), "..", "..", "assets");
@@ -16453,6 +16462,12 @@ async function main() {
     case "build": {
       const { files } = await runBuild(project, { assetsDir: ASSETS_DIR });
       console.log(`\uC0B0\uCD9C\uBB3C ${files.length}\uAC1C \u2192 .docent/out/ (html/index.html, README.md)`);
+      return 0;
+    }
+    case "hash": {
+      const files = args.slice(1);
+      if (!files.length) break;
+      console.log(await hashFiles(project, files));
       return 0;
     }
     case "session":
