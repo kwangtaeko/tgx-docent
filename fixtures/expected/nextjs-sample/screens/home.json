@@ -1,0 +1,59 @@
+{
+  "id": "home",
+  "kind": "page",
+  "route": "/",
+  "title": {
+    "value": "대시보드",
+    "evidence": "app/page.tsx:11"
+  },
+  "menuPath": {
+    "value": [
+      "대시보드"
+    ],
+    "evidence": "components/nav.tsx:11"
+  },
+  "purpose": {
+    "value": "오늘 들어온 주문 수를 확인하고 주문 목록·주문 등록으로 이동한다",
+    "evidence": "app/page.tsx:10-19",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [],
+  "actions": [
+    {
+      "label": "주문 목록",
+      "effect": "주문 목록 화면으로 이동한다",
+      "navigatesTo": "orders",
+      "evidence": "app/page.tsx:17",
+      "confidence": "high"
+    },
+    {
+      "label": "주문 등록",
+      "effect": "주문 등록 화면으로 이동한다",
+      "navigatesTo": "orders-new",
+      "evidence": "app/page.tsx:17",
+      "confidence": "high"
+    }
+  ],
+  "messages": [],
+  "unknowns": [],
+  "readFiles": [
+    "app/page.tsx",
+    "lib/store.ts",
+    "middleware.ts",
+    "components/nav.tsx"
+  ],
+  "sourceHash": "sha256:9070b4a541b7c9b9ad9bef2d9015e4a650d21ac96877546e917300706d17c8fe"
+}

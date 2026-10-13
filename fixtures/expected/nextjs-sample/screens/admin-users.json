@@ -1,0 +1,63 @@
+{
+  "id": "admin-users",
+  "kind": "page",
+  "route": "/admin/users",
+  "title": {
+    "value": "사용자 관리",
+    "evidence": "app/admin/users/page.tsx:12"
+  },
+  "menuPath": {
+    "value": [
+      "관리자",
+      "사용자 관리"
+    ],
+    "evidence": "components/nav.tsx:23"
+  },
+  "purpose": {
+    "value": "사용자별 권한(영업담당·관리자)을 변경한다",
+    "evidence": "app/admin/users/page.tsx:14-38",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:11",
+      "confidence": "high"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "권한",
+      "type": "select",
+      "required": false,
+      "evidence": "app/admin/users/page.tsx:26",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "저장",
+      "effect": "변경한 권한을 저장하고 같은 화면에 결과를 표시한다",
+      "evidence": "app/admin/users/page.tsx:37",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "권한이 변경되었습니다.",
+      "when": "권한 저장에 성공했을 때",
+      "evidence": "app/admin/users/page.tsx:13"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "app/admin/users/page.tsx",
+    "app/admin/users/actions.ts",
+    "lib/auth.ts",
+    "lib/store.ts",
+    "middleware.ts",
+    "components/nav.tsx"
+  ],
+  "sourceHash": "sha256:295ed4ce0a8c905e7047e22e23903f50eea35550cfd88ce31dd3d4d8372b9553"
+}

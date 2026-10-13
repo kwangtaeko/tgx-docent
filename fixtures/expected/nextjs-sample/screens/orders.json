@@ -1,0 +1,92 @@
+{
+  "id": "orders",
+  "kind": "page",
+  "route": "/orders",
+  "title": {
+    "value": "주문 목록",
+    "evidence": "app/orders/page.tsx:14"
+  },
+  "menuPath": {
+    "value": [
+      "주문관리",
+      "주문 목록"
+    ],
+    "evidence": "components/nav.tsx:15"
+  },
+  "purpose": {
+    "value": "주문을 거래처명과 상태로 검색하고 상세·등록 화면으로 이동한다",
+    "evidence": "app/orders/page.tsx:13-48",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "거래처명",
+      "type": "text",
+      "required": false,
+      "evidence": "app/orders/page.tsx:19",
+      "confidence": "high"
+    },
+    {
+      "label": "상태",
+      "type": "select",
+      "required": false,
+      "evidence": "app/orders/page.tsx:23",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "검색",
+      "effect": "입력한 조건으로 주문 목록을 다시 조회한다",
+      "evidence": "app/orders/page.tsx:31",
+      "confidence": "high"
+    },
+    {
+      "label": "신규 등록",
+      "effect": "주문 등록 화면으로 이동한다",
+      "navigatesTo": "orders-new",
+      "evidence": "app/orders/page.tsx:33",
+      "confidence": "high"
+    },
+    {
+      "label": "번호",
+      "effect": "목록에서 주문 번호를 누르면 주문 상세 화면으로 이동한다",
+      "navigatesTo": "orders-id",
+      "evidence": "app/orders/page.tsx:41",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "저장되었습니다.",
+      "when": "주문 등록 후 목록으로 돌아왔을 때",
+      "evidence": "app/orders/page.tsx:15"
+    },
+    {
+      "text": "삭제되었습니다.",
+      "when": "주문 삭제 후 목록으로 돌아왔을 때",
+      "evidence": "app/orders/page.tsx:16"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "app/orders/page.tsx",
+    "lib/store.ts",
+    "middleware.ts",
+    "components/nav.tsx"
+  ],
+  "sourceHash": "sha256:c9fe0a3f76482b042cfe4d21ff1552e403770f64c13d45bb877d045b8cf124c6"
+}

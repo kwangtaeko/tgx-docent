@@ -1,0 +1,59 @@
+{
+  "id": "orders-new--customer-search",
+  "kind": "modal",
+  "parentId": "orders-new",
+  "route": null,
+  "title": {
+    "value": "거래처 찾기",
+    "evidence": "app/orders/new/customer-search.tsx:19"
+  },
+  "purpose": {
+    "value": "거래처명으로 거래처를 검색해 주문 등록 화면의 거래처 항목에 채운다",
+    "evidence": "app/orders/new/customer-search.tsx:17-33",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "거래처명 검색",
+      "type": "text",
+      "required": false,
+      "evidence": "app/orders/new/customer-search.tsx:21",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "선택",
+      "effect": "고른 거래처를 주문 등록 화면의 거래처 항목에 채우고 창을 닫는다",
+      "evidence": "app/orders/new/customer-search.tsx:27",
+      "confidence": "high"
+    },
+    {
+      "label": "닫기",
+      "effect": "창을 닫는다",
+      "evidence": "app/orders/new/customer-search.tsx:31",
+      "confidence": "high"
+    }
+  ],
+  "messages": [],
+  "unknowns": [],
+  "readFiles": [
+    "app/orders/new/customer-search.tsx",
+    "app/orders/new/order-form.tsx",
+    "lib/store.ts"
+  ],
+  "sourceHash": "sha256:55e72ed8854a93e32cdc39a0fa631bb7d99ab6bf233f3af4f56922a778f74249"
+}

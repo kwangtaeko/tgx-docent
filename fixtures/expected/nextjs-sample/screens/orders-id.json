@@ -1,0 +1,65 @@
+{
+  "id": "orders-id",
+  "kind": "page",
+  "route": "/orders/[id]",
+  "title": {
+    "value": "주문 상세",
+    "evidence": "app/orders/[id]/page.tsx:18"
+  },
+  "purpose": {
+    "value": "주문 정보를 확인하고 수정하거나 삭제한다",
+    "evidence": "app/orders/[id]/page.tsx:17-30",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [],
+  "actions": [
+    {
+      "label": "수정",
+      "effect": "주문 수정 화면으로 이동한다",
+      "navigatesTo": "orders-id-edit",
+      "evidence": "app/orders/[id]/page.tsx:27",
+      "confidence": "high"
+    },
+    {
+      "label": "삭제",
+      "effect": "확인창에서 확인하면 주문을 삭제하고 주문 목록으로 이동한다",
+      "navigatesTo": "orders",
+      "evidence": "app/orders/[id]/delete-button.tsx:13",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "삭제하시겠습니까?",
+      "when": "삭제 버튼을 눌렀을 때 확인창",
+      "evidence": "app/orders/[id]/delete-button.tsx:10"
+    },
+    {
+      "text": "수정되었습니다.",
+      "when": "주문 수정 후 상세로 돌아왔을 때",
+      "evidence": "app/orders/[id]/page.tsx:19"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "app/orders/[id]/page.tsx",
+    "app/orders/[id]/delete-button.tsx",
+    "app/orders/[id]/actions.ts",
+    "lib/store.ts",
+    "middleware.ts"
+  ],
+  "sourceHash": "sha256:9379a2febad6a905f4353678600151d8e6649a212fdaf287b4be07d7cfc9708f"
+}

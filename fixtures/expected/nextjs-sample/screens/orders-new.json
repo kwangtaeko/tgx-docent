@@ -1,0 +1,122 @@
+{
+  "id": "orders-new",
+  "kind": "page",
+  "route": "/orders/new",
+  "title": {
+    "value": "주문 등록",
+    "evidence": "app/orders/new/page.tsx:7"
+  },
+  "menuPath": {
+    "value": [
+      "주문관리",
+      "주문 등록"
+    ],
+    "evidence": "components/nav.tsx:16"
+  },
+  "purpose": {
+    "value": "거래처를 골라 신규 주문을 등록한다",
+    "evidence": "app/orders/new/order-form.tsx:11-45",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "거래처",
+      "type": "text",
+      "required": true,
+      "evidence": "app/orders/new/order-form.tsx:15",
+      "confidence": "high"
+    },
+    {
+      "label": "납기일",
+      "type": "date",
+      "required": true,
+      "evidence": "app/orders/new/order-form.tsx:20",
+      "confidence": "high"
+    },
+    {
+      "label": "수량",
+      "type": "number",
+      "required": true,
+      "evidence": "app/orders/new/order-form.tsx:24",
+      "confidence": "high"
+    },
+    {
+      "label": "비고",
+      "type": "textarea",
+      "required": false,
+      "evidence": "app/orders/new/order-form.tsx:28",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "거래처 찾기",
+      "effect": "거래처 찾기 창을 연다",
+      "opens": "orders-new--customer-search",
+      "evidence": "app/orders/new/order-form.tsx:18",
+      "confidence": "high"
+    },
+    {
+      "label": "저장",
+      "effect": "입력값을 검증하고 여신 확인을 거쳐 주문을 저장한 뒤 주문 목록으로 이동한다. 여신 확인을 통과하지 못하면 저장하지 않는다",
+      "navigatesTo": "orders",
+      "evidence": "app/orders/new/order-form.tsx:32",
+      "confidence": "low"
+    }
+  ],
+  "messages": [
+    {
+      "text": "거래처를 선택하세요.",
+      "when": "거래처를 고르지 않고 저장할 때",
+      "evidence": "lib/order-schema.ts:4"
+    },
+    {
+      "text": "납기일을 입력하세요.",
+      "when": "납기일 없이 저장할 때",
+      "evidence": "lib/order-schema.ts:5"
+    },
+    {
+      "text": "수량은 1 이상이어야 합니다.",
+      "when": "수량이 1보다 작을 때",
+      "evidence": "lib/order-schema.ts:6"
+    },
+    {
+      "text": "여신 한도를 초과하여 주문할 수 없습니다.",
+      "when": "여신 확인을 통과하지 못했을 때",
+      "evidence": "app/orders/new/actions.ts:15"
+    },
+    {
+      "text": "저장되었습니다.",
+      "when": "저장에 성공해 주문 목록으로 이동했을 때",
+      "evidence": "app/orders/page.tsx:15"
+    }
+  ],
+  "unknowns": [
+    "여신 확인(checkCredit)의 승인 기준은 외부 여신 API에 있어 소스만으로 알 수 없음 (lib/credit.ts:1-9)"
+  ],
+  "readFiles": [
+    "app/orders/new/page.tsx",
+    "app/orders/new/order-form.tsx",
+    "app/orders/new/actions.ts",
+    "lib/order-schema.ts",
+    "lib/credit.ts",
+    "lib/store.ts",
+    "app/orders/page.tsx",
+    "middleware.ts",
+    "components/nav.tsx"
+  ],
+  "sourceHash": "sha256:b8c8408b0db7f080a388537383815c9ebf60de9aa4a89144450b2b3d68a25560"
+}

@@ -1,0 +1,81 @@
+{
+  "id": "orders-id-edit",
+  "kind": "page",
+  "route": "/orders/[id]/edit",
+  "title": {
+    "value": "주문 수정",
+    "evidence": "app/orders/[id]/edit/page.tsx:14"
+  },
+  "purpose": {
+    "value": "주문의 납기일·수량·비고를 수정한다",
+    "evidence": "app/orders/[id]/edit/edit-form.tsx:11-28",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    },
+    {
+      "value": "관리자",
+      "evidence": "middleware.ts:7-9",
+      "confidence": "medium"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "납기일",
+      "type": "date",
+      "required": true,
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:14",
+      "confidence": "high"
+    },
+    {
+      "label": "수량",
+      "type": "number",
+      "required": true,
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:18",
+      "confidence": "high"
+    },
+    {
+      "label": "비고",
+      "type": "textarea",
+      "required": false,
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:22",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "저장",
+      "effect": "입력값을 검증해 주문을 수정하고 주문 상세 화면으로 이동한다",
+      "navigatesTo": "orders-id",
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:26",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "납기일을 입력하세요.",
+      "when": "납기일 없이 저장할 때",
+      "evidence": "lib/order-schema.ts:5"
+    },
+    {
+      "text": "수량은 1 이상이어야 합니다.",
+      "when": "수량이 1보다 작을 때",
+      "evidence": "lib/order-schema.ts:6"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "app/orders/[id]/edit/page.tsx",
+    "app/orders/[id]/edit/edit-form.tsx",
+    "app/orders/[id]/edit/actions.ts",
+    "lib/order-schema.ts",
+    "lib/store.ts",
+    "middleware.ts"
+  ],
+  "sourceHash": "sha256:d46e2831a96c093c13d062099127f7559fe1c6269dd851dc7e5a1e650211aff9"
+}
