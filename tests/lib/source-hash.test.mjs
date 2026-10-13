@@ -42,3 +42,14 @@ test('없는 파일은 경로를 담은 에러', async () => {
   const dir = await dirWith({});
   await assert.rejects(hashFiles(dir, ['missing.ts']), /missing\.ts/);
 });
+
+test('경로 표기가 달라도 같은 파일이면 같은 해시', async () => {
+  const dir = await dirWith({ 'a.ts': 'x' });
+  assert.equal(await hashFiles(dir, ['./a.ts']), await hashFiles(dir, ['a.ts']));
+  assert.equal(await hashFiles(dir, ['a.ts', 'a.ts']), await hashFiles(dir, ['a.ts']));
+});
+
+test('루트 밖 경로는 읽지 않고 에러', async () => {
+  const dir = await dirWith({});
+  await assert.rejects(hashFiles(dir, ['../a.ts']));
+});

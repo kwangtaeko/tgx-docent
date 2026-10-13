@@ -131,3 +131,14 @@ test('inventory modal도 parentId가 필수', () => {
   delete inv.screens[1].parentId;
   assert.equal(validateInventory(inv).valid, false);
 });
+
+test('readFiles·files는 정규화된 상대 경로만', () => {
+  for (const bad of ['../x.ts', './x.ts', '/abs.ts']) {
+    const s = screen();
+    s.readFiles = [bad];
+    assert.equal(validateScreen(s).valid, false, bad);
+    const inv = inventory();
+    inv.screens[0].files = [bad];
+    assert.equal(validateInventory(inv).valid, false, bad);
+  }
+});

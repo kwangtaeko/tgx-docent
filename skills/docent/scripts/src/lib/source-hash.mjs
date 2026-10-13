@@ -2,10 +2,11 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { normalizeRel } from './paths.mjs';
 
 export async function hashFiles(rootDir, relPaths) {
   const hash = createHash('sha256');
-  for (const rel of [...relPaths].sort()) {
+  for (const rel of [...new Set(relPaths.map(normalizeRel))].sort()) {
     let content;
     try {
       content = await readFile(join(rootDir, rel), 'utf8');
