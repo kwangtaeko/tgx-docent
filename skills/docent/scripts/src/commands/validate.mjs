@@ -2,7 +2,7 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { checkEvidence } from '../lib/evidence.mjs';
-import { validateInventory, validateScreen, validateSummary } from '../lib/schema.mjs';
+import { validateInventory, validateScenario, validateScreen, validateSummary } from '../lib/schema.mjs';
 import { hashFiles } from '../lib/source-hash.mjs';
 import { docentDir, readJson } from '../lib/workspace.mjs';
 
@@ -79,6 +79,33 @@ function checkSummary(summary, screens, known, problems) {
   }
 }
 
+// 시나리오: 스키마, 파일명 = screenId, 있는 화면, 단계 근거와 문구
+async function checkScenarios(projectDir, dir, ids, problems) {
+  let files = [];
+  try {
+    files = (await readdir(join(dir, 'scenarios'))).filter((f) => f.endsWith('.json')).sort();
+  } catch {
+    return;
+  }
+  for (const file of files) {
+    const label = `scenarios/${file}`;
+    const sc = await load(join(dir, 'scenarios', file), label, problems);
+    if (sc === undefined) continue;
+    const r = validateScenario(sc);
+    if (!r.valid) {
+      problems.push(`${label}: ${r.errors.join('; ')}`);
+      continue;
+    }
+    if (`${sc.screenId}.json` !== file) problems.push(`${label}: 파일 이름과 screenId(${sc.screenId})가 다릅니다`);
+    if (!ids.has(sc.screenId)) problems.push(`${label}: 없는 화면 ${sc.screenId}`);
+    for (const step of [...sc.setup, ...sc.steps]) {
+      const text = step.label ?? step.text;
+      const res = await checkEvidence(projectDir, step.evidence, text === undefined ? {} : { expectText: text });
+      if (!res.ok) problems.push(`${label}: ${res.reason}`);
+    }
+  }
+}
+
 export async function runValidate(projectDir) {
   const dir = docentDir(projectDir);
   const problems = [];
@@ -114,6 +141,8 @@ export async function runValidate(projectDir) {
 
   const allIds = new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
+
+  await checkScenarios(projectDir, dir, allIds, problems);
 
   const summary = await load(join(dir, 'summary.json'), 'summary.json', problems);
   if (summary !== undefined) {

@@ -1,0 +1,44 @@
+{
+  "screenId": "orders-new",
+  "path": "/orders/new",
+  "setup": [],
+  "steps": [
+    {
+      "do": "click",
+      "role": "button",
+      "label": "거래처 찾기",
+      "evidence": "app/orders/new/order-form.tsx:18"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "선택",
+      "nth": 0,
+      "evidence": "app/orders/new/customer-search.tsx:27"
+    },
+    {
+      "do": "fill",
+      "label": "납기일",
+      "value": "2026-11-01",
+      "evidence": "app/orders/new/order-form.tsx:20"
+    },
+    {
+      "do": "fill",
+      "label": "수량",
+      "value": "3",
+      "evidence": "app/orders/new/order-form.tsx:24"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "저장",
+      "evidence": "app/orders/new/order-form.tsx:32"
+    },
+    {
+      "do": "expectText",
+      "text": "저장되었습니다.",
+      "evidence": "app/orders/page.tsx:15"
+    }
+  ],
+  "sourceHash": "sha256:b8c8408b0db7f080a388537383815c9ebf60de9aa4a89144450b2b3d68a25560"
+}

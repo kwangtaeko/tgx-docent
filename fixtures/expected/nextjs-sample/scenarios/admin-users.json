@@ -1,0 +1,7 @@
+{
+  "screenId": "admin-users",
+  "path": "/admin/users",
+  "setup": [],
+  "steps": [],
+  "sourceHash": "sha256:295ed4ce0a8c905e7047e22e23903f50eea35550cfd88ce31dd3d4d8372b9553"
+}

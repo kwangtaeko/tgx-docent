@@ -1,0 +1,27 @@
+{
+  "screenId": "orders-new--customer-search",
+  "path": "/orders/new",
+  "setup": [
+    {
+      "do": "click",
+      "role": "button",
+      "label": "거래처 찾기",
+      "evidence": "app/orders/new/order-form.tsx:18"
+    }
+  ],
+  "steps": [
+    {
+      "do": "fill",
+      "label": "거래처명 검색",
+      "value": "한빛",
+      "evidence": "app/orders/new/customer-search.tsx:21"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "선택",
+      "evidence": "app/orders/new/customer-search.tsx:27"
+    }
+  ],
+  "sourceHash": "sha256:55e72ed8854a93e32cdc39a0fa631bb7d99ab6bf233f3af4f56922a778f74249"
+}

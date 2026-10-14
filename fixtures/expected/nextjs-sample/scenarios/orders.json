@@ -1,0 +1,31 @@
+{
+  "screenId": "orders",
+  "path": "/orders",
+  "setup": [],
+  "steps": [
+    {
+      "do": "fill",
+      "label": "거래처명",
+      "value": "샘플",
+      "evidence": "app/orders/page.tsx:19"
+    },
+    {
+      "do": "select",
+      "label": "상태",
+      "value": "접수",
+      "evidence": "app/orders/page.tsx:23"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "검색",
+      "evidence": "app/orders/page.tsx:31"
+    },
+    {
+      "do": "expectText",
+      "text": "(주)샘플상사",
+      "evidence": "lib/store.ts:20"
+    }
+  ],
+  "sourceHash": "sha256:c9fe0a3f76482b042cfe4d21ff1552e403770f64c13d45bb877d045b8cf124c6"
+}

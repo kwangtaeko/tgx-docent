@@ -15,7 +15,12 @@ const HOME = page('홈', `
 
 export async function startMediaSite() {
   return startTestSite({
-    pages: { '/': HOME, '/items/1': page('아이템 1'), '/secret': page('비밀') },
+    pages: {
+      '/': HOME,
+      '/items/1': page('아이템 1'),
+      '/secret': page('비밀'),
+      '/bounce': (req, res) => res.writeHead(302, { Location: '/' }).end(),
+    },
     protect: ['/secret'],
   });
 }

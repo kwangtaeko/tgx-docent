@@ -72,3 +72,13 @@ test('실패는 review.md에 모인다', async () => {
   assert.match(text, /## 캡처·녹화 실패/);
   assert.match(text, /^- \[ \] missing 캡처 실패: .*404.* \(media\/fail\/missing\.png\) <!-- key: media\|capture\|missing -->$/m);
 });
+
+test('다른 화면으로 튕기면(권한 없음) 그 화면을 캡처하지 않는다', async () => {
+  const dir = await loggedIn();
+  const inv = JSON.parse(await readFile(join(dir, '.docent', 'inventory.json'), 'utf8'));
+  inv.screens.push({ id: 'bounce', route: '/bounce', kind: 'page', files: ['x.ts'], evidence: 'x.ts:1', source: 'agent' });
+  await writeJsonFile(join(dir, '.docent', 'inventory.json'), inv);
+  const r = await runCapture(dir, ['bounce']);
+  assert.equal(r.failed.length, 1);
+  assert.match(r.failed[0].reason, /다른 화면/);
+});

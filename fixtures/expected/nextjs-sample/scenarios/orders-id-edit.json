@@ -1,0 +1,25 @@
+{
+  "screenId": "orders-id-edit",
+  "path": "/orders/1/edit",
+  "setup": [],
+  "steps": [
+    {
+      "do": "fill",
+      "label": "수량",
+      "value": "5",
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:18"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "저장",
+      "evidence": "app/orders/[id]/edit/edit-form.tsx:26"
+    },
+    {
+      "do": "expectText",
+      "text": "수정되었습니다.",
+      "evidence": "app/orders/[id]/page.tsx:19"
+    }
+  ],
+  "sourceHash": "sha256:d46e2831a96c093c13d062099127f7559fe1c6269dd851dc7e5a1e650211aff9"
+}

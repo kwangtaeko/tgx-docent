@@ -1,0 +1,19 @@
+{
+  "screenId": "home",
+  "path": "/",
+  "setup": [],
+  "steps": [
+    {
+      "do": "click",
+      "role": "link",
+      "label": "주문 목록",
+      "evidence": "app/page.tsx:17"
+    },
+    {
+      "do": "expectText",
+      "text": "주문 목록",
+      "evidence": "app/orders/page.tsx:14"
+    }
+  ],
+  "sourceHash": "sha256:9070b4a541b7c9b9ad9bef2d9015e4a650d21ac96877546e917300706d17c8fe"
+}

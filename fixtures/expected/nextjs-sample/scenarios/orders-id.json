@@ -1,0 +1,19 @@
+{
+  "screenId": "orders-id",
+  "path": "/orders/1",
+  "setup": [],
+  "steps": [
+    {
+      "do": "click",
+      "role": "link",
+      "label": "수정",
+      "evidence": "app/orders/[id]/page.tsx:27"
+    },
+    {
+      "do": "expectText",
+      "text": "주문 수정",
+      "evidence": "app/orders/[id]/edit/page.tsx:14"
+    }
+  ],
+  "sourceHash": "sha256:9379a2febad6a905f4353678600151d8e6649a212fdaf287b4be07d7cfc9708f"
+}

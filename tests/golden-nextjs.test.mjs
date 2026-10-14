@@ -136,3 +136,17 @@ test('골든 서술은 합니다체다', () => {
     for (const a of s.actions) assert.match(a.effect, /니다\.?$/, `${s.id} ${a.label}`);
   }
 });
+
+test('골든 시나리오가 스키마를 통과하고 화면 해시와 같다', async () => {
+  const { validateScenario } = await import('../skills/docent/scripts/src/lib/schema.mjs');
+  const files = (await readdir(join(EXP, 'scenarios'))).filter((f) => f.endsWith('.json'));
+  assert.ok(files.length >= 6);
+  for (const f of files) {
+    const sc = await readJson(join(EXP, 'scenarios', f));
+    const r = validateScenario(sc);
+    assert.ok(r.valid, `${f}: ${r.errors.join('; ')}`);
+    assert.equal(`${sc.screenId}.json`, f);
+    assert.equal(sc.sourceHash, screens.get(sc.screenId).sourceHash, f);
+    for (const step of [...sc.setup, ...sc.steps]) assert.notEqual(step.label, '삭제', `${f}: 되돌릴 수 없는 동작`);
+  }
+});

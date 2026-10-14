@@ -6,6 +6,7 @@ import { runBuild } from './commands/build.mjs';
 import { runCapture } from './commands/capture.mjs';
 import { runCrawl } from './commands/crawl.mjs';
 import { runRecord } from './commands/record.mjs';
+import { runScenarios } from './commands/scenarios.mjs';
 import { runInit } from './commands/init.mjs';
 import { runInventory } from './commands/inventory.mjs';
 import { runPending } from './commands/pending.mjs';
@@ -29,6 +30,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
   run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
   crawl          실행 중인 앱을 링크로 돌며 화면 목록과 대조(.docent/crawl.json)
+  scenarios      시나리오를 (다시) 써야 하는 화면(캡처 경로 필요·GIF 대상·낡음)
   capture [id…]  화면 캡처(.docent/media/img)
   record [id…]   조작 GIF 녹화(.docent/media/gif)
   auth login | save  로그인 상태 저장(login: config.yaml의 auth와 환경변수, save: 브라우저에서 직접 로그인)
@@ -122,6 +124,12 @@ async function main() {
       console.log(`방문 ${r.visited.length}개, 목록에 없는 경로 ${r.unmatched.length}개, 도달하지 못한 화면 ${r.unreached.length}개 → .docent/crawl.json`);
       for (const p of r.unmatched) console.log(`- 목록에 없음: ${p}`);
       for (const id of r.unreached) console.log(`- 도달 못 함: ${id}`);
+      return 0;
+    }
+    case 'scenarios': {
+      const list = await runScenarios(project);
+      if (!list.length) console.log('시나리오를 쓸 화면이 없습니다.');
+      for (const { id, reason } of list) console.log(`${id}\t${reason}`);
       return 0;
     }
     case 'capture': {

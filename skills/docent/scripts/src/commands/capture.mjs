@@ -36,6 +36,8 @@ export async function openScreen(page, { baseUrl, path, setup, loginPath }) {
   const landed = new URL(page.url()).pathname;
   if (landed === loginPath && path.split('?')[0] !== loginPath) return '로그인 필요 — docent auth login으로 로그인 상태를 저장하세요';
   if (response && response.status() >= 400) return `HTTP ${response.status()}`;
+  const trim = (p) => (p.length > 1 ? p.replace(/\/+$/, '') : p);
+  if (trim(landed) !== trim(path.split('?')[0])) return `다른 화면(${landed})으로 이동했습니다 — 권한이 없거나 조건이 맞지 않습니다`;
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   if (setup?.length) {
     const r = await runSteps(page, setup);
