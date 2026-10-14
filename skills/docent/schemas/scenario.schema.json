@@ -69,6 +69,10 @@
             },
             "value": {
               "type": "string"
+            },
+            "nth": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         },
@@ -95,6 +99,10 @@
             "value": {
               "type": "string",
               "minLength": 1
+            },
+            "nth": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         },
@@ -116,6 +124,10 @@
             "label": {
               "type": "string",
               "minLength": 1
+            },
+            "nth": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         },

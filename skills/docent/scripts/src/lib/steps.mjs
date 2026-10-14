@@ -52,35 +52,37 @@ async function byLabel(page, label, timeoutMs) {
   return page.locator(`[data-docent-label="${mark}"]`);
 }
 
+// nth가 있으면 그 번째 요소, 없으면 하나뿐인 요소
+async function pick(locator, nth, describe, timeoutMs) {
+  if (nth === undefined) return single(locator, describe, timeoutMs);
+  const el = locator.nth(nth);
+  try {
+    await el.waitFor({ state: 'visible', timeout: timeoutMs });
+  } catch {
+    throw new StepError(`${describe}의 ${nth}번째 요소를 찾을 수 없습니다`);
+  }
+  return el;
+}
+
 async function runStep(page, step, env, timeoutMs) {
   switch (step.do) {
     case 'fill': {
       const value = substitute(step.value, env);
-      const el = await single(await byLabel(page, step.label, timeoutMs), `입력 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `입력 항목 "${step.label}"`, timeoutMs);
       return el.fill(value, { timeout: timeoutMs });
     }
     case 'select': {
       const value = substitute(step.value, env);
-      const el = await single(await byLabel(page, step.label, timeoutMs), `선택 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `선택 항목 "${step.label}"`, timeoutMs);
       return el.selectOption({ label: value }, { timeout: timeoutMs });
     }
     case 'check': {
-      const el = await single(await byLabel(page, step.label, timeoutMs), `체크 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `체크 항목 "${step.label}"`, timeoutMs);
       return el.check({ timeout: timeoutMs });
     }
     case 'click': {
       const all = page.getByRole(step.role, { name: step.label, exact: true });
-      const describe = `${step.role} "${step.label}"`;
-      if (step.nth !== undefined) {
-        const el = all.nth(step.nth);
-        try {
-          await el.waitFor({ state: 'visible', timeout: timeoutMs });
-        } catch {
-          throw new StepError(`${describe}의 ${step.nth}번째 요소를 찾을 수 없습니다`);
-        }
-        return el.click({ timeout: timeoutMs });
-      }
-      return (await single(all, describe, timeoutMs)).click({ timeout: timeoutMs });
+      return (await pick(all, step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
     }
     case 'expectText':
       try {

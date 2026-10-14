@@ -92,3 +92,22 @@ test('클릭 뒤 늦게 이동하는(클라이언트 측) 로그인도 기다린
     await slow.close();
   }
 });
+
+test('기본 successPath에서도 로그인 경로 아래에 머물면 실패', async () => {
+  const bad = await startTestSite({
+    pages: {
+      '/signin': page('로그인', `<label>아이디 <input></label><label>비밀번호 <input type="password"></label>
+        <button onclick="location.href='/signin/error'">로그인</button>`),
+      '/signin/error': page('로그인 오류'),
+    },
+  });
+  try {
+    const config = AUTH.replace('loginPath: /login', 'loginPath: /signin').replace('  successPath: /\n', '');
+    const dir = await siteProject(bad.url, config);
+    await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: 'p' }, async () => {
+      await assert.rejects(authLogin(dir), /로그인 실패/);
+    });
+  } finally {
+    await bad.close();
+  }
+});

@@ -19,6 +19,7 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 
 - 이 명령들은 사용자에게 보여 주고 동의를 받은 뒤 `docent run approve`로 승인해야 실행됩니다. 레포에 이미 있던 `run.json`도 마찬가지입니다
 - `env`: 비밀이 아닌 고정값만(포트, `NODE_ENV` 등)
+- `stop`(선택): `docent run stop`이 앱을 멈춘 뒤 실행하는 정리 명령(예: `docker compose down`). 승인 대상에 들어갑니다
 - `envNames`: 실행에 꼭 필요한 비밀 환경변수의 **이름**. 값은 사용자가 셸에 설정하며 어떤 파일에도 쓰지 않습니다
 - `healthcheck.path`: 로그인 없이 응답하는 경로(로그인 화면 등). 리다이렉트(3xx)도 응답으로 봅니다
 - 사용자가 직접 띄운 앱을 쓸 때는 `{ "mode": "url", "baseUrl": "http://…" }`만 적습니다
@@ -29,7 +30,7 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 | --- | --- | --- | --- | --- |
 | Node(npm) | `package-lock.json` | `npm ci` | `npm run build && npm run start`(빌드가 안 되면 `npm run dev`) | `dev` 스크립트의 `-p`/`--port`, 기본 Next 3000·Vite 5173 |
 | Node(pnpm/yarn) | `pnpm-lock.yaml`/`yarn.lock` | `pnpm install --frozen-lockfile`/`yarn install --frozen-lockfile` | `pnpm dev`/`yarn dev` | 위와 같음 |
-| docker compose | `docker-compose.yml`·`compose.yaml` | — | `docker compose up` | `ports:`의 호스트 쪽 |
+| docker compose | `docker-compose.yml`·`compose.yaml` | — | `docker compose up` (+ `"stop": "docker compose down"`) | `ports:`의 호스트 쪽 |
 | Django | `manage.py` | `pip install -r requirements.txt` | `python manage.py runserver 0.0.0.0:8000` | 8000 |
 | Flask | `app.py`·`flask` 의존성 | `pip install -r requirements.txt` | `flask run --port 5000` | 5000 |
 | Spring Boot(Maven) | `pom.xml` + `spring-boot` | — | `./mvnw spring-boot:run` | `server.port`, 기본 8080 |
@@ -37,7 +38,7 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 | ASP.NET WebForms | `*.aspx`, `Web.config` | 자동 실행하지 않음 — IIS·Windows 필요. 처음부터 주소 받기 | | |
 
 - 캡처용으로는 **프로덕션 실행**을 권장합니다. 개발 서버는 화면 구석에 개발 도구 표시(예: Next.js의 "N" 배지, Vite 오류 오버레이)가 찍힙니다. Next.js라면 `start`를 `npm run build && npm run start`로 쓰고 `timeoutSec`을 늘립니다. 빌드가 실패하면 개발 서버로 되돌리고 `config.yaml`의 `mask.selectors`에 `nextjs-portal`을 넣어 가립니다
-- `docker compose up`은 `-d` 없이 씁니다(docent가 프로세스를 멈출 수 있어야 함)
+- `docker compose up`은 `-d` 없이 씁니다(docent가 프로세스를 멈출 수 있어야 함). 컨테이너는 클라이언트를 멈춰도 남을 수 있으므로 `stop`에 `docker compose down`을 적습니다
 - 시작이 오래 걸리는 스택(Spring, docker)은 `timeoutSec`을 300 정도로 늘립니다
 
 ## 환경변수와 외부 의존성

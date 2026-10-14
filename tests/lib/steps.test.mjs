@@ -113,3 +113,33 @@ test('마스킹은 페이지를 이동해도 유지된다', async () => {
   assert.match(await p.locator('.ssn').evaluate((el) => getComputedStyle(el).filter), /blur/);
   await context.close();
 });
+
+test('fill·select·check는 nth로 몇 번째 항목인지 고른다', async () => {
+  const twin = await startTestSite({
+    pages: {
+      '/twin': html('두 줄', `<label>수량 <input name="q1"></label><label>수량 <input name="q2"></label>
+        <label>단위 <select name="u1"><option>개</option><option>박스</option></select></label>
+        <label>단위 <select name="u2"><option>개</option><option>박스</option></select></label>
+        <label><input type="checkbox" name="c1"> 긴급</label><label><input type="checkbox" name="c2"> 긴급</label>`),
+    },
+  });
+  try {
+    const p = await (await browser()).newPage();
+    await p.goto(`${twin.url}/twin`);
+    const r = await runSteps(p, [
+      { do: 'fill', label: '수량', value: '3', nth: 1, evidence: ev },
+      { do: 'select', label: '단위', value: '박스', nth: 1, evidence: ev },
+      { do: 'check', label: '긴급', nth: 1, evidence: ev },
+    ], { timeoutMs: 2000 });
+    assert.deepEqual(r, { ok: true });
+    assert.equal(await p.locator('[name=q1]').inputValue(), '');
+    assert.equal(await p.locator('[name=q2]').inputValue(), '3');
+    assert.equal(await p.locator('[name=u2]').inputValue(), '박스');
+    assert.equal(await p.locator('[name=c2]').isChecked(), true);
+    assert.equal(await p.locator('[name=c1]').isChecked(), false);
+    assert.equal(validateScenario({ screenId: 'x', path: '/', setup: [], steps: [{ do: 'fill', label: '수량', value: '3', nth: 1, evidence: ev }], sourceHash: 'sha256:' + 'a'.repeat(64) }).valid, true);
+    await p.close();
+  } finally {
+    await twin.close();
+  }
+});

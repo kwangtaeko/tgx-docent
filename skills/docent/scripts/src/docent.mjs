@@ -151,6 +151,7 @@ async function main() {
       console.log(`방문 ${r.visited.length}개, 목록에 없는 경로 ${r.unmatched.length}개, 도달하지 못한 화면 ${r.unreached.length}개 → .docent/crawl.json`);
       for (const p of r.unmatched) console.log(`- 목록에 없음: ${p}`);
       for (const id of r.unreached) console.log(`- 도달 못 함: ${id}`);
+      for (const w of r.warnings) console.log(`경고: ${w}`);
       return 0;
     }
     case 'scenarios': {

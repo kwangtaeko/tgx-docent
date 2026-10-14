@@ -27599,7 +27599,7 @@ async function writeJson(path, data) {
 // skills/docent/scripts/src/commands/run.mjs
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { openSync, closeSync } from "node:fs";
+import { closeSync, existsSync as existsSync2, openSync, readFileSync as readFileSync2 } from "node:fs";
 import { readFile as readFile3, rm, writeFile as writeFile2 } from "node:fs/promises";
 import { join as join4, resolve } from "node:path";
 
@@ -27799,6 +27799,7 @@ var run_schema_default = {
     baseUrl: { type: "string", pattern: "^https?://" },
     install: { type: "array", items: { type: "string", minLength: 1 } },
     start: { type: "string", minLength: 1 },
+    stop: { type: "string", minLength: 1 },
     cwd: { type: "string" },
     env: { type: "object", additionalProperties: { type: "string" } },
     envNames: { type: "array", items: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$" } },
@@ -27887,6 +27888,10 @@ var scenario_schema_default = {
             },
             value: {
               type: "string"
+            },
+            nth: {
+              type: "integer",
+              minimum: 0
             }
           }
         },
@@ -27913,6 +27918,10 @@ var scenario_schema_default = {
             value: {
               type: "string",
               minLength: 1
+            },
+            nth: {
+              type: "integer",
+              minimum: 0
             }
           }
         },
@@ -27934,6 +27943,10 @@ var scenario_schema_default = {
             label: {
               type: "string",
               minLength: 1
+            },
+            nth: {
+              type: "integer",
+              minimum: 0
             }
           }
         },
@@ -28428,13 +28441,14 @@ var pidFile = (projectDir) => join4(docentDir(projectDir), ".run-pid");
 var logFile = (projectDir) => join4(docentDir(projectDir), "run.log");
 var approvalFile = (projectDir) => join4(docentDir(projectDir), ".run-approved");
 function commandsHash(run2) {
-  const { install = [], start = "", cwd = ".", env = {} } = run2;
-  return createHash("sha256").update(JSON.stringify({ install, start, cwd, env })).digest("hex");
+  const { install = [], start = "", cwd = ".", env = {}, stop } = run2;
+  return createHash("sha256").update(JSON.stringify({ install, start, cwd, env, ...stop !== void 0 ? { stop } : {} })).digest("hex");
 }
 function describeCommands(run2) {
   return [
     ...(run2.install ?? []).map((c) => `\uC124\uCE58: ${c}`),
     `\uC2E4\uD589: ${run2.start}`,
+    ...run2.stop !== void 0 ? [`\uC815\uB9AC: ${run2.stop}`] : [],
     `\uC704\uCE58: ${run2.cwd ?? "."}`,
     ...Object.entries(run2.env ?? {}).map(([k, v]) => `\uD658\uACBD: ${k}=${v}`)
   ].join("\n");
@@ -28466,17 +28480,45 @@ function killGroup(pid, signal) {
   } catch {
   }
 }
-async function readPid(projectDir) {
+function sameCommand(pid, start) {
+  const path = `/proc/${pid}/cmdline`;
+  if (!start || !existsSync2(path)) return true;
   try {
-    const pid = Number((await readFile3(pidFile(projectDir), "utf8")).trim());
-    return Number.isInteger(pid) && pid > 0 ? pid : void 0;
+    return readFileSync2(path, "utf8").split("\0").join(" ").includes(start);
+  } catch {
+    return true;
+  }
+}
+async function readPid(projectDir) {
+  let text;
+  try {
+    text = (await readFile3(pidFile(projectDir), "utf8")).trim();
   } catch {
     return void 0;
   }
-}
-async function logTail(projectDir, lines = 20) {
+  let pid;
+  let start;
   try {
-    return (await readFile3(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n");
+    const data = JSON.parse(text);
+    if (typeof data === "number") pid = data;
+    else ({ pid, start } = data ?? {});
+  } catch {
+  }
+  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameCommand(pid, start)) return pid;
+  await rm(pidFile(projectDir), { force: true });
+  return void 0;
+}
+function redact(text, run2) {
+  let out = text.replace(/\/\/[^\s/@:]+:[^\s/@]+@/g, "//***@");
+  for (const name2 of run2.envNames ?? []) {
+    const value = process.env[name2];
+    if (value && value.length >= 4) out = out.split(value).join("***");
+  }
+  return out;
+}
+async function logTail(projectDir, run2, lines = 20) {
+  try {
+    return redact((await readFile3(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n"), run2);
   } catch {
     return "";
   }
@@ -28486,10 +28528,12 @@ function childEnv(run2) {
 }
 async function runStart(projectDir, { install = false } = {}) {
   const run2 = await loadRun(projectDir);
-  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
-  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
   if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
   if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
+  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
+  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  const booting = await readPid(projectDir);
+  if (booting) throw new Error(`\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid ${booting}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694`);
   if (!await approved(projectDir, run2)) {
     throw new Error(
       `.docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 \`docent run approve\`\uB97C \uC2E4\uD589\uD558\uC138\uC694:
@@ -28511,8 +28555,7 @@ ${describeCommands(run2)}`
     exited = true;
   });
   child.unref();
-  await writeFile2(pidFile(projectDir), `${child.pid}
-`);
+  await writeFile2(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run2.start }) + "\n");
   const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
   while (Date.now() < deadline) {
     if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
@@ -28523,7 +28566,7 @@ ${describeCommands(run2)}`
   killGroup(child.pid, "SIGKILL");
   await rm(pidFile(projectDir), { force: true });
   throw new Error(`${reason}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:
-${await logTail(projectDir)}`);
+${await logTail(projectDir, run2)}`);
 }
 async function runStop(projectDir) {
   const pid = await readPid(projectDir);
@@ -28532,6 +28575,16 @@ async function runStop(projectDir) {
   for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
   if (alive(pid)) killGroup(pid, "SIGKILL");
   await rm(pidFile(projectDir), { force: true });
+  let run2;
+  try {
+    run2 = await loadRun(projectDir);
+  } catch {
+    return { stopped: true };
+  }
+  if (run2.stop && await approved(projectDir, run2)) {
+    const cwd = resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
+    spawnSync(run2.stop, { cwd, shell: true, stdio: "ignore", env: childEnv(run2) });
+  }
   return { stopped: true };
 }
 async function runStatus(projectDir) {
@@ -28560,6 +28613,14 @@ async function newContext(browser, projectDir, options = {}) {
   const state = statePath(projectDir);
   return browser.newContext({ ...options, ...await exists(state) ? { storageState: state } : {} });
 }
+var under = (path, base) => {
+  const b = base.length > 1 ? base.replace(/\/+$/, "") : base;
+  return path === b || path.startsWith(b === "/" ? "/" : `${b}/`);
+};
+function loggedInPath(path, loginPath, successPath) {
+  if (under(path, loginPath)) return false;
+  return successPath ? under(path, successPath) : true;
+}
 async function authLogin(projectDir) {
   const { auth } = await loadConfig(projectDir);
   if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
@@ -28582,7 +28643,7 @@ async function authLogin(projectDir) {
     });
     const path = new URL(page2.url()).pathname;
     const success = auth.successPath ?? "/";
-    if (path === auth.loginPath || !path.startsWith(success)) {
+    if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
       throw new Error(`\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 ${success}\uAC00 \uC544\uB2C8\uB77C ${path}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218(${auth.fields.map((f) => f.env).join(", ")})\uB97C \uD655\uC778\uD558\uC138\uC694`);
     }
     await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
@@ -34925,7 +34986,7 @@ async function put(outDir, rel, content, files) {
 }
 async function collectMedia(projectDir, inventory) {
   const ids = new Set(inventory.screens.map((s) => s.id));
-  const pick = async (sub, ext) => {
+  const pick2 = async (sub, ext) => {
     try {
       const names = await readdir2(join10(docentDir(projectDir), "media", sub));
       return new Set(names.filter((n) => n.endsWith(`.${ext}`)).map((n) => n.slice(0, -ext.length - 1)).filter((id) => ids.has(id)));
@@ -34933,7 +34994,7 @@ async function collectMedia(projectDir, inventory) {
       return /* @__PURE__ */ new Set();
     }
   };
-  return { images: await pick("img", "png"), gifs: await pick("gif", "gif") };
+  return { images: await pick2("img", "png"), gifs: await pick2("gif", "gif") };
 }
 function uncertainCount(screens) {
   let n = 0;
@@ -35029,7 +35090,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
 import { join as join12 } from "node:path";
 
 // skills/docent/scripts/src/lib/media.mjs
-import { mkdir as mkdir4 } from "node:fs/promises";
+import { mkdir as mkdir4, rm as rm3, stat } from "node:fs/promises";
 import { join as join11 } from "node:path";
 function mediaPaths(projectDir) {
   const root = join11(docentDir(projectDir), "media");
@@ -35053,12 +35114,43 @@ async function readFailures(projectDir) {
   }
 }
 var order = (a, b) => a.id === b.id ? a.kind < b.kind ? -1 : 1 : a.id < b.id ? -1 : 1;
-async function recordFailure(projectDir, failure) {
+var sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
+async function withLock(path, fn) {
+  const lock = `${path}.lock`;
+  await mkdir4(join11(lock, ".."), { recursive: true });
+  const deadline = Date.now() + 1e4;
+  for (; ; ) {
+    try {
+      await mkdir4(lock);
+      break;
+    } catch (err) {
+      if (err.code !== "EEXIST") throw err;
+      try {
+        if (Date.now() - (await stat(lock)).mtimeMs > 3e4) await rm3(lock, { recursive: true, force: true });
+      } catch {
+      }
+      if (Date.now() > deadline) throw new Error(`${path} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4`);
+      await sleep2(50);
+    }
+  }
+  try {
+    return await fn();
+  } finally {
+    await rm3(lock, { recursive: true, force: true });
+  }
+}
+function recordFailure(projectDir, failure) {
+  return withLock(mediaPaths(projectDir).failures, () => writeFailure(projectDir, failure));
+}
+async function writeFailure(projectDir, failure) {
   const list = (await readFailures(projectDir)).filter((f) => !(f.id === failure.id && f.kind === failure.kind));
   list.push({ id: failure.id, kind: failure.kind, ...failure.step !== void 0 ? { step: failure.step } : {}, reason: failure.reason });
   await writeJson(mediaPaths(projectDir).failures, list.sort(order));
 }
-async function clearFailure(projectDir, id, kind) {
+function clearFailure(projectDir, id, kind) {
+  return withLock(mediaPaths(projectDir).failures, () => removeFailure(projectDir, id, kind));
+}
+async function removeFailure(projectDir, id, kind) {
   const list = await readFailures(projectDir);
   const next = list.filter((f) => !(f.id === id && f.kind === kind));
   if (next.length !== list.length) await writeJson(mediaPaths(projectDir).failures, next);
@@ -35104,35 +35196,35 @@ async function byLabel(page2, label, timeoutMs) {
   );
   return page2.locator(`[data-docent-label="${mark}"]`);
 }
+async function pick(locator, nth, describe, timeoutMs) {
+  if (nth === void 0) return single(locator, describe, timeoutMs);
+  const el = locator.nth(nth);
+  try {
+    await el.waitFor({ state: "visible", timeout: timeoutMs });
+  } catch {
+    throw new StepError(`${describe}\uC758 ${nth}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4`);
+  }
+  return el;
+}
 async function runStep(page2, step, env, timeoutMs) {
   switch (step.do) {
     case "fill": {
       const value = substitute(step.value, env);
-      const el = await single(await byLabel(page2, step.label, timeoutMs), `\uC785\uB825 \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uC785\uB825 \uD56D\uBAA9 "${step.label}"`, timeoutMs);
       return el.fill(value, { timeout: timeoutMs });
     }
     case "select": {
       const value = substitute(step.value, env);
-      const el = await single(await byLabel(page2, step.label, timeoutMs), `\uC120\uD0DD \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uC120\uD0DD \uD56D\uBAA9 "${step.label}"`, timeoutMs);
       return el.selectOption({ label: value }, { timeout: timeoutMs });
     }
     case "check": {
-      const el = await single(await byLabel(page2, step.label, timeoutMs), `\uCCB4\uD06C \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uCCB4\uD06C \uD56D\uBAA9 "${step.label}"`, timeoutMs);
       return el.check({ timeout: timeoutMs });
     }
     case "click": {
       const all = page2.getByRole(step.role, { name: step.label, exact: true });
-      const describe = `${step.role} "${step.label}"`;
-      if (step.nth !== void 0) {
-        const el = all.nth(step.nth);
-        try {
-          await el.waitFor({ state: "visible", timeout: timeoutMs });
-        } catch {
-          throw new StepError(`${describe}\uC758 ${step.nth}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4`);
-        }
-        return el.click({ timeout: timeoutMs });
-      }
-      return (await single(all, describe, timeoutMs)).click({ timeout: timeoutMs });
+      return (await pick(all, step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
     }
     case "expectText":
       try {
@@ -35339,7 +35431,12 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
   const result = { baseUrl: run2.baseUrl, visited: [...visited].sort(), unmatched, unreached };
   await writeJson(join13(docentDir(projectDir), "crawl.json"), result);
-  return { visited, unmatched, unreached };
+  const warnings = [];
+  const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
+  if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
+    warnings.push("\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694");
+  }
+  return { visited, unmatched, unreached, warnings };
 }
 
 // skills/docent/scripts/src/commands/record.mjs
@@ -35413,7 +35510,7 @@ async function runScenarios(projectDir) {
 var GIF_VIEWPORT = { width: 800, height: 600 };
 var GIF_MAX_BYTES = 2 * 1024 * 1024;
 var FPS = 10;
-var sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
+var sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
 async function loadScreen(projectDir, id) {
   try {
     return await readJsonIfExists(join15(docentDir(projectDir), "screens", `${id}.json`));
@@ -35433,13 +35530,13 @@ async function recordSteps(page2, steps) {
       } catch {
       }
       const wait = interval - (Date.now() - started);
-      if (wait > 0) await sleep2(wait);
+      if (wait > 0) await sleep3(wait);
     }
   })();
   const result = await runSteps(page2, steps, {
-    onStep: () => sleep2(300)
+    onStep: () => sleep3(300)
   });
-  if (result.ok) await sleep2(1e3);
+  if (result.ok) await sleep3(1e3);
   recording = false;
   await loop;
   return { result, frames };
@@ -35536,7 +35633,7 @@ __export(nextjs_exports, {
   listScreens: () => listScreens,
   name: () => name
 });
-import { readFile as readFile8, readdir as readdir3, stat } from "node:fs/promises";
+import { readFile as readFile8, readdir as readdir3, stat as stat2 } from "node:fs/promises";
 import { join as join16, posix as posix2 } from "node:path";
 var name = "nextjs";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".next", ".git", ".docent"]);
@@ -35578,14 +35675,14 @@ async function readJson2(path) {
 }
 async function isFile(path) {
   try {
-    return (await stat(path)).isFile();
+    return (await stat2(path)).isFile();
   } catch {
     return false;
   }
 }
 async function isDir(path) {
   try {
-    return (await stat(path)).isDirectory();
+    return (await stat2(path)).isDirectory();
   } catch {
     return false;
   }
@@ -36108,14 +36205,14 @@ async function runPending(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/session.mjs
-import { mkdir as mkdir6, rm as rm3, writeFile as writeFile7 } from "node:fs/promises";
+import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
 import { join as join21 } from "node:path";
 async function startSession(projectDir) {
   await mkdir6(docentDir(projectDir), { recursive: true });
   await writeFile7(join21(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm3(join21(docentDir(projectDir), ".session"), { force: true });
+  await rm4(join21(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
@@ -36316,6 +36413,7 @@ ${r.commands}`);
       console.log(`\uBC29\uBB38 ${r.visited.length}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C ${r.unmatched.length}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 ${r.unreached.length}\uAC1C \u2192 .docent/crawl.json`);
       for (const p of r.unmatched) console.log(`- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: ${p}`);
       for (const id of r.unreached) console.log(`- \uB3C4\uB2EC \uBABB \uD568: ${id}`);
+      for (const w of r.warnings) console.log(`\uACBD\uACE0: ${w}`);
       return 0;
     }
     case "scenarios": {

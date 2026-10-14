@@ -25,6 +25,17 @@ export async function newContext(browser, projectDir, options = {}) {
   return browser.newContext({ ...options, ...((await exists(state)) ? { storageState: state } : {}) });
 }
 
+const under = (path, base) => {
+  const b = base.length > 1 ? base.replace(/\/+$/, '') : base;
+  return path === b || path.startsWith(b === '/' ? '/' : `${b}/`);
+};
+
+// 로그인 경로(/login, /login/error 등)에 머물렀으면 실패. successPath가 있으면 그 아래여야 성공
+function loggedInPath(path, loginPath, successPath) {
+  if (under(path, loginPath)) return false;
+  return successPath ? under(path, successPath) : true;
+}
+
 export async function authLogin(projectDir) {
   const { auth } = await loadConfig(projectDir);
   if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
@@ -47,7 +58,7 @@ export async function authLogin(projectDir) {
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const path = new URL(page.url()).pathname;
     const success = auth.successPath ?? '/';
-    if (path === auth.loginPath || !path.startsWith(success)) {
+    if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
       throw new Error(`로그인 실패: 로그인 후 ${success}가 아니라 ${path}에 머물렀습니다. 계정 환경변수(${auth.fields.map((f) => f.env).join(', ')})를 확인하세요`);
     }
     await mkdir(join(docentDir(projectDir), 'auth'), { recursive: true });

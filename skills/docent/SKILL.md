@@ -82,7 +82,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 3. **실패하면**: 출력된 `run.log` 내용으로 무엇이 부족한지(환경변수 이름, DB, 포트) 구체적으로 알리고, 앱을 직접 띄운 주소를 받아 `mode: url`로 바꿔 다시 `$DOCENT run start`
 4. **로그인**: 로그인이 필요한 앱이면 `config.yaml`의 `auth`(형식은 `run-guide.md`의 "config.yaml 항목")에 로그인 화면 라벨·버튼과 계정 환경변수 이름을 적고(값은 사용자가 셸에 설정), `$DOCENT auth login`. 화면이 있는 환경이면 `$DOCENT auth save`로 사용자가 직접 로그인해도 됩니다. 테스트 계정을 쓰도록 안내합니다
 5. **대조**: `$DOCENT crawl` — 화면 목록에 없는 경로·도달하지 못한 화면을 사용자에게 알립니다(review.md에도 들어감). 빠진 화면이 진짜 화면이면 2단계(화면 목록)로 돌아가 추가합니다
-6. **시나리오**: `$DOCENT scenarios`가 보여 주는 화면마다 `scenario-writer` 서브에이전트(또는 `<SKILL_DIR>/agents/scenario-writer.md` 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`·화면 ID·이유를 전달해 시나리오를 쓰게 합니다
+6. **시나리오**: `$DOCENT scenarios`가 보여 주는 화면마다 `scenario-writer` 서브에이전트(또는 `<SKILL_DIR>/agents/scenario-writer.md` 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`·화면 ID·이유·실행 중인 앱 주소(`$DOCENT run status`의 주소)를 전달해 시나리오를 쓰게 합니다
 7. **캡처·녹화**: `$DOCENT capture` → `$DOCENT record`. 실패 항목은 review.md에 모입니다. 실패한 화면을 그럴듯하게 대신 만들지 않습니다
 8. **정리**: docent가 띄운 앱이면 `$DOCENT run stop`
 

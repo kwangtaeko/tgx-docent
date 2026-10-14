@@ -123,3 +123,76 @@ test('승인되지 않은(예: 레포에 이미 있던) run.json 명령은 실�
   assert.equal((await runStart(dir)).started, true);
   await runStop(dir);
 });
+
+test('앱이 이미 떠 있으면 envNames가 없어도 재사용한다', async () => {
+  const { run } = await autoRun();
+  const helper = await project(run);
+  await runStart(helper);
+  try {
+    const dir = await project({ ...run, envNames: ['DOCENT_TEST_NOPE_X'] });
+    assert.deepEqual(await runStart(dir), { baseUrl: run.baseUrl, started: false, reused: true });
+  } finally {
+    await runStop(helper);
+  }
+});
+
+test('시작 중인 앱이 있으면 두 번째 start를 거부한다', async () => {
+  const { run } = await autoRun();
+  const dir = await project(run);
+  // 이 테스트 프로세스를 '시작 중인 앱'으로 둔다(살아 있고, /proc가 없으면 명령 비교 없이)
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: process.argv0 }));
+  await assert.rejects(runStart(dir), /이미 시작 중/);
+});
+
+test('죽은 pid 파일은 지우고 신호를 보내지 않는다', async () => {
+  const { run } = await autoRun();
+  const dir = await project(run);
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: 999999, start: run.start }));
+  assert.deepEqual(await runStop(dir), { stopped: false });
+  await assert.rejects(readFile(join(dir, '.docent', '.run-pid')));
+});
+
+test('다른 프로그램이 쓰는 pid(재사용된 pid)는 우리 앱으로 보지 않는다', { skip: process.platform !== 'linux' }, async () => {
+  const { run } = await autoRun();
+  const dir = await project(run);
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: 'node server.mjs --not-this' }));
+  assert.deepEqual(await runStop(dir), { stopped: false });
+});
+
+test('stop 명령이 있으면 멈춘 뒤 실행한다', async () => {
+  const { run } = await autoRun({ stop: 'node -e "require(\'fs\').writeFileSync(\'stopped\', \'1\')"' });
+  const dir = await project(run);
+  await runStart(dir);
+  assert.deepEqual(await runStop(dir), { stopped: true });
+  assert.equal(await readFile(join(dir, 'stopped'), 'utf8'), '1');
+});
+
+test('stop 명령이 바뀌면 다시 승인해야 한다', async () => {
+  const { run } = await autoRun();
+  const dir = await project(run);
+  await writeFile(join(dir, '.docent', 'run.json'), JSON.stringify({ ...run, stop: 'echo bye' }));
+  await assert.rejects(runStart(dir), (err) => {
+    assert.match(err.message, /승인/);
+    assert.match(err.message, /정리: echo bye/);
+    return true;
+  });
+});
+
+test('실패 로그의 비밀 값은 가린다', async () => {
+  process.env.DOCENT_T_SECRET = 's3cr3t-value';
+  try {
+    const { run } = await autoRun({
+      envNames: ['DOCENT_T_SECRET'],
+      start: 'node -e "console.log(process.env.DOCENT_T_SECRET, \'postgres://u:pw@h/db\'); process.exit(1)"',
+    });
+    const dir = await project(run);
+    await assert.rejects(runStart(dir), (err) => {
+      assert.doesNotMatch(err.message, /s3cr3t-value/);
+      assert.doesNotMatch(err.message, /u:pw@/);
+      assert.match(err.message, /\*\*\*/);
+      return true;
+    });
+  } finally {
+    delete process.env.DOCENT_T_SECRET;
+  }
+});

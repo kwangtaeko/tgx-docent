@@ -63,3 +63,19 @@ test('여러 형태의 로그아웃 링크를 따라가지 않는다', async () 
   assert.equal(followable(o + '/logs', o), '/logs');
   assert.equal(followable(o + '/catalog', o), '/catalog');
 });
+
+test('로그인 화면만 방문했으면 세션 만료 경고', async () => {
+  const locked = await startTestSite({ pages: { '/': page('홈', '<a href="/a">A</a>'), '/a': page('A') }, protect: ['/', '/a'] });
+  try {
+    const dir = await siteProject(locked.url, 'auth:\n  loginPath: /login\n  fields:\n    - label: 아이디\n      env: X\n  submit: 로그인\n');
+    const entry = (id, route) => ({ id, route, kind: 'page', files: ['x.ts'], evidence: 'x.ts:1', source: 'agent' });
+    await writeJsonFile(join(dir, '.docent', 'inventory.json'), { version: 1, screens: [entry('home', '/'), entry('a', '/a')] });
+    const r = await runCrawl(dir);
+    assert.deepEqual(r.visited, ['/login']);
+    assert.ok(r.warnings.some((w) => /로그인 상태가 만료/.test(w)), JSON.stringify(r.warnings));
+    const ok = await runCrawl(await project());
+    assert.deepEqual(ok.warnings, []);
+  } finally {
+    await locked.close();
+  }
+});
