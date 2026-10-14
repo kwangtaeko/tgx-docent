@@ -1,6 +1,7 @@
 // /docent review: 확신도 낮은 항목과 unknowns를 .docent/review.md로 모은다. (설계 문서 11장)
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readFailures } from '../lib/media.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 
 const HEADER = [
@@ -50,7 +51,7 @@ function crawlItems(crawl, routes) {
   ];
 }
 
-// screens: inventory 순서의 화면 JSON 배열, extra: { crawl, routes: Map<id, route> }
+// screens: inventory 순서의 화면 JSON 배열, extra: { crawl, routes: Map<id, route>, failures }
 export function renderReview(screens, previous, extra = {}) {
   const lines = [...HEADER];
   let count = 0;
@@ -62,6 +63,18 @@ export function renderReview(screens, previous, extra = {}) {
       lines.push(line(`${s.id}|${path}`, text, previous));
       count++;
     }
+    lines.push('');
+  }
+  const media = (extra.failures ?? []).map((f) => [
+    `media|${f.kind}|${f.id}`,
+    f.kind === 'capture'
+      ? `${f.id} 캡처 실패: ${f.reason} (media/fail/${f.id}.png)`
+      : `${f.id} 녹화 실패: ${f.step !== undefined ? `${f.step + 1}번째 단계 — ` : ''}${f.reason} (media/fail/${f.id}.png)`,
+  ]);
+  if (media.length) {
+    lines.push('## 캡처·녹화 실패', '');
+    for (const [key, text] of media) lines.push(line(key, text, previous));
+    count += media.length;
     lines.push('');
   }
   const crawl = crawlItems(extra.crawl, extra.routes ?? new Map());
@@ -95,7 +108,8 @@ export async function runReview(projectDir) {
   }
   const crawl = await readJsonIfExists(join(dir, 'crawl.json')).catch(() => undefined);
   const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
-  const text = renderReview(screens, previous, { crawl, routes });
+  const failures = await readFailures(projectDir);
+  const text = renderReview(screens, previous, { crawl, routes, failures });
   await writeFile(path, text);
   return { items: text.split('\n').filter((l) => LINE.test(l)).length };
 }
