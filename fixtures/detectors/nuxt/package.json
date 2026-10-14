@@ -1,0 +1,8 @@
+{
+  "name": "nuxt-sample",
+  "private": true,
+  "description": "docent Nuxt 감지기 픽스처(소스만, 설치·빌드하지 않음)",
+  "devDependencies": {
+    "nuxt": "3.15.0"
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "pages/index.vue"
+    ],
+    "evidence": "pages/index.vue:5"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "pages/login.vue"
+    ],
+    "evidence": "pages/login.vue:1"
+  },
+  {
+    "route": "/orders",
+    "files": [
+      "pages/orders/index.vue"
+    ],
+    "evidence": "pages/orders/index.vue:1"
+  },
+  {
+    "route": "/orders/[id]",
+    "files": [
+      "pages/orders/[id]/index.vue"
+    ],
+    "evidence": "pages/orders/[id]/index.vue:1"
+  },
+  {
+    "route": "/orders/[id]/edit",
+    "files": [
+      "pages/orders/[id]/edit.vue",
+      "components/OrderForm.vue"
+    ],
+    "evidence": "pages/orders/[id]/edit.vue:5"
+  }
+]

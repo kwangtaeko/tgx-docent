@@ -1,0 +1,45 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "src/views/HomeView.vue"
+    ],
+    "evidence": "src/router/index.ts:9"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "src/views/LoginView.vue"
+    ],
+    "evidence": "src/router/index.ts:10"
+  },
+  {
+    "route": "/orders",
+    "files": [
+      "src/views/OrdersView.vue",
+      "src/components/OrderTable.vue"
+    ],
+    "evidence": "src/router/index.ts:11"
+  },
+  {
+    "route": "/orders/[id]",
+    "files": [
+      "src/views/OrderView.vue"
+    ],
+    "evidence": "src/router/index.ts:12"
+  },
+  {
+    "route": "/settings",
+    "files": [
+      "src/views/settings/ProfileView.vue"
+    ],
+    "evidence": "src/router/index.ts:17"
+  },
+  {
+    "route": "/settings/password",
+    "files": [
+      "src/views/settings/PasswordView.vue"
+    ],
+    "evidence": "src/router/index.ts:18"
+  }
+]

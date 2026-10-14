@@ -1,0 +1,9 @@
+{
+  "name": "vue-router-sample",
+  "private": true,
+  "description": "docent Vue Router 감지기 픽스처(소스만, 설치·빌드하지 않음)",
+  "dependencies": {
+    "vue": "3.5.13",
+    "vue-router": "4.5.0"
+  }
+}
