@@ -9,6 +9,8 @@ const TYPE_LABELS = {
 const ev = (evidence) => `<!-- evidence: ${escapeComment(evidence)} -->`;
 const flag = (item) => (item.confidence === 'low' ? '<mark>[확인 필요]</mark> ' : '');
 const nodeId = (id) => id.replace(/-/g, '_');
+const NO_CAPTURE = '화면 캡처 없이 소스만으로 만들었습니다.';
+const mediaOf = (input) => input.media ?? { images: new Set(), gifs: new Set() };
 
 function page({ title, body, root, projectName, date, scripts = '' }) {
   return `<!doctype html>
@@ -70,12 +72,24 @@ function renderIndex(input) {
     .map((f) => `<li><strong>${h(f.menu)}</strong> — ${h(f.value)} <!-- screens: ${escapeComment(f.screens.join(', '))} --></li>`)
     .join('\n');
   const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('');
+  const media = mediaOf(input);
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+  const preview = gifs.length
+    ? `<h2>화면 미리보기</h2>\n<div class="preview">${gifs
+        .map((e) => {
+          const title = h(screens.get(e.id).title.value);
+          return `<figure><img src="media/gif/${h(e.id)}.gif" alt="${title} 조작 예시"><figcaption><a href="screens/${h(e.id)}.html">${title}</a></figcaption></figure>`;
+        })
+        .join('')}</div>`
+    : '';
+  const notice = media.images.size || media.gifs.size ? '' : `<p class="notice">${NO_CAPTURE}</p>\n`;
   const body = `<h1>${h(input.projectName)}</h1>
-<p class="lead">${h(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(', '))} --></p>
+${notice}<p class="lead">${h(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(', '))} --></p>
 <h2>주요 기능</h2>
 <ul>
 ${features}
 </ul>
+${preview}
 <h2>사용자 역할</h2>
 <ul>${roles}</ul>
 <h2>메뉴 구조</h2>
@@ -155,13 +169,17 @@ function renderScreen(input, entry) {
     ? `<h2>확인 필요</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[확인 필요]</mark> ${h(u)}</li>`).join('')}</ul>`
     : '';
 
+  const media = mediaOf(input);
+  const shot = media.images.has(s.id) ? `<figure class="shot"><img src="../media/img/${h(s.id)}.png" alt="${h(s.title.value)} 화면"></figure>\n` : '';
+  const gif = media.gifs.has(s.id) ? `<h2>조작 예시</h2>\n<figure><img src="../media/gif/${h(s.id)}.gif" alt="${h(s.title.value)} 조작 예시"></figure>\n` : '';
   const body = `<p class="crumb"><a href="../screens.html">화면 목록</a> › <code>${h(s.id)}</code></p>
 <h1>${h(s.title.value)} ${ev(s.title.evidence)}</h1>
+${shot}
 <dl class="meta">
 ${meta.join('\n')}
 </dl>
 ${sections}
-<h2>입력 항목</h2>
+${gif}<h2>입력 항목</h2>
 ${fields}
 <h2>버튼과 동작</h2>
 ${actions}
@@ -222,6 +240,10 @@ mark { background: var(--mark); padding: 0 0.2rem; }
 .crumb { color: var(--muted); font-size: 0.9rem; }
 .empty { color: var(--muted); }
 pre.mermaid { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
+figure { margin: 1rem 0; }
+figure img { max-width: 100%; border: 1px solid var(--line); }
+.preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.notice { background: #f6f8fa; border-left: 4px solid var(--line); padding: 0.5rem 0.75rem; color: var(--muted); }
 @media print {
   header.site nav, .crumb { display: none; }
   main { max-width: none; padding: 0; }

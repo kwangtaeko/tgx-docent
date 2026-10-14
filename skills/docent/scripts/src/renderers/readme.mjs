@@ -22,17 +22,25 @@ function menuLines(inventory, screens) {
   return lines;
 }
 
-export function renderReadme({ inventory, screens, summary, date, projectName }) {
+function previewLines(inventory, screens, media) {
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+  if (!gifs.length) return [];
+  return ['## 화면 미리보기', '', ...gifs.map((e) => `![${screens.get(e.id).title.value}](html/media/gif/${e.id}.gif)`), ''];
+}
+
+export function renderReadme({ inventory, screens, summary, date, projectName, media = { images: new Set(), gifs: new Set() } }) {
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
   const lines = [
     `# ${projectName}`,
     '',
     `${summary.oneLiner.value} <!-- screens: ${summary.oneLiner.screens.join(', ')} -->`,
     '',
+    ...(media.images.size || media.gifs.size ? [] : ['> 화면 캡처 없이 소스만으로 만들었습니다.', '']),
     '## 주요 기능',
     '',
     ...summary.features.map((f) => `- **${f.menu}** — ${f.value} <!-- screens: ${f.screens.join(', ')} -->`),
     '',
+    ...previewLines(inventory, screens, media),
     '## 메뉴 구조',
     '',
     ...menuLines(inventory, screens),

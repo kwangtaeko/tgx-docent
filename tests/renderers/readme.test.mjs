@@ -20,3 +20,13 @@ test('메뉴 구조는 트리 목록', async () => {
   const md = renderReadme(await loadGolden());
   assert.ok(md.includes('- 주문관리\n  - 주문 목록\n  - 주문 등록'));
 });
+
+test('README 화면 미리보기', async () => {
+  const input = await loadGolden();
+  assert.ok(renderReadme(input).includes('> 화면 캡처 없이 소스만으로 만들었습니다.'));
+  input.media = { images: new Set(['login']), gifs: new Set(['login', 'home', 'orders', 'orders-new']) };
+  const md = renderReadme(input);
+  assert.ok(md.includes('## 화면 미리보기'));
+  assert.equal((md.match(/!\[[^\]]+\]\(html\/media\/gif\/[^)]+\.gif\)/g) ?? []).length, 3);
+  assert.ok(md.includes('![로그인](html/media/gif/login.gif)'));
+});

@@ -64,3 +64,18 @@ test('검증에 실패하면 빌드를 멈춘다', async () => {
   await writeJsonFile(path, screen);
   await assert.rejects(runBuild(dir, { assetsDir: await fakeAssets() }), /orders/);
 });
+
+test('media의 캡처·GIF를 산출물로 복사하고 실패 이미지는 뺀다', async () => {
+  const { mkdir } = await import('node:fs/promises');
+  const { dir, docent } = await prepared();
+  for (const sub of ['img', 'gif', 'fail']) await mkdir(join(docent, 'media', sub), { recursive: true });
+  await writeFile(join(docent, 'media', 'img', 'orders.png'), 'png');
+  await writeFile(join(docent, 'media', 'gif', 'orders.gif'), 'gif');
+  await writeFile(join(docent, 'media', 'fail', 'login.png'), 'fail');
+  const { files } = await runBuild(dir, { assetsDir: await fakeAssets() });
+  assert.ok(files.includes('html/media/img/orders.png'));
+  assert.ok(files.includes('html/media/gif/orders.gif'));
+  assert.ok(!files.some((f) => f.includes('fail')));
+  assert.ok((await readFile(join(docent, 'out', 'html', 'screens', 'orders.html'), 'utf8')).includes('../media/img/orders.png'));
+  assert.ok((await readFile(join(docent, 'out', 'README.md'), 'utf8')).includes('html/media/gif/orders.gif'));
+});

@@ -67,3 +67,21 @@ test('근거 주석 때문에 쉼표 앞에 공백이 생기지 않는다', asyn
   const text = html.replace(/<!--[\s\S]*?-->/g, '');
   assert.ok(text.includes('영업담당, 관리자'), text.match(/사용 역할.*$/m)?.[0]);
 });
+
+test('캡처가 없으면 소개에 안내를 넣는다', async () => {
+  const site = renderSite(await loadGolden());
+  assert.ok(site.get('index.html').includes('화면 캡처 없이 소스만으로 만들었습니다.'));
+  assert.ok(!site.get('screens/orders-new.html').includes('media/img'));
+});
+
+test('캡처와 GIF를 화면 페이지와 소개에 넣는다', async () => {
+  const input = await loadGolden();
+  input.media = { images: new Set(['orders-new', 'orders']), gifs: new Set(['orders-new', 'orders', 'login', 'home']) };
+  const site = renderSite(input);
+  const page = site.get('screens/orders-new.html');
+  assert.ok(page.includes('<img src="../media/img/orders-new.png" alt="주문 등록 화면">'));
+  assert.ok(page.includes('<img src="../media/gif/orders-new.gif" alt="주문 등록 조작 예시">'));
+  const index = site.get('index.html');
+  assert.ok(!index.includes('화면 캡처 없이'));
+  assert.equal((index.match(/media\/gif\//g) ?? []).length, 3);
+});

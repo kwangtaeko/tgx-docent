@@ -18820,7 +18820,7 @@ async function authSave(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/build.mjs
-import { copyFile, mkdir as mkdir3, readFile as readFile6, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { copyFile, mkdir as mkdir3, readFile as readFile6, readdir as readdir2, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { basename, dirname as dirname3, join as join8 } from "node:path";
 
 // skills/docent/scripts/src/lib/project-date.mjs
@@ -18865,6 +18865,8 @@ var TYPE_LABELS = {
 var ev = (evidence) => `<!-- evidence: ${escapeComment(evidence)} -->`;
 var flag = (item) => item.confidence === "low" ? "<mark>[\uD655\uC778 \uD544\uC694]</mark> " : "";
 var nodeId = (id) => id.replace(/-/g, "_");
+var NO_CAPTURE = "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.";
+var mediaOf = (input) => input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
 function page({ title, body, root, projectName: projectName2, date, scripts = "" }) {
   return `<!doctype html>
 <html lang="ko">
@@ -18914,12 +18916,22 @@ function renderIndex(input) {
   const { inventory, screens, summary } = input;
   const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)} <!-- screens: ${escapeComment(f.screens.join(", "))} --></li>`).join("\n");
   const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+  const media = mediaOf(input);
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+  const preview = gifs.length ? `<h2>\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30</h2>
+<div class="preview">${gifs.map((e) => {
+    const title = escapeHtml(screens.get(e.id).title.value);
+    return `<figure><img src="media/gif/${escapeHtml(e.id)}.gif" alt="${title} \uC870\uC791 \uC608\uC2DC"><figcaption><a href="screens/${escapeHtml(e.id)}.html">${title}</a></figcaption></figure>`;
+  }).join("")}</div>` : "";
+  const notice = media.images.size || media.gifs.size ? "" : `<p class="notice">${NO_CAPTURE}</p>
+`;
   const body = `<h1>${escapeHtml(input.projectName)}</h1>
-<p class="lead">${escapeHtml(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(", "))} --></p>
+${notice}<p class="lead">${escapeHtml(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(", "))} --></p>
 <h2>\uC8FC\uC694 \uAE30\uB2A5</h2>
 <ul>
 ${features}
 </ul>
+${preview}
 <h2>\uC0AC\uC6A9\uC790 \uC5ED\uD560</h2>
 <ul>${roles}</ul>
 <h2>\uBA54\uB274 \uAD6C\uC870</h2>
@@ -18985,13 +18997,20 @@ function renderScreen(input, entry) {
   const children = inventory.screens.filter((x) => x.parentId === s.id);
   const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul>${children.map((c) => `<li>${link(screens, c.id)}</li>`).join("")}</ul>` : "";
   const unknowns = s.unknowns.length ? `<h2>\uD655\uC778 \uD544\uC694</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[\uD655\uC778 \uD544\uC694]</mark> ${escapeHtml(u)}</li>`).join("")}</ul>` : "";
+  const media = mediaOf(input);
+  const shot = media.images.has(s.id) ? `<figure class="shot"><img src="../media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74"></figure>
+` : "";
+  const gif = media.gifs.has(s.id) ? `<h2>\uC870\uC791 \uC608\uC2DC</h2>
+<figure><img src="../media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(s.title.value)} \uC870\uC791 \uC608\uC2DC"></figure>
+` : "";
   const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(s.id)}</code></p>
 <h1>${escapeHtml(s.title.value)} ${ev(s.title.evidence)}</h1>
+${shot}
 <dl class="meta">
 ${meta.join("\n")}
 </dl>
 ${sections}
-<h2>\uC785\uB825 \uD56D\uBAA9</h2>
+${gif}<h2>\uC785\uB825 \uD56D\uBAA9</h2>
 ${fields}
 <h2>\uBC84\uD2BC\uACFC \uB3D9\uC791</h2>
 ${actions}
@@ -19047,6 +19066,10 @@ mark { background: var(--mark); padding: 0 0.2rem; }
 .crumb { color: var(--muted); font-size: 0.9rem; }
 .empty { color: var(--muted); }
 pre.mermaid { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
+figure { margin: 1rem 0; }
+figure img { max-width: 100%; border: 1px solid var(--line); }
+.preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.notice { background: #f6f8fa; border-left: 4px solid var(--line); padding: 0.5rem 0.75rem; color: var(--muted); }
 @media print {
   header.site nav, .crumb { display: none; }
   main { max-width: none; padding: 0; }
@@ -19087,17 +19110,24 @@ function menuLines(inventory, screens) {
   walk2(root, 0);
   return lines;
 }
-function renderReadme({ inventory, screens, summary, date, projectName: projectName2 }) {
+function previewLines(inventory, screens, media) {
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+  if (!gifs.length) return [];
+  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${screens.get(e.id).title.value}](html/media/gif/${e.id}.gif)`), ""];
+}
+function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() } }) {
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
   const lines = [
     `# ${projectName2}`,
     "",
     `${summary.oneLiner.value} <!-- screens: ${summary.oneLiner.screens.join(", ")} -->`,
     "",
+    ...media.images.size || media.gifs.size ? [] : ["> \uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.", ""],
     "## \uC8FC\uC694 \uAE30\uB2A5",
     "",
     ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value} <!-- screens: ${f.screens.join(", ")} -->`),
     "",
+    ...previewLines(inventory, screens, media),
     "## \uBA54\uB274 \uAD6C\uC870",
     "",
     ...menuLines(inventory, screens),
@@ -19350,6 +19380,18 @@ async function put(outDir, rel, content, files) {
   await writeFile3(path, content);
   files.push(rel);
 }
+async function collectMedia(projectDir, inventory) {
+  const ids = new Set(inventory.screens.map((s) => s.id));
+  const pick = async (sub, ext) => {
+    try {
+      const names = await readdir2(join8(docentDir(projectDir), "media", sub));
+      return new Set(names.filter((n) => n.endsWith(`.${ext}`)).map((n) => n.slice(0, -ext.length - 1)).filter((id) => ids.has(id)));
+    } catch {
+      return /* @__PURE__ */ new Set();
+    }
+  };
+  return { images: await pick("img", "png"), gifs: await pick("gif", "gif") };
+}
 async function runBuild(projectDir, { assetsDir }) {
   const { ok, problems } = await runValidate(projectDir);
   if (!ok) throw new Error(`\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:
@@ -19360,7 +19402,9 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   const inventory = await readJson(join8(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
   for (const { id } of inventory.screens) screens.set(id, await readJson(join8(dir, "screens", `${id}.json`)));
+  const media = await collectMedia(projectDir, inventory);
   const input = {
+    media,
     inventory,
     screens,
     summary: await readJson(join8(dir, "summary.json")),
@@ -19374,6 +19418,15 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   await mkdir3(join8(outDir, "html", "assets"), { recursive: true });
   await copyFile(join8(assetsDir, "mermaid.min.js"), join8(outDir, "html", "assets", "mermaid.min.js"));
   files.push("html/assets/mermaid.min.js");
+  for (const [kind, ext] of [["img", "png"], ["gif", "gif"]]) {
+    const set = kind === "img" ? media.images : media.gifs;
+    if (!set.size) continue;
+    await mkdir3(join8(outDir, "html", "media", kind), { recursive: true });
+    for (const id of set) {
+      await copyFile(join8(dir, "media", kind, `${id}.${ext}`), join8(outDir, "html", "media", kind, `${id}.${ext}`));
+      files.push(`html/media/${kind}/${id}.${ext}`);
+    }
+  }
   await put(outDir, "README.md", renderReadme(input), files);
   return { files: files.sort() };
 }
@@ -19865,7 +19918,7 @@ __export(nextjs_exports, {
   listScreens: () => listScreens,
   name: () => name
 });
-import { readFile as readFile7, readdir as readdir2, stat } from "node:fs/promises";
+import { readFile as readFile7, readdir as readdir3, stat } from "node:fs/promises";
 import { join as join14, posix as posix2 } from "node:path";
 var name = "nextjs";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".next", ".git", ".docent"]);
@@ -19921,7 +19974,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir2(join14(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir3(join14(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
