@@ -2,7 +2,15 @@
 
 웹앱 프로젝트의 소스를 분석해 **화면 목록, 화면별 매뉴얼, 프로젝트 소개, 워크플로우(HTML)와 소개 README**를 만드는 에이전트 플러그인입니다. 모든 서술에 소스 근거를 남기고, 소스만으로 확정할 수 없는 내용은 `[확인 필요]`로 표시합니다.
 
-> 개발 중(M4)입니다. 웹앱 위주이며, 다른 프레임워크 감지기와 레거시 스택 검증(M5)은 진행 예정입니다.
+> 개발 중(M5)입니다. 웹앱 위주입니다.
+
+## 지원 스택
+
+| 스택 | 화면 목록 | 캡처·GIF |
+| --- | --- | --- |
+| Next.js(App·Pages Router), React Router(v6·v7), Vue Router·Nuxt, SvelteKit | 감지기(스크립트) | 자동 실행 또는 주소 받기 |
+| Spring MVC(JSP·Thymeleaf), Django·Flask, PHP, 그 밖의 JS 라우터 | 에이전트 탐색 + 스택별 힌트(`skills/docent/references/stacks/`) | 자동 실행 또는 주소 받기 |
+| ASP.NET WebForms | 에이전트 탐색 + 힌트 | 주소 받기만(IIS·Windows 필요) |
 
 ## 쓰는 법 (Claude Code)
 

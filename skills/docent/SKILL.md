@@ -48,12 +48,12 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 ### 1. 준비
 
-`$DOCENT init`. 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다.
+`$DOCENT init`. 감지기는 `nextjs`(App·Pages Router), `react-router`(v6 코드 라우터·v7 `app/routes.ts`), `vue`(Vue Router·Nuxt), `sveltekit`입니다. 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다(Spring·WebForms·Django·PHP 등은 `<SKILL_DIR>/references/stacks/`의 힌트로 찾습니다).
 
 ### 2. 화면 목록
 
 1. `$DOCENT inventory`를 실행합니다
-2. 감지기가 없거나, 메뉴·링크를 보니 빠진 화면이 의심되면 `route-explorer` 에이전트(서브에이전트가 없으면 `<SKILL_DIR>/agents/route-explorer.md`의 지시를 직접 수행)에 프로젝트 루트와 `DOCENT`를 전달해 `.docent/inventory.agent.json`을 쓰게 하고 `$DOCENT inventory`를 다시 실행합니다
+2. 감지기가 없거나, 메뉴·링크를 보니 빠진 화면이 의심되면 `route-explorer` 에이전트(서브에이전트가 없으면 `<SKILL_DIR>/agents/route-explorer.md`의 지시를 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`를 전달해 `.docent/inventory.agent.json`을 쓰게 하고(스택별 힌트는 `<SKILL_DIR>/references/stacks/`) `$DOCENT inventory`를 다시 실행합니다
 3. 화면 목록(ID·경로)을 사용자에게 보여 주고 확인받습니다. 빼거나 더할 화면은 `config.yaml`의 `screens.exclude`/`include`, 화면 코드 체계가 있으면 `screens.idMap`으로 반영하고 다시 실행합니다
 4. 화면이 50개를 넘으면 화면 수와 대략의 시간(화면당 1~2분)을 알리고 진행 여부를 확인받습니다. 일부만 하려면 `screens.include`로 좁힙니다
 
@@ -112,4 +112,5 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 - `references/schema.md` — 중간 산출물 형식
 - `references/writing-style.md` — 문체 규칙
 - `references/run-guide.md` — 앱 실행 계획 만드는 법
+- `references/stacks/` — 감지기가 없는 스택(Spring MVC, ASP.NET WebForms, Django·Flask, PHP, 그 밖의 JS 라우터)에서 화면을 찾고 읽는 힌트
 - `agents/` — 서브에이전트 지시(`screen-analyzer`, `route-explorer`, `summary-writer`, `scenario-writer`). Claude Code 플러그인에서는 같은 이름의 서브에이전트로 등록됩니다
