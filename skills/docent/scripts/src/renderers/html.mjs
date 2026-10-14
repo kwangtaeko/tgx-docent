@@ -297,9 +297,14 @@ ${screenBody(input, entry)}`;
 }
 
 // 워크플로우 하나의 Mermaid 정의. 라벨만 이스케이프하고 화살표는 그대로 둔다(mermaid는 textContent를 읽음)
-export function workflowMermaid(input, wf) {
+// forHtml: <pre class="mermaid"> 안에 넣을 때(true, 이스케이프) / mermaid.render에 바로 넘길 때(false)
+export function workflowMermaid(input, wf, { forHtml = true } = {}) {
   const { screens } = input;
-  const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${h(screenTitle(screens, id)).replace(/&quot;/g, '#quot;')}"]`);
+  const label = (id) => {
+    const title = screenTitle(screens, id);
+    return forHtml ? h(title).replace(/&quot;/g, '#quot;') : title.replace(/"/g, '#quot;');
+  };
+  const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${label(id)}"]`);
   const edges = [];
   for (let i = 0; i + 1 < wf.steps.length; i++) {
     const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
