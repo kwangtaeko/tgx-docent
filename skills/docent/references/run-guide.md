@@ -66,6 +66,8 @@ gif:
     exclude: [admin-users] # GIF에서 뺄 화면 ID
 ```
 
+산출물 설정(`output`: preset, formats, title, organization, revisions)은 `.docent/config.yaml` 템플릿 주석을 참고하세요.
+
 계정 값은 어디에도 적지 않습니다. 사용자가 셸에서 `export DOCENT_USER=…`로 설정합니다. 로그인 화면은 로그인하지 않은 상태로 캡처합니다.
 
 ## 실패했을 때

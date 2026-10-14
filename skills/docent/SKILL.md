@@ -88,7 +88,13 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 ### 7. 산출물
 
-`$DOCENT build` → `.docent/out/html/index.html`과 `.docent/out/README.md` 위치를 알립니다. 마지막으로 `$DOCENT session end`.
+1. 사용자에게 **받는 사람**과 **형식**을 묻습니다(처음 한 번, 이후 `config.yaml`의 `output`에 저장)
+   - 받는 사람 → 프리셋: 고객사·발주처 납품 = `delivery`(표지·목차·개정 이력, 근거 주석 제거), 팀 내부 인수인계 = `handover`(근거 주석·소스 파일 목록 유지), 외부 공개·포트폴리오 = `portfolio`(소개·GIF 중심, 화면은 카드)
+   - 형식: `html`, `readme`, `pdf`, `pptx` 중 여럿
+   - 납품용이면 `output.title`·`output.organization`·`output.revisions`(버전·날짜·작성자·내용)도 묻습니다
+2. `$DOCENT build --preset <프리셋> --format <형식,…>`
+3. 경고가 나오면 그대로 전합니다. 특히 납품용에서 "확인 필요 항목 N건"이 나오면 `.docent/review.md`를 먼저 처리하도록 권합니다. PDF가 건너뛰어졌으면(Playwright 없음) 설치 동의를 받아 `$DOCENT runtime install` 후 다시 build
+4. 결과 위치(`.docent/out/html/index.html`, `.docent/out/README.md`, `.docent/out/<제목>.pdf`, `.pptx`)를 알리고 `$DOCENT session end`
 
 ## 갱신 (`/docent-update`)
 
