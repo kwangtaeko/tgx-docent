@@ -14796,7 +14796,7 @@ var require__ = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname3, join as join12, resolve as resolve2 } from "node:path";
+import { dirname as dirname4, join as join14, resolve as resolve2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/build.mjs
@@ -16461,6 +16461,75 @@ async function endSession(projectDir) {
   await rm2(join11(docentDir(projectDir), ".session"), { force: true });
 }
 
+// skills/docent/scripts/src/commands/runtime.mjs
+import { spawnSync } from "node:child_process";
+import { mkdirSync } from "node:fs";
+import { join as join13 } from "node:path";
+
+// skills/docent/scripts/src/lib/playwright.mjs
+import { execFileSync as execFileSync2 } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { homedir } from "node:os";
+import { dirname as dirname3, join as join12 } from "node:path";
+var PLAYWRIGHT_VERSION = "1.56.1";
+var PlaywrightMissing = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "PlaywrightMissing";
+  }
+};
+function runtimeDir() {
+  return process.env.DOCENT_RUNTIME_DIR || join12(homedir(), ".cache", "docent", "runtime");
+}
+var require2 = createRequire(import.meta.url);
+function loadFromDir(pkgDir) {
+  const pkgJson = join12(pkgDir, "package.json");
+  if (!existsSync(pkgJson)) return void 0;
+  const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
+  return { module: require2(pkgDir), version };
+}
+function globalRoot() {
+  try {
+    return execFileSync2("npm", ["root", "-g"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return void 0;
+  }
+}
+async function findPlaywright() {
+  const candidates = [];
+  if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
+  candidates.push(["runtime", join12(runtimeDir(), "node_modules", "playwright")]);
+  try {
+    candidates.push(["local", dirname3(require2.resolve("playwright/package.json"))]);
+  } catch {
+  }
+  const root = globalRoot();
+  if (root) candidates.push(["global", join12(root, "playwright")]);
+  for (const [from, dir] of candidates) {
+    const found = loadFromDir(dir);
+    if (found) return { ...found, from, dir };
+  }
+  return void 0;
+}
+
+// skills/docent/scripts/src/commands/runtime.mjs
+async function runtimeStatus() {
+  const found = await findPlaywright();
+  return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
+}
+function run(command, args) {
+  const r = spawnSync(command, args, { stdio: "inherit", shell: process.platform === "win32" });
+  if (r.status !== 0) throw new Error(`${command} ${args.join(" ")} \uC2E4\uD328 (exit ${r.status})`);
+}
+async function runtimeInstall() {
+  const dir = runtimeDir();
+  mkdirSync(dir, { recursive: true });
+  run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
+  run(join13(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  return runtimeStatus();
+}
+
 // skills/docent/scripts/src/docent.mjs
 var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]
 
@@ -16472,9 +16541,10 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
+  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join12(dirname3(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join14(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -16534,6 +16604,16 @@ async function main() {
       console.log(await hashFiles(project, files));
       return 0;
     }
+    case "runtime": {
+      if (sub !== "status" && sub !== "install") break;
+      const r = sub === "install" ? await runtimeInstall() : await runtimeStatus();
+      if (!r.installed) {
+        console.log(`Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: ${r.dir} (docent runtime install)`);
+        return 3;
+      }
+      console.log(`Playwright ${r.version} (${r.from}: ${r.dir})`);
+      return 0;
+    }
     case "session":
       if (sub === "start") {
         await startSession(project);
@@ -16552,6 +16632,6 @@ main().then(
   (code) => process.exit(code),
   (err) => {
     console.error(`docent: ${err.message}`);
-    process.exit(1);
+    process.exit(err instanceof PlaywrightMissing ? 3 : 1);
   }
 );

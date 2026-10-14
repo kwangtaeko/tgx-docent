@@ -62,3 +62,9 @@ test('hash는 hashFiles와 같은 값을 출력한다', async () => {
   const { hashFiles } = await import('../skills/docent/scripts/src/lib/source-hash.mjs');
   assert.equal(r.stdout.trim(), await hashFiles(dir, ['app/login/page.tsx', 'lib/auth.ts']));
 });
+
+test('runtime status는 찾은 Playwright 위치를 보여 준다', () => {
+  const r = run(['runtime', 'status'], '.');
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /1\.56\.1/);
+});

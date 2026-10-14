@@ -9,6 +9,8 @@ await build({
   platform: 'node',
   format: 'esm',
   target: 'node20',
+  // Playwright는 번들하지 않고 런타임에 설치된 곳에서 불러온다(lib/playwright.mjs)
+  external: ['playwright', 'playwright-core'],
   legalComments: 'none',
   banner: {
     // 번들 안의 CommonJS 의존성(yaml 등)이 require('process') 같은 내장 모듈을 쓸 수 있게 한다.

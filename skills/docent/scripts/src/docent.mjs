@@ -7,7 +7,9 @@ import { runInventory } from './commands/inventory.mjs';
 import { runPending } from './commands/pending.mjs';
 import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
+import { runtimeInstall, runtimeStatus } from './commands/runtime.mjs';
 import { runValidate } from './commands/validate.mjs';
+import { PlaywrightMissing } from './lib/playwright.mjs';
 import { hashFiles } from './lib/source-hash.mjs';
 
 const USAGE = `사용법: docent <명령> [--project <디렉터리>]
@@ -20,6 +22,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   review         확인 필요 항목(.docent/review.md)을 모읍니다
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
+  runtime status|install  화면 캡처용 Playwright 확인·설치(사용자 동의 후)
   session start  분석 세션 시작(비밀 파일 읽기 차단)
   session end    분석 세션 종료`;
 
@@ -86,6 +89,16 @@ async function main() {
       console.log(await hashFiles(project, files));
       return 0;
     }
+    case 'runtime': {
+      if (sub !== 'status' && sub !== 'install') break;
+      const r = sub === 'install' ? await runtimeInstall() : await runtimeStatus();
+      if (!r.installed) {
+        console.log(`Playwright 없음 — 설치 위치: ${r.dir} (docent runtime install)`);
+        return 3;
+      }
+      console.log(`Playwright ${r.version} (${r.from}: ${r.dir})`);
+      return 0;
+    }
     case 'session':
       if (sub === 'start') {
         await startSession(project);
@@ -105,6 +118,6 @@ main().then(
   (code) => process.exit(code),
   (err) => {
     console.error(`docent: ${err.message}`);
-    process.exit(1);
+    process.exit(err instanceof PlaywrightMissing ? 3 : 1);
   },
 );
