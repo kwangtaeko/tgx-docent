@@ -1,0 +1,40 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "src/pages/Home.tsx",
+      "src/components/StatCard.tsx"
+    ],
+    "evidence": "src/router.tsx:15"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "src/pages/Login.tsx"
+    ],
+    "evidence": "src/router.tsx:10"
+  },
+  {
+    "route": "/orders",
+    "files": [
+      "src/pages/orders/Orders.tsx",
+      "src/pages/orders/api.ts"
+    ],
+    "evidence": "src/router.tsx:19"
+  },
+  {
+    "route": "/orders/[orderId]",
+    "files": [
+      "src/pages/orders/OrderDetail.tsx",
+      "src/pages/orders/api.ts"
+    ],
+    "evidence": "src/router.tsx:21"
+  },
+  {
+    "route": "/orders/new",
+    "files": [
+      "src/pages/orders/OrderNew.tsx"
+    ],
+    "evidence": "src/router.tsx:20"
+  }
+]

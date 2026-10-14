@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    // 경로 별칭
+    "paths": { "@/*": ["./src/*"] },
+  },
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "app/routes/home.tsx"
+    ],
+    "evidence": "app/routes.ts:4"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "app/routes/login.tsx"
+    ],
+    "evidence": "app/routes.ts:5"
+  },
+  {
+    "route": "/products",
+    "files": [
+      "app/routes/products.tsx",
+      "app/catalog.ts"
+    ],
+    "evidence": "app/routes.ts:8"
+  },
+  {
+    "route": "/products/[productId]",
+    "files": [
+      "app/routes/product.tsx",
+      "app/catalog.ts"
+    ],
+    "evidence": "app/routes.ts:9"
+  }
+]

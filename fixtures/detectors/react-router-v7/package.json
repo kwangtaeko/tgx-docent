@@ -1,0 +1,12 @@
+{
+  "name": "react-router-v7-sample",
+  "private": true,
+  "description": "docent React Router v7(프레임워크 모드) 감지기 픽스처(소스만)",
+  "dependencies": {
+    "react": "19.0.0",
+    "react-router": "7.1.0"
+  },
+  "devDependencies": {
+    "@react-router/dev": "7.1.0"
+  }
+}

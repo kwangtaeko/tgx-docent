@@ -21,8 +21,8 @@ var __commonJS = (cb, mod) => function __require2() {
   }
 };
 var __export = (target, all) => {
-  for (var name2 in all)
-    __defProp(target, name2, { get: all[name2], enumerable: true });
+  for (var name3 in all)
+    __defProp(target, name3, { get: all[name3], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -315,8 +315,8 @@ var require_directives = __commonJS({
           this.atNextDocument = false;
         }
         const parts = line2.trim().split(/[ \t]+/);
-        const name2 = parts.shift();
-        switch (name2) {
+        const name3 = parts.shift();
+        switch (name3) {
           case "%TAG": {
             if (parts.length !== 2) {
               onError(0, "%TAG directive should contain exactly two parts");
@@ -344,7 +344,7 @@ var require_directives = __commonJS({
             }
           }
           default:
-            onError(0, `Unknown directive ${name2}`, true);
+            onError(0, `Unknown directive ${name3}`, true);
             return false;
         }
       }
@@ -453,9 +453,9 @@ var require_anchors = __commonJS({
     }
     function findNewAnchor(prefix, exclude) {
       for (let i = 1; true; ++i) {
-        const name2 = `${prefix}${i}`;
-        if (!exclude.has(name2))
-          return name2;
+        const name3 = `${prefix}${i}`;
+        if (!exclude.has(name3))
+          return name3;
       }
     }
     function createNodeAnchors(doc, prefix) {
@@ -1492,8 +1492,8 @@ var require_stringify = __commonJS({
         tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
       }
       if (!tagObj) {
-        const name2 = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
-        throw new Error(`Tag not resolved for ${name2} value`);
+        const name3 = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
+        throw new Error(`Tag not resolved for ${name3} value`);
       }
       return tagObj;
     }
@@ -2051,7 +2051,7 @@ var require_YAMLMap = __commonJS({
       static from(schema, obj, ctx) {
         const { keepUndefined, replacer } = ctx;
         const map = new this(schema);
-        const add = (key, value) => {
+        const add2 = (key, value) => {
           if (typeof replacer === "function")
             value = replacer.call(obj, key, value);
           else if (Array.isArray(replacer) && !replacer.includes(key))
@@ -2061,10 +2061,10 @@ var require_YAMLMap = __commonJS({
         };
         if (obj instanceof Map) {
           for (const [key, value] of obj)
-            add(key, value);
+            add2(key, value);
         } else if (obj && typeof obj === "object") {
           for (const key of Object.keys(obj))
-            add(key, obj[key]);
+            add2(key, obj[key]);
         }
         if (typeof schema.sortMapEntries === "function") {
           map.items.sort(schema.sortMapEntries);
@@ -3492,11 +3492,11 @@ var require_Document = __commonJS({
        * `name` will be used as a prefix for a new unique anchor.
        * If `name` is undefined, the generated anchor will use 'a' as a prefix.
        */
-      createAlias(node, name2) {
+      createAlias(node, name3) {
         if (!node.anchor) {
           const prev = anchors.anchorNames(this);
           node.anchor = // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          !name2 || prev.has(name2) ? anchors.findNewAnchor(name2 || "a", prev) : name2;
+          !name3 || prev.has(name3) ? anchors.findNewAnchor(name3 || "a", prev) : name3;
         }
         return new Alias.Alias(node.anchor);
       }
@@ -3715,9 +3715,9 @@ var require_errors = __commonJS({
   "node_modules/yaml/dist/errors.js"(exports) {
     "use strict";
     var YAMLError = class extends Error {
-      constructor(name2, pos, code, message) {
+      constructor(name3, pos, code, message) {
         super();
-        this.name = name2;
+        this.name = name3;
         this.code = code;
         this.message = message;
         this.pos = pos;
@@ -4357,8 +4357,8 @@ var require_resolve_flow_collection = __commonJS({
       if (ce?.source === expectedEnd)
         cePos = ce.offset + ce.source.length;
       else {
-        const name2 = fcName[0].toUpperCase() + fcName.substring(1);
-        const msg = atRoot ? `${name2} must end with a ${expectedEnd}` : `${name2} in block collection must be sufficiently indented and end with a ${expectedEnd}`;
+        const name3 = fcName[0].toUpperCase() + fcName.substring(1);
+        const msg = atRoot ? `${name3} must end with a ${expectedEnd}` : `${name3} in block collection must be sufficiently indented and end with a ${expectedEnd}`;
         onError(offset, atRoot ? "MISSING_CHAR" : "BAD_INDENT", msg);
         if (ce && ce.source.length !== 1)
           ee.unshift(ce);
@@ -4663,13 +4663,13 @@ var require_resolve_flow_scalar = __commonJS({
             range: [offset, offset + source.length, offset + source.length]
           };
       }
-      const valueEnd = offset + source.length;
-      const re = resolveEnd.resolveEnd(end, valueEnd, strict, onError);
+      const valueEnd2 = offset + source.length;
+      const re = resolveEnd.resolveEnd(end, valueEnd2, strict, onError);
       return {
         value,
         type: _type,
         comment: re.comment,
-        range: [offset, valueEnd, re.offset]
+        range: [offset, valueEnd2, re.offset]
       };
     }
     function plainValue(source, onError) {
@@ -5055,9 +5055,9 @@ var require_compose_node = __commonJS({
         onError(offset, "BAD_ALIAS", "Alias cannot be an empty string");
       if (alias.source.endsWith(":"))
         onError(offset + source.length - 1, "BAD_ALIAS", "Alias ending in : is ambiguous", true);
-      const valueEnd = offset + source.length;
-      const re = resolveEnd.resolveEnd(end, valueEnd, options.strict, onError);
-      alias.range = [offset, valueEnd, re.offset];
+      const valueEnd2 = offset + source.length;
+      const re = resolveEnd.resolveEnd(end, valueEnd2, options.strict, onError);
+      alias.range = [offset, valueEnd2, re.offset];
       if (re.comment)
         alias.comment = re.comment;
       return alias;
@@ -7533,9 +7533,9 @@ var require_scope = __commonJS({
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
     var code_1 = require_code();
     var ValueError = class extends Error {
-      constructor(name2) {
-        super(`CodeGen: "code" for ${name2} not defined`);
-        this.value = name2.value;
+      constructor(name3) {
+        super(`CodeGen: "code" for ${name3} not defined`);
+        this.value = name3.value;
       }
     };
     var UsedValueState;
@@ -7602,8 +7602,8 @@ var require_scope = __commonJS({
         var _a;
         if (value.ref === void 0)
           throw new Error("CodeGen: ref must be passed in value");
-        const name2 = this.toName(nameOrPrefix);
-        const { prefix } = name2;
+        const name3 = this.toName(nameOrPrefix);
+        const { prefix } = name3;
         const valueKey = (_a = value.key) !== null && _a !== void 0 ? _a : value.ref;
         let vs = this._values[prefix];
         if (vs) {
@@ -7613,12 +7613,12 @@ var require_scope = __commonJS({
         } else {
           vs = this._values[prefix] = /* @__PURE__ */ new Map();
         }
-        vs.set(valueKey, name2);
+        vs.set(valueKey, name3);
         const s = this._scope[prefix] || (this._scope[prefix] = []);
         const itemIndex = s.length;
         s[itemIndex] = value.ref;
-        name2.setValue(value, { property: prefix, itemIndex });
-        return name2;
+        name3.setValue(value, { property: prefix, itemIndex });
+        return name3;
       }
       getValue(prefix, keyOrRef) {
         const vs = this._values[prefix];
@@ -7627,17 +7627,17 @@ var require_scope = __commonJS({
         return vs.get(keyOrRef);
       }
       scopeRefs(scopeName, values = this._values) {
-        return this._reduceValues(values, (name2) => {
-          if (name2.scopePath === void 0)
-            throw new Error(`CodeGen: name "${name2}" has no value`);
-          return (0, code_1._)`${scopeName}${name2.scopePath}`;
+        return this._reduceValues(values, (name3) => {
+          if (name3.scopePath === void 0)
+            throw new Error(`CodeGen: name "${name3}" has no value`);
+          return (0, code_1._)`${scopeName}${name3.scopePath}`;
         });
       }
       scopeCode(values = this._values, usedValues, getCode) {
-        return this._reduceValues(values, (name2) => {
-          if (name2.value === void 0)
-            throw new Error(`CodeGen: name "${name2}" has no value`);
-          return name2.value.code;
+        return this._reduceValues(values, (name3) => {
+          if (name3.value === void 0)
+            throw new Error(`CodeGen: name "${name3}" has no value`);
+          return name3.value.code;
         }, usedValues, getCode);
       }
       _reduceValues(values, valueCode, usedValues = {}, getCode) {
@@ -7647,20 +7647,20 @@ var require_scope = __commonJS({
           if (!vs)
             continue;
           const nameSet = usedValues[prefix] = usedValues[prefix] || /* @__PURE__ */ new Map();
-          vs.forEach((name2) => {
-            if (nameSet.has(name2))
+          vs.forEach((name3) => {
+            if (nameSet.has(name3))
               return;
-            nameSet.set(name2, UsedValueState.Started);
-            let c = valueCode(name2);
+            nameSet.set(name3, UsedValueState.Started);
+            let c = valueCode(name3);
             if (c) {
               const def = this.opts.es5 ? exports.varKinds.var : exports.varKinds.const;
-              code = (0, code_1._)`${code}${def} ${name2} = ${c};${this.opts._n}`;
-            } else if (c = getCode === null || getCode === void 0 ? void 0 : getCode(name2)) {
+              code = (0, code_1._)`${code}${def} ${name3} = ${c};${this.opts._n}`;
+            } else if (c = getCode === null || getCode === void 0 ? void 0 : getCode(name3)) {
               code = (0, code_1._)`${code}${c}${this.opts._n}`;
             } else {
-              throw new ValueError(name2);
+              throw new ValueError(name3);
             }
-            nameSet.set(name2, UsedValueState.Completed);
+            nameSet.set(name3, UsedValueState.Completed);
           });
         }
         return code;
@@ -7737,10 +7737,10 @@ var require_codegen = __commonJS({
       }
     };
     var Def = class extends Node2 {
-      constructor(varKind, name2, rhs) {
+      constructor(varKind, name3, rhs) {
         super();
         this.varKind = varKind;
-        this.name = name2;
+        this.name = name3;
         this.rhs = rhs;
       }
       render({ es5, _n }) {
@@ -7960,17 +7960,17 @@ var require_codegen = __commonJS({
       }
     };
     var ForRange = class extends For {
-      constructor(varKind, name2, from, to) {
+      constructor(varKind, name3, from, to) {
         super();
         this.varKind = varKind;
-        this.name = name2;
+        this.name = name3;
         this.from = from;
         this.to = to;
       }
       render(opts) {
         const varKind = opts.es5 ? scope_1.varKinds.var : this.varKind;
-        const { name: name2, from, to } = this;
-        return `for(${varKind} ${name2}=${from}; ${name2}<${to}; ${name2}++)` + super.render(opts);
+        const { name: name3, from, to } = this;
+        return `for(${varKind} ${name3}=${from}; ${name3}<${to}; ${name3}++)` + super.render(opts);
       }
       get names() {
         const names = addExprNames(super.names, this.from);
@@ -7978,11 +7978,11 @@ var require_codegen = __commonJS({
       }
     };
     var ForIter = class extends For {
-      constructor(loop, varKind, name2, iterable) {
+      constructor(loop, varKind, name3, iterable) {
         super();
         this.loop = loop;
         this.varKind = varKind;
-        this.name = name2;
+        this.name = name3;
         this.iterable = iterable;
       }
       render(opts) {
@@ -7999,9 +7999,9 @@ var require_codegen = __commonJS({
       }
     };
     var Func = class extends BlockNode {
-      constructor(name2, args, async) {
+      constructor(name3, args, async) {
         super();
-        this.name = name2;
+        this.name = name3;
         this.args = args;
         this.async = async;
       }
@@ -8088,10 +8088,10 @@ var require_codegen = __commonJS({
       }
       // reserves unique name in the external scope and assigns value to it
       scopeValue(prefixOrName, value) {
-        const name2 = this._extScope.value(prefixOrName, value);
-        const vs = this._values[name2.prefix] || (this._values[name2.prefix] = /* @__PURE__ */ new Set());
-        vs.add(name2);
-        return name2;
+        const name3 = this._extScope.value(prefixOrName, value);
+        const vs = this._values[name3.prefix] || (this._values[name3.prefix] = /* @__PURE__ */ new Set());
+        vs.add(name3);
+        return name3;
       }
       getScopeValue(prefix, keyOrRef) {
         return this._extScope.getValue(prefix, keyOrRef);
@@ -8105,11 +8105,11 @@ var require_codegen = __commonJS({
         return this._extScope.scopeCode(this._values);
       }
       _def(varKind, nameOrPrefix, rhs, constant) {
-        const name2 = this._scope.toName(nameOrPrefix);
+        const name3 = this._scope.toName(nameOrPrefix);
         if (rhs !== void 0 && constant)
-          this._constants[name2.str] = rhs;
-        this._leafNode(new Def(varKind, name2, rhs));
-        return name2;
+          this._constants[name3.str] = rhs;
+        this._leafNode(new Def(varKind, name3, rhs));
+        return name3;
       }
       // `const` declaration (`var` in es5 mode)
       const(nameOrPrefix, rhs, _constant) {
@@ -8190,20 +8190,20 @@ var require_codegen = __commonJS({
       }
       // `for` statement for a range of values
       forRange(nameOrPrefix, from, to, forBody, varKind = this.opts.es5 ? scope_1.varKinds.var : scope_1.varKinds.let) {
-        const name2 = this._scope.toName(nameOrPrefix);
-        return this._for(new ForRange(varKind, name2, from, to), () => forBody(name2));
+        const name3 = this._scope.toName(nameOrPrefix);
+        return this._for(new ForRange(varKind, name3, from, to), () => forBody(name3));
       }
       // `for-of` statement (in es5 mode replace with a normal for loop)
       forOf(nameOrPrefix, iterable, forBody, varKind = scope_1.varKinds.const) {
-        const name2 = this._scope.toName(nameOrPrefix);
+        const name3 = this._scope.toName(nameOrPrefix);
         if (this.opts.es5) {
           const arr = iterable instanceof code_1.Name ? iterable : this.var("_arr", iterable);
           return this.forRange("_i", 0, (0, code_1._)`${arr}.length`, (i) => {
-            this.var(name2, (0, code_1._)`${arr}[${i}]`);
-            forBody(name2);
+            this.var(name3, (0, code_1._)`${arr}[${i}]`);
+            forBody(name3);
           });
         }
-        return this._for(new ForIter("of", varKind, name2, iterable), () => forBody(name2));
+        return this._for(new ForIter("of", varKind, name3, iterable), () => forBody(name3));
       }
       // `for-in` statement.
       // With option `ownProperties` replaced with a `for-of` loop for object keys
@@ -8211,8 +8211,8 @@ var require_codegen = __commonJS({
         if (this.opts.ownProperties) {
           return this.forOf(nameOrPrefix, (0, code_1._)`Object.keys(${obj})`, forBody);
         }
-        const name2 = this._scope.toName(nameOrPrefix);
-        return this._for(new ForIter("in", varKind, name2, obj), () => forBody(name2));
+        const name3 = this._scope.toName(nameOrPrefix);
+        return this._for(new ForIter("in", varKind, name3, obj), () => forBody(name3));
       }
       // end `for` loop
       endFor() {
@@ -8277,8 +8277,8 @@ var require_codegen = __commonJS({
         return this;
       }
       // `function` heading (or definition if funcBody is passed)
-      func(name2, args = code_1.nil, async, funcBody) {
-        this._blockNode(new Func(name2, args, async));
+      func(name3, args = code_1.nil, async, funcBody) {
+        this._blockNode(new Func(name3, args, async));
         if (funcBody)
           this.code(funcBody).endFunc();
         return this;
@@ -10960,10 +10960,10 @@ var require_schemes = __commonJS({
         "urn:uuid"
       ]
     );
-    function isValidSchemeName(name2) {
+    function isValidSchemeName(name3) {
       return supportedSchemeNames.indexOf(
         /** @type {*} */
-        name2
+        name3
       ) !== -1;
     }
     function wsIsSecure(wsComponent) {
@@ -11954,10 +11954,10 @@ var require_core = __commonJS({
         return this;
       }
       // Add format
-      addFormat(name2, format) {
+      addFormat(name3, format) {
         if (typeof format == "string")
           format = new RegExp(format);
-        this.formats[name2] = format;
+        this.formats[name3] = format;
         return this;
       }
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
@@ -12074,10 +12074,10 @@ var require_core = __commonJS({
           this.addSchema(optsSchemas[key], key);
     }
     function addInitialFormats() {
-      for (const name2 in this.opts.formats) {
-        const format = this.opts.formats[name2];
+      for (const name3 in this.opts.formats) {
+        const format = this.opts.formats[name3];
         if (format)
-          this.addFormat(name2, format);
+          this.addFormat(name3, format);
       }
     }
     function addInitialKeywords(defs) {
@@ -15328,9 +15328,9 @@ var require_parser2 = __commonJS({
     Parser.prototype._parseChunkBegin = function(data) {
       let length = data.readUInt32BE(0);
       let type = data.readUInt32BE(4);
-      let name2 = "";
+      let name3 = "";
       for (let i = 4; i < 8; i++) {
-        name2 += String.fromCharCode(data[i]);
+        name3 += String.fromCharCode(data[i]);
       }
       let ancillary = Boolean(data[4] & 32);
       if (!this._hasIHDR && type !== constants.TYPE_IHDR) {
@@ -15338,12 +15338,12 @@ var require_parser2 = __commonJS({
         return;
       }
       this._crc = new CrcCalculator();
-      this._crc.write(Buffer.from(name2));
+      this._crc.write(Buffer.from(name3));
       if (this._chunks[type]) {
         return this._chunks[type](length);
       }
       if (!ancillary) {
-        this.error(new Error("Unsupported critical chunk type " + name2));
+        this.error(new Error("Unsupported critical chunk type " + name3));
         return;
       }
       this.read(length + 4, this._skipChunk.bind(this));
@@ -17164,7 +17164,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join25(s) {
+      BufferList.prototype.join = function join27(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -19822,7 +19822,7 @@ var require_utils2 = __commonJS({
       }
       return result;
     };
-    exports.prepareContent = function(name2, inputData, isBinary, isOptimizedBinaryString, isBase64) {
+    exports.prepareContent = function(name3, inputData, isBinary, isOptimizedBinaryString, isBase64) {
       var promise = external.Promise.resolve(inputData).then(function(data) {
         var isBlob = support.blob && (data instanceof Blob || ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(data)) !== -1);
         if (isBlob) {
@@ -19841,7 +19841,7 @@ var require_utils2 = __commonJS({
             });
           } else {
             return external.Promise.reject(
-              new Error(name2 + " is a Blob, but we have no way of reading it.")
+              new Error(name3 + " is a Blob, but we have no way of reading it.")
             );
           }
         }
@@ -19851,7 +19851,7 @@ var require_utils2 = __commonJS({
         var dataType = exports.getTypeOf(data);
         if (!dataType) {
           return external.Promise.reject(
-            new Error("Can't read the data of '" + name2 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?")
+            new Error("Can't read the data of '" + name3 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?")
           );
         }
         if (dataType === "arraybuffer") {
@@ -19875,8 +19875,8 @@ var require_utils2 = __commonJS({
 var require_GenericWorker = __commonJS({
   "node_modules/jszip/lib/stream/GenericWorker.js"(exports, module) {
     "use strict";
-    function GenericWorker(name2) {
-      this.name = name2 || "default";
+    function GenericWorker(name3) {
+      this.name = name3 || "default";
       this.streamInfo = {};
       this.generatedError = null;
       this.extraStreamInfo = {};
@@ -19943,8 +19943,8 @@ var require_GenericWorker = __commonJS({
        * @param {Function} listener the function to call when the event is triggered
        * @return {GenericWorker} the current object for chainability
        */
-      on: function(name2, listener) {
-        this._listeners[name2].push(listener);
+      on: function(name3, listener) {
+        this._listeners[name3].push(listener);
         return this;
       },
       /**
@@ -19959,10 +19959,10 @@ var require_GenericWorker = __commonJS({
        * @param {String} name the name of the event (data, end, error)
        * @param {Object} arg the argument to call the callback with.
        */
-      emit: function(name2, arg) {
-        if (this._listeners[name2]) {
-          for (var i = 0; i < this._listeners[name2].length; i++) {
-            this._listeners[name2][i].call(this, arg);
+      emit: function(name3, arg) {
+        if (this._listeners[name3]) {
+          for (var i = 0; i < this._listeners[name3].length; i++) {
+            this._listeners[name3][i].call(this, arg);
           }
         }
       },
@@ -20749,8 +20749,8 @@ var require_zipObject = __commonJS({
     var utf8 = require_utf8();
     var CompressedObject = require_compressedObject();
     var GenericWorker = require_GenericWorker();
-    var ZipObject = function(name2, data, options) {
-      this.name = name2;
+    var ZipObject = function(name3, data, options) {
+      this.name = name3;
       this.dir = options.dir;
       this.date = options.date;
       this.comment = options.comment;
@@ -25568,7 +25568,7 @@ var require_object = __commonJS({
     var generate = require_generate();
     var nodejsUtils = require_nodejsUtils();
     var NodejsStreamInputAdapter = require_NodejsStreamInputAdapter();
-    var fileAdd = function(name2, data, originalOptions) {
+    var fileAdd = function(name3, data, originalOptions) {
       var dataType = utils.getTypeOf(data), parent;
       var o = utils.extend(originalOptions || {}, defaults);
       o.date = o.date || /* @__PURE__ */ new Date();
@@ -25585,9 +25585,9 @@ var require_object = __commonJS({
         o.dir = true;
       }
       if (o.dir) {
-        name2 = forceTrailingSlash(name2);
+        name3 = forceTrailingSlash(name3);
       }
-      if (o.createFolders && (parent = parentFolder(name2))) {
+      if (o.createFolders && (parent = parentFolder(name3))) {
         folderAdd.call(this, parent, true);
       }
       var isUnicodeString = dataType === "string" && o.binary === false && o.base64 === false;
@@ -25606,12 +25606,12 @@ var require_object = __commonJS({
       if (data instanceof CompressedObject || data instanceof GenericWorker) {
         zipObjectContent = data;
       } else if (nodejsUtils.isNode && nodejsUtils.isStream(data)) {
-        zipObjectContent = new NodejsStreamInputAdapter(name2, data);
+        zipObjectContent = new NodejsStreamInputAdapter(name3, data);
       } else {
-        zipObjectContent = utils.prepareContent(name2, data, o.binary, o.optimizedBinaryString, o.base64);
+        zipObjectContent = utils.prepareContent(name3, data, o.binary, o.optimizedBinaryString, o.base64);
       }
-      var object = new ZipObject(name2, zipObjectContent, o);
-      this.files[name2] = object;
+      var object = new ZipObject(name3, zipObjectContent, o);
+      this.files[name3] = object;
     };
     var parentFolder = function(path) {
       if (path.slice(-1) === "/") {
@@ -25626,16 +25626,16 @@ var require_object = __commonJS({
       }
       return path;
     };
-    var folderAdd = function(name2, createFolders) {
+    var folderAdd = function(name3, createFolders) {
       createFolders = typeof createFolders !== "undefined" ? createFolders : defaults.createFolders;
-      name2 = forceTrailingSlash(name2);
-      if (!this.files[name2]) {
-        fileAdd.call(this, name2, null, {
+      name3 = forceTrailingSlash(name3);
+      if (!this.files[name3]) {
+        fileAdd.call(this, name3, null, {
           dir: true,
           createFolders
         });
       }
-      return this.files[name2];
+      return this.files[name3];
     };
     function isRegExp(object) {
       return Object.prototype.toString.call(object) === "[object RegExp]";
@@ -25688,15 +25688,15 @@ var require_object = __commonJS({
        * @return  {JSZip|Object|Array} this JSZip object (when adding a file),
        * a file (when searching by string) or an array of files (when searching by regex).
        */
-      file: function(name2, data, o) {
+      file: function(name3, data, o) {
         if (arguments.length === 1) {
-          if (isRegExp(name2)) {
-            var regexp = name2;
+          if (isRegExp(name3)) {
+            var regexp = name3;
             return this.filter(function(relativePath, file) {
               return !file.dir && regexp.test(relativePath);
             });
           } else {
-            var obj = this.files[this.root + name2];
+            var obj = this.files[this.root + name3];
             if (obj && !obj.dir) {
               return obj;
             } else {
@@ -25704,8 +25704,8 @@ var require_object = __commonJS({
             }
           }
         } else {
-          name2 = this.root + name2;
-          fileAdd.call(this, name2, data, o);
+          name3 = this.root + name3;
+          fileAdd.call(this, name3, data, o);
         }
         return this;
       },
@@ -25723,8 +25723,8 @@ var require_object = __commonJS({
             return file.dir && arg.test(relativePath);
           });
         }
-        var name2 = this.root + arg;
-        var newFolder = folderAdd.call(this, name2);
+        var name3 = this.root + arg;
+        var newFolder = folderAdd.call(this, name3);
         var ret = this.clone();
         ret.root = newFolder.name;
         return ret;
@@ -25734,20 +25734,20 @@ var require_object = __commonJS({
        * @param {string} name the name of the file to delete
        * @return {JSZip} this JSZip object
        */
-      remove: function(name2) {
-        name2 = this.root + name2;
-        var file = this.files[name2];
+      remove: function(name3) {
+        name3 = this.root + name3;
+        var file = this.files[name3];
         if (!file) {
-          if (name2.slice(-1) !== "/") {
-            name2 += "/";
+          if (name3.slice(-1) !== "/") {
+            name3 += "/";
           }
-          file = this.files[name2];
+          file = this.files[name3];
         }
         if (file && !file.dir) {
-          delete this.files[name2];
+          delete this.files[name3];
         } else {
           var kids = this.filter(function(relativePath, file2) {
-            return file2.name.slice(0, name2.length) === name2;
+            return file2.name.slice(0, name3.length) === name3;
           });
           for (var i = 0; i < kids.length; i++) {
             delete this.files[kids[i].name];
@@ -26629,8 +26629,8 @@ var require_gifenc = __commonJS({
     var __defProp2 = Object.defineProperty;
     var __markAsModule = (target) => __defProp2(target, "__esModule", { value: true });
     var __export2 = (target, all) => {
-      for (var name2 in all)
-        __defProp2(target, name2, { get: all[name2], enumerable: true });
+      for (var name3 in all)
+        __defProp2(target, name3, { get: all[name3], enumerable: true });
     };
     __markAsModule(exports);
     __export2(exports, {
@@ -27436,7 +27436,7 @@ var require_gifenc = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join24, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join26, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/auth.mjs
@@ -28510,8 +28510,8 @@ async function readPid(projectDir) {
 }
 function redact(text, run2) {
   let out = text.replace(/\/\/[^\s/@:]+:[^\s/@]+@/g, "//***@");
-  for (const name2 of run2.envNames ?? []) {
-    const value = process.env[name2];
+  for (const name3 of run2.envNames ?? []) {
+    const value = process.env[name3];
     if (value && value.length >= 4) out = out.split(value).join("***");
   }
   return out;
@@ -28530,7 +28530,7 @@ async function runStart(projectDir, { install = false } = {}) {
   const run2 = await loadRun(projectDir);
   if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
   if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
-  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
+  const missing = (run2.envNames ?? []).filter((name3) => !process.env[name3]);
   if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
   const booting = await readPid(projectDir);
   if (booting) throw new Error(`\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid ${booting}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694`);
@@ -28857,13 +28857,13 @@ function menuTree(input, from) {
   const root = /* @__PURE__ */ new Map();
   for (const { id, menu } of orderedMenuEntries(inventory, screens)) {
     let level = root;
-    menu.forEach((name2, i) => {
-      if (!level.has(name2)) level.set(name2, { children: /* @__PURE__ */ new Map(), id: void 0 });
-      if (i === menu.length - 1) level.get(name2).id = id;
-      level = level.get(name2).children;
+    menu.forEach((name3, i) => {
+      if (!level.has(name3)) level.set(name3, { children: /* @__PURE__ */ new Map(), id: void 0 });
+      if (i === menu.length - 1) level.get(name3).id = id;
+      level = level.get(name3).children;
     });
   }
-  const render = (level) => level.size ? `<ul>${[...level].map(([name2, node]) => `<li>${node.id ? `<a href="${screenHref(input, node.id, from)}">${escapeHtml(name2)}</a>` : escapeHtml(name2)}${render(node.children)}</li>`).join("")}</ul>` : "";
+  const render = (level) => level.size ? `<ul>${[...level].map(([name3, node]) => `<li>${node.id ? `<a href="${screenHref(input, node.id, from)}">${escapeHtml(name3)}</a>` : escapeHtml(name3)}${render(node.children)}</li>`).join("")}</ul>` : "";
   return render(root);
 }
 function revisionRows(input) {
@@ -29143,15 +29143,15 @@ function menuLines(inventory, screens) {
   const root = /* @__PURE__ */ new Map();
   for (const { menu } of orderedMenuEntries(inventory, screens)) {
     let level = root;
-    for (const name2 of menu) {
-      if (!level.has(name2)) level.set(name2, /* @__PURE__ */ new Map());
-      level = level.get(name2);
+    for (const name3 of menu) {
+      if (!level.has(name3)) level.set(name3, /* @__PURE__ */ new Map());
+      level = level.get(name3);
     }
   }
   const lines = [];
   const walk2 = (level, depth) => {
-    for (const [name2, children] of level) {
-      lines.push(`${"  ".repeat(depth)}- ${md(name2)}`);
+    for (const [name3, children] of level) {
+      lines.push(`${"  ".repeat(depth)}- ${md(name3)}`);
       walk2(children, depth + 1);
     }
   };
@@ -33134,9 +33134,9 @@ function slideObjectToXml(slide) {
             }
             const cellOpts2 = cell.options || {};
             cell.options = cellOpts2;
-            ["align", "bold", "border", "color", "fill", "fontFace", "fontSize", "margin", "textDirection", "underline", "valign"].forEach((name2) => {
-              if (objTabOpts[name2] && !cellOpts2[name2] && cellOpts2[name2] !== 0)
-                cellOpts2[name2] = objTabOpts[name2];
+            ["align", "bold", "border", "color", "fill", "fontFace", "fontSize", "margin", "textDirection", "underline", "valign"].forEach((name3) => {
+              if (objTabOpts[name3] && !cellOpts2[name3] && cellOpts2[name3] !== 0)
+                cellOpts2[name3] = objTabOpts[name3];
             });
             const cellValign = cellOpts2.valign ? ` anchor="${cellOpts2.valign.replace(/^c$/i, "ctr").replace(/^m$/i, "ctr").replace("center", "ctr").replace("middle", "ctr").replace("top", "t").replace("btm", "b").replace("bottom", "b")}"` : "";
             const cellTextDir = cellOpts2.textDirection && cellOpts2.textDirection !== "horz" ? ` vert="${cellOpts2.textDirection}"` : "";
@@ -34662,11 +34662,11 @@ function menuLines2(input) {
   const lines = [];
   const seen = /* @__PURE__ */ new Set();
   for (const { menu } of orderedMenuEntries(input.inventory, input.screens)) {
-    menu.forEach((name2, i) => {
+    menu.forEach((name3, i) => {
       const key = menu.slice(0, i + 1).join("\u203A");
       if (seen.has(key)) return;
       seen.add(key);
-      lines.push(`${"    ".repeat(i)}${name2}`);
+      lines.push(`${"    ".repeat(i)}${name3}`);
     });
   }
   return lines;
@@ -35021,7 +35021,7 @@ function uncertainCount(screens) {
   }
   return n;
 }
-var safeFileName = (name2) => name2.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC";
+var safeFileName = (name3) => name3.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC";
 async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
   const { ok, problems } = await runValidate(projectDir);
   if (!ok) throw new Error(`\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:
@@ -35182,9 +35182,9 @@ var VAR = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 var StepError = class extends Error {
 };
 function substitute(value, env) {
-  return value.replace(VAR, (_, name2) => {
-    if (env[name2] === void 0) throw new StepError(`\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: ${name2}`);
-    return env[name2];
+  return value.replace(VAR, (_, name3) => {
+    if (env[name3] === void 0) throw new StepError(`\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: ${name3}`);
+    return env[name3];
   });
 }
 async function single(locator, describe, timeoutMs) {
@@ -35278,14 +35278,14 @@ async function maskContext(context, selectors) {
   if (!selectors?.length) return;
   const css = `${selectors.join(", ")} { filter: blur(6px) !important; }`;
   await context.addInitScript((style) => {
-    const add = () => {
+    const add2 = () => {
       const el = document.createElement("style");
       el.setAttribute("data-docent-mask", "");
       el.textContent = style;
       (document.head ?? document.documentElement).appendChild(el);
     };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add);
-    else add();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add2);
+    else add2();
   }, css);
 }
 function usesEnvValue(steps) {
@@ -35644,8 +35644,8 @@ async function runRecord(projectDir, ids) {
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-import { access as access2, mkdir as mkdir5, readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join17 } from "node:path";
+import { access as access2, mkdir as mkdir5, readFile as readFile11, writeFile as writeFile5 } from "node:fs/promises";
+import { join as join19 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -35654,12 +35654,14 @@ __export(nextjs_exports, {
   listScreens: () => listScreens,
   name: () => name
 });
+import { readFile as readFile9 } from "node:fs/promises";
+import { join as join17 } from "node:path";
+
+// skills/docent/scripts/src/detectors/shared.mjs
 import { readFile as readFile8, readdir as readdir3, stat as stat2 } from "node:fs/promises";
 import { join as join16, posix as posix2 } from "node:path";
-var name = "nextjs";
-var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".next", ".git", ".docent"]);
-var PAGE_EXT = /\.(tsx|jsx|ts|js)$/;
-var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", "/index.tsx", "/index.ts", "/index.jsx", "/index.js"];
+var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit", "dist", "build", "coverage"]);
+var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", ".vue", ".svelte", "/index.tsx", "/index.ts", "/index.jsx", "/index.js"];
 var IMPORT_PATTERNS = [
   /^\s*import\s[^'"]*?['"]([^'"]+)['"]/gm,
   /^\s*import\s*['"]([^'"]+)['"]/gm,
@@ -35687,7 +35689,7 @@ function stripJsonc(text) {
   }
   return out.replace(/,(\s*[}\]])/g, "$1");
 }
-async function readJson2(path) {
+async function readJsonc(path) {
   try {
     return JSON.parse(stripJsonc(await readFile8(path, "utf8")));
   } catch {
@@ -35718,23 +35720,26 @@ async function walk(projectDir, rel) {
   }
   return out;
 }
-async function detect(projectDir) {
-  const pkg = await readJson2(join16(projectDir, "package.json"));
-  return Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
+async function hasDependency(projectDir, names) {
+  const pkg = await readJsonc(join16(projectDir, "package.json"));
+  return names.some((n) => Boolean(pkg?.dependencies?.[n] || pkg?.devDependencies?.[n]));
 }
-async function loadAliases(projectDir) {
+async function loadAliases(projectDir, extra = []) {
   for (const file of ["tsconfig.json", "jsconfig.json"]) {
-    const config = await readJson2(join16(projectDir, file));
+    const config = await readJsonc(join16(projectDir, file));
     const paths = config?.compilerOptions?.paths;
     if (!paths) continue;
     const baseUrl = config.compilerOptions.baseUrl ?? ".";
-    return Object.entries(paths).map(([pattern, targets]) => ({
-      prefix: pattern.replace(/\*$/, ""),
-      wildcard: pattern.endsWith("*"),
-      targets: targets.map((t) => posix2.join(baseUrl, t))
-    }));
+    return [
+      ...Object.entries(paths).map(([pattern, targets]) => ({
+        prefix: pattern.replace(/\*$/, ""),
+        wildcard: pattern.endsWith("*"),
+        targets: targets.map((t) => posix2.join(baseUrl, t))
+      })),
+      ...extra
+    ];
   }
-  return [];
+  return [...extra];
 }
 async function resolveImport(projectDir, fromFile, spec, aliases) {
   const candidates = [];
@@ -35761,7 +35766,7 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
   }
   return void 0;
 }
-async function describePage(projectDir, file, route, aliases) {
+async function screenFiles(projectDir, file, aliases) {
   const source = await readFile8(join16(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
   for (const pattern of IMPORT_PATTERNS) {
@@ -35772,9 +35777,24 @@ async function describePage(projectDir, file, route, aliases) {
     const resolved = await resolveImport(projectDir, file, spec, aliases);
     if (resolved && resolved !== file) imports.add(resolved);
   }
-  const lines = source.split(/\r?\n/);
-  const line2 = lines.findIndex((l) => /\bexport\s+default\b/.test(l)) + 1 || 1;
-  return { route, files: [file, ...[...imports].sort()], evidence: `${file}:${line2}` };
+  return [file, ...[...imports].sort()];
+}
+function lineOf(source, regex) {
+  return source.split(/\r\n|\r|\n/).findIndex((l) => regex.test(l)) + 1 || 1;
+}
+function byRoute(a, b) {
+  return a.route < b.route ? -1 : a.route > b.route ? 1 : 0;
+}
+
+// skills/docent/scripts/src/detectors/nextjs.mjs
+var name = "nextjs";
+var PAGE_EXT = /\.(tsx|jsx|ts|js)$/;
+async function detect(projectDir) {
+  return hasDependency(projectDir, ["next"]);
+}
+async function describePage(projectDir, file, route, aliases) {
+  const source = await readFile9(join17(projectDir, file), "utf8");
+  return { route, files: await screenFiles(projectDir, file, aliases), evidence: `${file}:${lineOf(source, /\bexport\s+default\b/)}` };
 }
 function appRoute(dir, file) {
   const parts = file.slice(dir.length + 1).split("/").slice(0, -1);
@@ -35790,7 +35810,7 @@ async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = [];
   for (const dir of ["app", "src/app"]) {
-    if (!await isDir(join16(projectDir, dir))) continue;
+    if (!await isDir(join17(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       if (/(^|\/)page\.(tsx|jsx|ts|js)$/.test(file)) {
         screens.push(await describePage(projectDir, file, appRoute(dir, file), aliases));
@@ -35798,20 +35818,420 @@ async function listScreens(projectDir) {
     }
   }
   for (const dir of ["pages", "src/pages"]) {
-    if (!await isDir(join16(projectDir, dir))) continue;
+    if (!await isDir(join17(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       const rel = file.slice(dir.length + 1);
       if (!PAGE_EXT.test(file) || rel.startsWith("api/") || /^_(app|document|error)\./.test(rel)) continue;
       screens.push(await describePage(projectDir, file, pagesRoute(dir, file), aliases));
     }
   }
-  return screens.sort((a, b) => a.route < b.route ? -1 : a.route > b.route ? 1 : 0);
+  return screens.sort(byRoute);
+}
+
+// skills/docent/scripts/src/detectors/react-router.mjs
+var react_router_exports = {};
+__export(react_router_exports, {
+  detect: () => detect2,
+  listScreens: () => listScreens2,
+  name: () => name2
+});
+import { readFile as readFile10 } from "node:fs/promises";
+import { join as join18, posix as posix3 } from "node:path";
+
+// skills/docent/scripts/src/detectors/route-tree.mjs
+var REDIRECTS = /* @__PURE__ */ new Set(["Navigate", "Redirect"]);
+var PUNCT3 = ["..."];
+var PUNCT2 = ["=>"];
+function tokenize(source) {
+  const tokens = [];
+  let line2 = 1;
+  let i = 0;
+  const newline = () => {
+    if (source[i] === "\r" && source[i + 1] === "\n") i++;
+    line2++;
+  };
+  while (i < source.length) {
+    const c = source[i];
+    if (c === "\n" || c === "\r") {
+      newline();
+      i++;
+    } else if (/\s/.test(c)) {
+      i++;
+    } else if (c === "/" && source[i + 1] === "/") {
+      while (i < source.length && source[i] !== "\n" && source[i] !== "\r") i++;
+    } else if (c === "/" && source[i + 1] === "*") {
+      i += 2;
+      while (i < source.length && !(source[i] === "*" && source[i + 1] === "/")) {
+        if (source[i] === "\n" || source[i] === "\r") newline();
+        i++;
+      }
+      i += 2;
+    } else if (c === '"' || c === "'") {
+      const start = line2;
+      let j = i + 1;
+      while (j < source.length && source[j] !== c && source[j] !== "\n") j += source[j] === "\\" ? 2 : 1;
+      tokens.push({ t: "str", v: source.slice(i + 1, j), line: start });
+      i = j + 1;
+    } else if (c === "`") {
+      const start = line2;
+      let j = i + 1;
+      let dynamic = false;
+      while (j < source.length && source[j] !== "`") {
+        if (source[j] === "\\") j++;
+        else if (source[j] === "$" && source[j + 1] === "{") dynamic = true;
+        else if (source[j] === "\n" || source[j] === "\r") {
+          if (source[j] === "\r" && source[j + 1] === "\n") j++;
+          line2++;
+        }
+        j++;
+      }
+      tokens.push({ t: dynamic ? "tmpl" : "str", v: source.slice(i + 1, j), line: start });
+      i = j + 1;
+    } else if (/[A-Za-z_$]/.test(c)) {
+      let j = i + 1;
+      while (j < source.length && /[\w$]/.test(source[j])) j++;
+      tokens.push({ t: "id", v: source.slice(i, j), line: line2 });
+      i = j;
+    } else if (/[0-9]/.test(c)) {
+      let j = i + 1;
+      while (j < source.length && /[\w.]/.test(source[j])) j++;
+      tokens.push({ t: "num", v: source.slice(i, j), line: line2 });
+      i = j;
+    } else {
+      const p = [...PUNCT3, ...PUNCT2].find((x) => source.startsWith(x, i)) ?? c;
+      tokens.push({ t: "p", v: p, line: line2 });
+      i += p.length;
+    }
+  }
+  return tokens;
+}
+var OPEN = /* @__PURE__ */ new Set(["{", "[", "("]);
+var CLOSE = /* @__PURE__ */ new Set(["}", "]", ")"]);
+var isP = (tok, v) => tok?.t === "p" && tok.v === v;
+function valueEnd(tokens, i) {
+  let depth = 0;
+  for (let j = i; j < tokens.length; j++) {
+    const tok = tokens[j];
+    if (tok.t !== "p") continue;
+    if (OPEN.has(tok.v)) depth++;
+    else if (CLOSE.has(tok.v)) {
+      if (depth === 0) return j;
+      depth--;
+    } else if (tok.v === "," && depth === 0) return j;
+  }
+  return tokens.length;
+}
+function matching(tokens, i) {
+  let depth = 0;
+  for (let j = i; j < tokens.length; j++) {
+    if (tokens[j].t !== "p") continue;
+    if (OPEN.has(tokens[j].v)) depth++;
+    else if (CLOSE.has(tokens[j].v) && --depth === 0) return j;
+  }
+  return tokens.length - 1;
+}
+function dynamicImport(value) {
+  for (let k = 0; k + 2 < value.length; k++) {
+    if (value[k].t === "id" && value[k].v === "import" && isP(value[k + 1], "(") && value[k + 2].t === "str") return value[k + 2].v;
+  }
+  return void 0;
+}
+function jsxComponent(value) {
+  if (isP(value[0], "<") && value[1]?.t === "id") return REDIRECTS.has(value[1].v) ? void 0 : { name: value[1].v };
+  return void 0;
+}
+function newNode(line2) {
+  return { index: false, line: line2, children: [] };
+}
+function parseObject(tokens, i) {
+  const node = newNode(tokens[i].line);
+  const keys = /* @__PURE__ */ new Set();
+  let lineSet = false;
+  let j = i + 1;
+  while (j < tokens.length && !isP(tokens[j], "}")) {
+    const key = tokens[j];
+    if ((key.t === "id" || key.t === "str") && isP(tokens[j + 1], ":")) {
+      const start = j + 2;
+      const end = valueEnd(tokens, start);
+      const value = tokens.slice(start, end);
+      keys.add(key.v);
+      switch (key.v) {
+        case "path":
+          if (value.length === 1 && value[0].t === "str") node.path = value[0].v;
+          else node.dynamicPath = true;
+          node.line = key.line;
+          lineSet = true;
+          break;
+        case "index":
+          node.index = value[0]?.t === "id" && value[0].v === "true";
+          if (!lineSet) node.line = key.line;
+          break;
+        case "element":
+          node.component = jsxComponent(value);
+          break;
+        case "Component":
+        case "component": {
+          const spec = dynamicImport(value);
+          if (spec) node.component = { importPath: spec };
+          else if (value.length === 1 && value[0].t === "id") node.component = { name: value[0].v };
+          break;
+        }
+        case "lazy": {
+          const spec = dynamicImport(value);
+          if (spec) node.component = { importPath: spec };
+          break;
+        }
+        case "children":
+          if (isP(value[0], "[")) node.children = parseArrayOfObjects(tokens, start);
+          break;
+        case "redirect":
+          node.redirect = true;
+          break;
+        default:
+      }
+      j = end;
+    } else {
+      j = valueEnd(tokens, j);
+    }
+    if (isP(tokens[j], ",")) j++;
+    else if (!isP(tokens[j], "}")) j++;
+  }
+  const routeKey = keys.has("path") || keys.has("index");
+  const content = ["element", "component", "Component", "lazy", "children", "redirect"].some((k) => keys.has(k));
+  return { node, end: j, isRoute: routeKey && content };
+}
+function parseArrayOfObjects(tokens, i) {
+  const end = matching(tokens, i);
+  const nodes = [];
+  for (let j = i + 1; j < end; j++) {
+    if (!isP(tokens[j], "{")) continue;
+    const r = parseObject(tokens, j);
+    if (r.isRoute) nodes.push(r.node);
+    j = r.end;
+  }
+  return nodes;
+}
+function parseRouteObjects(source) {
+  const tokens = tokenize(source);
+  const roots = [];
+  for (let i = 0; i < tokens.length; i++) {
+    if (!isP(tokens[i], "{")) continue;
+    const r = parseObject(tokens, i);
+    if (r.isRoute) {
+      roots.push(r.node);
+      i = r.end;
+    }
+  }
+  return roots;
+}
+function parseJsxRoutes(source) {
+  const tokens = tokenize(source);
+  const roots = [];
+  const stack = [{ children: roots }];
+  for (let i = 0; i < tokens.length; i++) {
+    if (isP(tokens[i], "<") && isP(tokens[i + 1], "/") && tokens[i + 2]?.v === "Route" && isP(tokens[i + 3], ">")) {
+      if (stack.length > 1) stack.pop();
+      i += 3;
+      continue;
+    }
+    if (!(isP(tokens[i], "<") && tokens[i + 1]?.t === "id" && tokens[i + 1].v === "Route")) continue;
+    const node = newNode(tokens[i].line);
+    let j = i + 2;
+    let selfClosing = false;
+    while (j < tokens.length) {
+      if (isP(tokens[j], ">")) break;
+      if (isP(tokens[j], "/") && isP(tokens[j + 1], ">")) {
+        selfClosing = true;
+        j++;
+        break;
+      }
+      const attr = tokens[j];
+      if (attr.t === "id" && isP(tokens[j + 1], "=")) {
+        const v = tokens[j + 2];
+        let value = [v];
+        let next = j + 3;
+        if (isP(v, "{")) {
+          const close = matching(tokens, j + 2);
+          value = tokens.slice(j + 3, close);
+          next = close + 1;
+        }
+        if (attr.v === "path") {
+          if (value.length === 1 && value[0].t === "str") node.path = value[0].v;
+          else node.dynamicPath = true;
+        } else if (attr.v === "element") node.component = jsxComponent(value);
+        else if (attr.v === "Component" && value[0]?.t === "id") node.component = { name: value[0].v };
+        else if (attr.v === "lazy") {
+          const spec = dynamicImport(value);
+          if (spec) node.component = { importPath: spec };
+        }
+        j = next;
+      } else {
+        if (attr.t === "id" && attr.v === "index") node.index = true;
+        j++;
+      }
+    }
+    stack.at(-1).children.push(node);
+    if (!selfClosing) stack.push(node);
+    i = j;
+  }
+  return roots;
+}
+var CONFIG_CALLS = /* @__PURE__ */ new Set(["route", "index", "layout", "prefix"]);
+function parseRouteConfig(source) {
+  const tokens = tokenize(source);
+  let start = tokens.findIndex((t, k) => t.v === "export" && tokens[k + 1]?.v === "default");
+  start = start < 0 ? 0 : start + 2;
+  const open = tokens.findIndex((t, k) => k >= start && isP(t, "["));
+  return open < 0 ? [] : parseConfigArray(tokens, open);
+}
+function parseConfigArray(tokens, i) {
+  const end = matching(tokens, i);
+  const nodes = [];
+  let j = i + 1;
+  while (j < end) {
+    let k = j;
+    if (isP(tokens[k], "...")) k++;
+    if (tokens[k]?.t === "id" && CONFIG_CALLS.has(tokens[k].v) && isP(tokens[k + 1], "(")) {
+      const close = matching(tokens, k + 1);
+      nodes.push(configNode(tokens, k, close));
+      j = close + 1;
+    } else {
+      j = valueEnd(tokens, j);
+    }
+    if (isP(tokens[j], ",")) j++;
+    else if (j < end && !CLOSE.has(tokens[j]?.v)) j++;
+    else if (CLOSE.has(tokens[j]?.v)) break;
+  }
+  return nodes;
+}
+function configNode(tokens, k, close) {
+  const name3 = tokens[k].v;
+  const args = [];
+  let j = k + 2;
+  while (j < close) {
+    const end = valueEnd(tokens, j);
+    args.push({ at: j, value: tokens.slice(j, end) });
+    j = isP(tokens[end], ",") ? end + 1 : end;
+  }
+  const str = (a) => a && a.value.length === 1 && a.value[0].t === "str" ? a.value[0].v : void 0;
+  const kids = (a) => a && isP(a.value[0], "[") ? parseConfigArray(tokens, a.at) : [];
+  const node = newNode(tokens[k].line);
+  const setPath = (a) => {
+    const p = str(a);
+    if (p === void 0) node.dynamicPath = true;
+    else node.path = p;
+  };
+  if (name3 === "route") {
+    setPath(args[0]);
+    node.component = str(args[1]) !== void 0 ? { importPath: str(args[1]) } : void 0;
+    node.children = kids(args[2]);
+  } else if (name3 === "index") {
+    node.index = true;
+    node.component = str(args[0]) !== void 0 ? { importPath: str(args[0]) } : void 0;
+  } else if (name3 === "layout") {
+    node.component = str(args[0]) !== void 0 ? { importPath: str(args[0]) } : void 0;
+    node.children = kids(args[1]);
+  } else {
+    setPath(args[0]);
+    node.children = kids(args[1]);
+  }
+  return node;
+}
+function joinPath(base, path) {
+  if (path === void 0 || path === "") return base;
+  if (path.startsWith("/")) return path;
+  return `${base === "/" ? "" : base.replace(/\/+$/, "")}/${path}`;
+}
+function flattenRoutes(nodes, base = "/") {
+  const out = [];
+  for (const node of nodes) {
+    if (node.dynamicPath) continue;
+    const full = node.index ? base : joinPath(base, node.path);
+    if (node.children.length) out.push(...flattenRoutes(node.children, full));
+    else if (node.component && !node.redirect) out.push({ path: full, node });
+  }
+  return out;
+}
+function toDocentPath(path) {
+  const segs = path.split("/").filter(Boolean).map((seg) => {
+    if (seg === "*") return "[...splat]";
+    const m = /^:([A-Za-z_$][\w$]*)(\(.*\))?([?*+])?$/.exec(seg);
+    if (!m) return seg.replace(/\?$/, "");
+    const [, name3, , mod] = m;
+    if (mod === "*" || mod === "?") return `[[...${name3}]]`;
+    if (mod === "+") return `[...${name3}]`;
+    return `[${name3}]`;
+  });
+  if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) return void 0;
+  return "/" + segs.join("/");
+}
+var escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function findImport(source, name3) {
+  const n = escapeRe(name3);
+  const def = new RegExp(`import\\s+${n}\\s*(?:,\\s*\\{[^}]*\\})?\\s*from\\s*['"]([^'"]+)['"]`).exec(source);
+  if (def) return def[1];
+  for (const m of source.matchAll(/import\s*(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g)) {
+    const names = m[1].split(",").map((x) => x.trim().split(/\s+as\s+/).pop());
+    if (names.includes(name3)) return m[2];
+  }
+  const lazy = new RegExp(`(?:const|let|var)\\s+${n}\\s*=\\s*(?:React\\.)?(?:lazy|defineAsyncComponent)\\(\\s*\\(\\)\\s*=>\\s*import\\(\\s*['"]([^'"]+)['"]`).exec(source);
+  return lazy?.[1];
+}
+
+// skills/docent/scripts/src/detectors/react-router.mjs
+var name2 = "react-router";
+var SOURCE_EXT = /\.(tsx|jsx|ts|js)$/;
+var ROUTER_HINT = /createBrowserRouter|createHashRouter|createMemoryRouter|useRoutes|<Route\b|RouteObject/;
+async function detect2(projectDir) {
+  return hasDependency(projectDir, ["react-router", "react-router-dom"]);
+}
+async function routeConfigFile(projectDir) {
+  for (const file of ["app/routes.ts", "app/routes.js", "app/routes.tsx", "app/routes.jsx"]) {
+    if (await isFile(join18(projectDir, file))) return file;
+  }
+  return void 0;
+}
+function add(screens, route, files, evidence) {
+  if (route !== void 0 && !screens.has(route)) screens.set(route, { route, files, evidence });
+}
+async function fromRouteConfig(projectDir, file, aliases, screens) {
+  const source = await readFile10(join18(projectDir, file), "utf8");
+  for (const { path, node } of flattenRoutes(parseRouteConfig(source))) {
+    const target = posix3.join(posix3.dirname(file), node.component.importPath);
+    const files = await isFile(join18(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+    add(screens, toDocentPath(path), files, `${file}:${node.line}`);
+  }
+}
+async function componentFile(projectDir, file, source, component, aliases) {
+  const spec = component.importPath ?? findImport(source, component.name);
+  return spec ? resolveImport(projectDir, file, spec, aliases) : void 0;
+}
+async function fromCodeRouters(projectDir, aliases, screens) {
+  const root = await isDir(join18(projectDir, "src")) ? "src" : "";
+  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f)).sort()) {
+    const source = await readFile10(join18(projectDir, file), "utf8");
+    if (!ROUTER_HINT.test(source)) continue;
+    const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];
+    for (const { path, node } of routes) {
+      const target = await componentFile(projectDir, file, source, node.component, aliases);
+      const files = target ? await screenFiles(projectDir, target, aliases) : [file];
+      add(screens, toDocentPath(path), files, `${file}:${node.line}`);
+    }
+  }
+}
+async function listScreens2(projectDir) {
+  const aliases = await loadAliases(projectDir);
+  const screens = /* @__PURE__ */ new Map();
+  const config = await routeConfigFile(projectDir);
+  if (config) await fromRouteConfig(projectDir, config, aliases, screens);
+  else await fromCodeRouters(projectDir, aliases, screens);
+  return [...screens.values()].sort(byRoute);
 }
 
 // skills/docent/scripts/src/detectors/index.mjs
-var DETECTORS = [nextjs_exports];
-function detectorByName(name2) {
-  return DETECTORS.find((d) => d.name === name2);
+var DETECTORS = [nextjs_exports, react_router_exports];
+function detectorByName(name3) {
+  return DETECTORS.find((d) => d.name === name3);
 }
 
 // skills/docent/scripts/src/commands/init.mjs
@@ -35869,16 +36289,16 @@ async function exists2(path) {
 async function runInit(projectDir) {
   const dir = docentDir(projectDir);
   await mkdir5(dir, { recursive: true });
-  const ignorePath = join17(dir, ".gitignore");
+  const ignorePath = join19(dir, ".gitignore");
   if (!await exists2(ignorePath)) {
     await writeFile5(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
   } else {
-    const current = await readFile9(ignorePath, "utf8");
+    const current = await readFile11(ignorePath, "utf8");
     const have = new Set(current.split(/\r?\n/));
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
     if (missing.length) await writeFile5(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join17(dir, "config.yaml");
+  const configPath = join19(dir, "config.yaml");
   if (await exists2(configPath)) {
     return { created: false, detectors: (await loadConfig(projectDir)).detectors };
   }
@@ -35892,7 +36312,7 @@ async function runInit(projectDir) {
 
 // skills/docent/scripts/src/commands/inventory.mjs
 import { access as access3 } from "node:fs/promises";
-import { join as join18 } from "node:path";
+import { join as join20 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash3 } from "node:crypto";
@@ -35909,15 +36329,15 @@ function slug(text) {
 function segmentName(segment) {
   if (/^\(.*\)$/.test(segment) && !INTERCEPT_PREFIX.test(segment)) return null;
   if (segment.startsWith("@")) return null;
-  const name2 = segment.replace(INTERCEPT_PREFIX, "").replace(LEGACY_PAGE_EXT, "").replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, "");
-  return name2 || null;
+  const name3 = segment.replace(INTERCEPT_PREFIX, "").replace(LEGACY_PAGE_EXT, "").replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, "");
+  return name3 || null;
 }
 function routeToId(route) {
-  const parts = route.split("/").filter(Boolean).map(segmentName).filter((name2) => name2 !== null).map(slug);
+  const parts = route.split("/").filter(Boolean).map(segmentName).filter((name3) => name3 !== null).map(slug);
   return parts.length ? parts.join("-") : "home";
 }
-function childId(parentId, name2) {
-  return `${parentId}--${slug(name2)}`;
+function childId(parentId, name3) {
+  return `${parentId}--${slug(name3)}`;
 }
 function assignIds(routes, previous = /* @__PURE__ */ new Map()) {
   const ids = /* @__PURE__ */ new Map();
@@ -35960,7 +36380,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join18(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join20(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
     return [];
@@ -35982,7 +36402,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join18(projectDir, file))) {
+    if (!await fileExists(join20(projectDir, file))) {
       problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
       return void 0;
     }
@@ -35997,18 +36417,18 @@ async function checkEntry(projectDir, label, entry, problems) {
 async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
-  const previous = await readJsonIfExists(join18(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join20(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
-  for (const name2 of config.detectors) {
-    const detector = detectorByName(name2);
+  for (const name3 of config.detectors) {
+    const detector = detectorByName(name3);
     if (!detector) {
-      problems.push(`config.yaml: \uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 ${name2}`);
+      problems.push(`config.yaml: \uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 ${name3}`);
       continue;
     }
     for (const s of await detector.listScreens(projectDir)) {
-      if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: "page", source: `detector:${name2}` });
+      if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: "page", source: `detector:${name3}` });
     }
   }
   const agentEntries = await collectAgentEntries(projectDir, problems);
@@ -36048,7 +36468,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join18(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join20(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -36076,17 +36496,17 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
-  await writeJson(join18(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join20(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
-import { readFile as readFile11 } from "node:fs/promises";
-import { join as join20 } from "node:path";
+import { readFile as readFile13 } from "node:fs/promises";
+import { join as join22 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
-import { readFile as readFile10, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join19 } from "node:path";
+import { readFile as readFile12, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join21 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
   "",
@@ -36162,21 +36582,21 @@ function renderReview(screens, previous, extra = {}) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join19(dir, "inventory.json"));
+  const inventory = await readJson(join21(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join19(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join21(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join19(dir, "review.md");
+  const path = join21(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
-    previous = parseReview(await readFile10(path, "utf8"));
+    previous = parseReview(await readFile12(path, "utf8"));
   } catch {
   }
-  const crawl = await readJsonIfExists(join19(dir, "crawl.json")).catch(() => void 0);
+  const crawl = await readJsonIfExists(join21(dir, "crawl.json")).catch(() => void 0);
   const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
   const failures = await readFailures(projectDir);
   const text = renderReview(screens, previous, { crawl, routes, failures });
@@ -36187,17 +36607,17 @@ async function runReview(projectDir) {
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join20(dir, "inventory.json"));
+  const inventory = await readJson(join22(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile11(join20(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile13(join22(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join20(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join22(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -36227,19 +36647,19 @@ async function runPending(projectDir) {
 
 // skills/docent/scripts/src/commands/session.mjs
 import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
-import { join as join21 } from "node:path";
+import { join as join23 } from "node:path";
 async function startSession(projectDir) {
   await mkdir6(docentDir(projectDir), { recursive: true });
-  await writeFile7(join21(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile7(join23(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm4(join21(docentDir(projectDir), ".session"), { force: true });
+  await rm4(join23(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join22 } from "node:path";
+import { join as join24 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -36252,13 +36672,13 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join22(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join24(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
 // skills/docent/scripts/src/commands/update.mjs
 import { access as access4, readdir as readdir4 } from "node:fs/promises";
-import { join as join23 } from "node:path";
+import { join as join25 } from "node:path";
 async function exists3(path) {
   try {
     await access4(path);
@@ -36276,16 +36696,16 @@ async function idsIn(dir, ext) {
 }
 async function runUpdate(projectDir) {
   const dir = docentDir(projectDir);
-  const before = new Set((await readJsonIfExists(join23(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
+  const before = new Set((await readJsonIfExists(join25(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
   const { inventory, problems } = await runInventory(projectDir);
   const now = new Set(inventory.screens.map((s) => s.id));
   const added = [...now].filter((id) => !before.has(id)).sort();
   const media = mediaPaths(projectDir);
   const leftovers = /* @__PURE__ */ new Set([
-    ...await idsIn(join23(dir, "screens"), ".json"),
-    ...await idsIn(join23(dir, "scenarios"), ".json"),
-    ...await idsIn(join23(media.root, "img"), ".png"),
-    ...await idsIn(join23(media.root, "gif"), ".gif")
+    ...await idsIn(join25(dir, "screens"), ".json"),
+    ...await idsIn(join25(dir, "scenarios"), ".json"),
+    ...await idsIn(join25(media.root, "img"), ".png"),
+    ...await idsIn(join25(media.root, "gif"), ".gif")
   ]);
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
   const reanalyze = await runPending(projectDir);
@@ -36293,7 +36713,7 @@ async function runUpdate(projectDir) {
     const gone = new Set(removed);
     for (const { id } of inventory.screens) {
       if (reanalyze.some((x) => x.id === id)) continue;
-      const s = await readJsonIfExists(join23(dir, "screens", `${id}.json`)).catch(() => void 0);
+      const s = await readJsonIfExists(join25(dir, "screens", `${id}.json`)).catch(() => void 0);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
       if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870" });
     }
@@ -36327,7 +36747,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join24(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join26(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -36388,8 +36808,8 @@ async function main() {
       return 0;
     }
     case "build": {
-      const flag2 = (name2) => {
-        const i = args.indexOf(name2);
+      const flag2 = (name3) => {
+        const i = args.indexOf(name3);
         return i >= 0 ? args[i + 1] : void 0;
       };
       const formats = flag2("--format")?.split(",").map((f) => f.trim()).filter(Boolean);
