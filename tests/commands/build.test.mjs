@@ -79,3 +79,41 @@ test('media의 캡처·GIF를 산출물로 복사하고 실패 이미지는 뺀�
   assert.ok((await readFile(join(docent, 'out', 'html', 'screens', 'orders.html'), 'utf8')).includes('../media/img/orders.png'));
   assert.ok((await readFile(join(docent, 'out', 'README.md'), 'utf8')).includes('html/media/gif/orders.gif'));
 });
+
+const REAL_ASSETS = 'skills/docent/assets';
+
+test('PDF·PPTX까지 만든다', async () => {
+  const { dir, docent } = await prepared();
+  const r = await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['html', 'readme', 'pdf', 'pptx'] });
+  for (const f of ['사용자매뉴얼.pdf', '사용자매뉴얼.pptx', 'html/print.html', 'README.md']) assert.ok(r.files.includes(f), f);
+  assert.equal((await readFile(join(docent, 'out', '사용자매뉴얼.pdf'))).subarray(0, 5).toString('latin1'), '%PDF-');
+  assert.deepEqual(r.skipped, []);
+});
+
+test('delivery는 확인 필요 항목 수를 경고한다', async () => {
+  const { dir } = await prepared();
+  const r = await runBuild(dir, { assetsDir: REAL_ASSETS, preset: 'delivery', formats: ['html'] });
+  assert.ok(r.warnings.some((w) => w.includes('2건')), r.warnings.join('\n'));
+});
+
+test('Playwright가 없으면 PDF는 건너뛰고 PPTX는 다이어그램 없이 만든다', async () => {
+  const { PlaywrightMissing } = await import('../../skills/docent/scripts/src/lib/playwright.mjs');
+  const { dir } = await prepared();
+  const r = await runBuild(dir, {
+    assetsDir: REAL_ASSETS,
+    formats: ['pdf', 'pptx'],
+    browserFactory: async () => {
+      throw new PlaywrightMissing('없음');
+    },
+  });
+  assert.deepEqual(r.skipped.map((s) => s.format), ['pdf']);
+  assert.ok(r.files.includes('사용자매뉴얼.pptx'));
+  assert.ok(r.warnings.some((w) => w.includes('다이어그램')), r.warnings.join('\n'));
+});
+
+test('config의 output.title이 파일 이름이 된다', async () => {
+  const { dir, docent } = await prepared();
+  await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\ndetectors: [nextjs]\noutput:\n  title: "운영/관리 매뉴얼"\n');
+  const r = await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['pptx'] });
+  assert.ok(r.files.includes('운영_관리매뉴얼.pptx'), r.files.join(','));
+});

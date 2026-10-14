@@ -68,3 +68,17 @@ test('runtime status는 찾은 Playwright 위치를 보여 준다', () => {
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /1\.56\.1/);
 });
+
+test('build --preset portfolio --format html', async () => {
+  const dir = await copyFixture();
+  run(['init'], dir);
+  await writeAgentModal(dir);
+  run(['inventory'], dir);
+  const docent = join(dir, '.docent');
+  await cp(join(EXPECTED, 'screens'), join(docent, 'screens'), { recursive: true });
+  await cp(join(EXPECTED, 'summary.json'), join(docent, 'summary.json'));
+  const r = run(['build', '--preset', 'portfolio', '--format', 'html'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  await assert.rejects(stat(join(docent, 'out', 'html', 'screens')));
+  await assert.rejects(stat(join(docent, 'out', 'README.md')));
+});

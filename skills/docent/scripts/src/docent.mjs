@@ -26,7 +26,8 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   pending        다시 분석할 화면(결과 없음·소스 변경·확인 항목 답변)을 보여 줍니다
   validate       분석 결과의 스키마·근거·연결을 검사합니다
   review         확인 필요 항목(.docent/review.md)을 모읍니다
-  build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
+  build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]
+                 .docent/out/에 산출물을 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
   run approve    사용자가 동의한 run.json 명령을 이 컴퓨터에서 승인(.docent/.run-approved)
   run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
@@ -92,8 +93,16 @@ async function main() {
       return 0;
     }
     case 'build': {
-      const { files } = await runBuild(project, { assetsDir: ASSETS_DIR });
-      console.log(`산출물 ${files.length}개 → .docent/out/ (html/index.html, README.md)`);
+      const flag = (name) => {
+        const i = args.indexOf(name);
+        return i >= 0 ? args[i + 1] : undefined;
+      };
+      const formats = flag('--format')?.split(',').map((f) => f.trim()).filter(Boolean);
+      const r = await runBuild(project, { assetsDir: ASSETS_DIR, preset: flag('--preset'), formats });
+      console.log(`산출물 ${r.files.length}개 → .docent/out/`);
+      for (const f of r.files.filter((f) => !f.startsWith('html/') || f === 'html/index.html')) console.log(`- ${f}`);
+      for (const w of r.warnings) console.log(`경고: ${w}`);
+      for (const k of r.skipped) console.log(`건너뜀(${k.format}): ${k.reason}`);
       return 0;
     }
     case 'hash': {
