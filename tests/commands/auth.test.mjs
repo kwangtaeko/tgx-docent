@@ -72,3 +72,23 @@ test('auth 설정이 없으면 안내한다', async () => {
   const dir = await siteProject(site.url, '');
   await assert.rejects(authLogin(dir), /auth/);
 });
+
+test('클릭 뒤 늦게 이동하는(클라이언트 측) 로그인도 기다린다', async () => {
+  const slow = await startTestSite({
+    pages: {
+      '/slow-login': page(
+        '로그인',
+        `<label>아이디 <input id="u"></label><label>비밀번호 <input id="p" type="password"></label>
+         <button onclick="setTimeout(() => { document.cookie = 's=1; path=/'; location.href = '/'; }, 1500)">로그인</button>`,
+      ),
+      '/': page('홈'),
+    },
+  });
+  try {
+    const dir = await siteProject(slow.url, AUTH.replace('loginPath: /login', 'loginPath: /slow-login'));
+    await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: 'p' }, () => authLogin(dir));
+    await access(join(dir, '.docent', 'auth', 'state.json'));
+  } finally {
+    await slow.close();
+  }
+});

@@ -40,10 +40,10 @@ export async function authLogin(projectDir) {
     const page = await context.newPage();
     await page.goto(new URL(auth.loginPath, run.baseUrl).href);
     for (const field of auth.fields) await page.getByLabel(field.label, { exact: true }).fill(process.env[field.env]);
-    await Promise.all([
-      page.waitForLoadState('load').catch(() => {}),
-      page.getByRole('button', { name: auth.submit, exact: true }).click(),
-    ]);
+    const before = page.url();
+    await page.getByRole('button', { name: auth.submit, exact: true }).click();
+    // 서버 액션·클라이언트 라우팅은 클릭 뒤 조금 지나서 이동하므로 주소가 바뀔 때까지 기다린다(실패 시 ?error 등으로도 바뀜)
+    await page.waitForURL((url) => url.href !== before, { timeout: 30000 }).catch(() => {});
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const path = new URL(page.url()).pathname;
     const success = auth.successPath ?? '/';

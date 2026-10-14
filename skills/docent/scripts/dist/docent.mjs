@@ -18782,11 +18782,10 @@ async function authLogin(projectDir) {
     const page2 = await context.newPage();
     await page2.goto(new URL(auth.loginPath, run2.baseUrl).href);
     for (const field of auth.fields) await page2.getByLabel(field.label, { exact: true }).fill(process.env[field.env]);
-    await Promise.all([
-      page2.waitForLoadState("load").catch(() => {
-      }),
-      page2.getByRole("button", { name: auth.submit, exact: true }).click()
-    ]);
+    const before = page2.url();
+    await page2.getByRole("button", { name: auth.submit, exact: true }).click();
+    await page2.waitForURL((url) => url.href !== before, { timeout: 3e4 }).catch(() => {
+    });
     await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
     });
     const path = new URL(page2.url()).pathname;
