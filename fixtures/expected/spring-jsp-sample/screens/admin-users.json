@@ -1,0 +1,43 @@
+{
+  "id": "admin-users",
+  "kind": "page",
+  "route": "/admin/users",
+  "title": {
+    "value": "사용자 관리",
+    "evidence": "src/main/webapp/WEB-INF/jsp/admin/users.jsp:9"
+  },
+  "menuPath": {
+    "value": [
+      "관리자",
+      "사용자 관리"
+    ],
+    "evidence": "src/main/webapp/WEB-INF/jsp/common/nav.jsp:10"
+  },
+  "purpose": {
+    "value": "등록된 사용자의 아이디·이름·권한을 확인합니다",
+    "evidence": "src/main/webapp/WEB-INF/jsp/admin/users.jsp:9-15",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "관리자",
+      "evidence": "src/main/java/sample/AuthInterceptor.java:21",
+      "confidence": "high"
+    }
+  ],
+  "sections": [],
+  "fields": [],
+  "actions": [],
+  "messages": [],
+  "unknowns": [
+    "사용자 추가·권한 변경 기능은 코드에 없어, 계정은 소스(Accounts)에서만 바뀝니다"
+  ],
+  "readFiles": [
+    "src/main/webapp/WEB-INF/jsp/admin/users.jsp",
+    "src/main/webapp/WEB-INF/jsp/common/nav.jsp",
+    "src/main/java/sample/AdminUserController.java",
+    "src/main/java/sample/Accounts.java",
+    "src/main/java/sample/AuthInterceptor.java"
+  ],
+  "sourceHash": "sha256:0a7c457ad7af785c14bb0c3506e80776ef66d6a2cf0dc83d2a3112f309341b9a"
+}

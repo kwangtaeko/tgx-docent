@@ -1,0 +1,9 @@
+body { font-family: sans-serif; margin: 0; }
+nav.menu { background: #24292f; padding: 0.6rem 1rem; }
+nav.menu a, nav.menu span { color: #fff; margin-right: 1rem; text-decoration: none; }
+main { padding: 1rem 1.5rem; }
+.message { color: #1a7f37; }
+.error { color: #cf222e; }
+table { border-collapse: collapse; }
+th, td { border: 1px solid #d0d7de; padding: 0.3rem 0.6rem; }
+label { display: block; margin: 0.4rem 0; }

@@ -1,0 +1,84 @@
+{
+  "screens": [
+    {
+      "route": "/login",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/LoginController.java",
+        "src/main/webapp/WEB-INF/jsp/login.jsp"
+      ],
+      "evidence": "src/main/java/sample/LoginController.java:20"
+    },
+    {
+      "route": "/",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/HomeController.java",
+        "src/main/webapp/WEB-INF/jsp/home.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/HomeController.java:17"
+    },
+    {
+      "route": "/products",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/ProductController.java",
+        "src/main/webapp/WEB-INF/jsp/products/list.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/ProductController.java:22"
+    },
+    {
+      "route": "/products/new",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/ProductController.java",
+        "src/main/webapp/WEB-INF/jsp/products/form.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/ProductController.java:29"
+    },
+    {
+      "route": "/products/[id]",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/ProductController.java",
+        "src/main/webapp/WEB-INF/jsp/products/detail.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/ProductController.java:50"
+    },
+    {
+      "route": "/products/[id]/edit",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/ProductController.java",
+        "src/main/webapp/WEB-INF/jsp/products/form.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/ProductController.java:56"
+    },
+    {
+      "route": "/admin/users",
+      "kind": "page",
+      "files": [
+        "src/main/java/sample/AdminUserController.java",
+        "src/main/webapp/WEB-INF/jsp/admin/users.jsp",
+        "src/main/webapp/WEB-INF/jsp/common/nav.jsp"
+      ],
+      "evidence": "src/main/java/sample/AdminUserController.java:16"
+    },
+    {
+      "route": null,
+      "kind": "popup",
+      "parentRoute": "/products/new",
+      "name": "partner-search",
+      "files": [
+        "src/main/java/sample/PartnerController.java",
+        "src/main/webapp/WEB-INF/jsp/popup/partners.jsp"
+      ],
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:17"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "screenId": "products",
+  "path": "/products",
+  "setup": [],
+  "steps": [
+    {
+      "do": "fill",
+      "label": "검색어",
+      "value": "가나",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/list.jsp:12"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "검색",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/list.jsp:14"
+    },
+    {
+      "do": "expectText",
+      "text": "A4 복사용지",
+      "evidence": "src/main/java/sample/ProductStore.java:19"
+    }
+  ],
+  "sourceHash": "sha256:15d0aeee9ca8c88d966ac1bbd44abe407008ed54be16e7ba75ecb8b25bed9c98"
+}

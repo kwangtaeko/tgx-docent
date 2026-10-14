@@ -1,0 +1,31 @@
+{
+  "screenId": "products-id-edit",
+  "path": "/products/1/edit",
+  "setup": [],
+  "steps": [
+    {
+      "do": "fill",
+      "label": "단가",
+      "value": "27000",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:18"
+    },
+    {
+      "do": "fill",
+      "label": "재고",
+      "value": "35",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:20"
+    },
+    {
+      "do": "click",
+      "role": "button",
+      "label": "저장",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:22"
+    },
+    {
+      "do": "expectText",
+      "text": "수정되었습니다.",
+      "evidence": "src/main/java/sample/ProductController.java:74"
+    }
+  ],
+  "sourceHash": "sha256:7c46801443034f710b27397d656af7ec694eaa47875ac9a6cf577c76c526dee9"
+}

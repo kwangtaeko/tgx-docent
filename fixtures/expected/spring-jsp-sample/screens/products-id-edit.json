@@ -1,0 +1,105 @@
+{
+  "id": "products-id-edit",
+  "kind": "page",
+  "route": "/products/[id]/edit",
+  "title": {
+    "value": "상품 수정",
+    "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:10"
+  },
+  "purpose": {
+    "value": "등록된 상품의 이름·거래처·단가·재고를 고쳐 저장합니다",
+    "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:10-24",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "src/main/java/sample/Accounts.java:12",
+      "confidence": "high"
+    },
+    {
+      "value": "관리자",
+      "evidence": "src/main/java/sample/Accounts.java:13",
+      "confidence": "high"
+    }
+  ],
+  "sections": [],
+  "fields": [
+    {
+      "label": "상품명",
+      "type": "text",
+      "required": true,
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:13",
+      "confidence": "high"
+    },
+    {
+      "label": "거래처",
+      "type": "text",
+      "required": true,
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:15",
+      "confidence": "high"
+    },
+    {
+      "label": "단가",
+      "type": "number",
+      "required": true,
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:18",
+      "confidence": "high"
+    },
+    {
+      "label": "재고",
+      "type": "number",
+      "required": false,
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:20",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "거래처 검색",
+      "effect": "거래처 검색 창을 새 창으로 엽니다",
+      "opens": "products-new--partner-search",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:17",
+      "confidence": "high"
+    },
+    {
+      "label": "저장",
+      "effect": "입력값을 확인해 상품을 고치고 상품 상세 화면으로 이동합니다. 값이 잘못되면 오류 메시지를 표시합니다",
+      "navigatesTo": "products-id",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:22",
+      "confidence": "high"
+    },
+    {
+      "label": "취소",
+      "effect": "고치지 않고 상품 상세로 돌아갑니다",
+      "navigatesTo": "products-id",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/form.jsp:24",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "상품명을 입력하세요.",
+      "when": "상품명을 비우고 저장했을 때",
+      "evidence": "src/main/java/sample/ProductController.java:92"
+    },
+    {
+      "text": "거래처를 선택하세요.",
+      "when": "거래처를 고르지 않고 저장했을 때",
+      "evidence": "src/main/java/sample/ProductController.java:95"
+    },
+    {
+      "text": "단가는 0 이상이어야 합니다.",
+      "when": "단가를 음수로 입력했을 때",
+      "evidence": "src/main/java/sample/ProductController.java:98"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "src/main/webapp/WEB-INF/jsp/products/form.jsp",
+    "src/main/webapp/WEB-INF/jsp/common/nav.jsp",
+    "src/main/java/sample/ProductController.java",
+    "src/main/java/sample/ProductStore.java"
+  ],
+  "sourceHash": "sha256:7c46801443034f710b27397d656af7ec694eaa47875ac9a6cf577c76c526dee9"
+}

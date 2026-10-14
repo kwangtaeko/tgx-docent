@@ -1,0 +1,76 @@
+{
+  "id": "products-id",
+  "kind": "page",
+  "route": "/products/[id]",
+  "title": {
+    "value": "상품 상세",
+    "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:9"
+  },
+  "purpose": {
+    "value": "상품 정보를 확인하고 수정하거나 삭제합니다",
+    "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:9-20",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "src/main/java/sample/Accounts.java:12",
+      "confidence": "high"
+    },
+    {
+      "value": "관리자",
+      "evidence": "src/main/java/sample/Accounts.java:13",
+      "confidence": "high"
+    }
+  ],
+  "sections": [],
+  "fields": [],
+  "actions": [
+    {
+      "label": "수정",
+      "effect": "상품 수정 화면으로 이동합니다",
+      "navigatesTo": "products-id-edit",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:18",
+      "confidence": "high"
+    },
+    {
+      "label": "목록",
+      "effect": "상품 목록으로 돌아갑니다",
+      "navigatesTo": "products",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:18",
+      "confidence": "high"
+    },
+    {
+      "label": "삭제",
+      "effect": "확인창에서 확인하면 재고가 없는 상품만 삭제하고 상품 목록으로 이동합니다. 재고가 남아 있으면 삭제하지 않고 오류 메시지를 표시합니다",
+      "navigatesTo": "products",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:20",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "삭제하시겠습니까?",
+      "when": "삭제 버튼을 눌렀을 때 확인창",
+      "evidence": "src/main/webapp/WEB-INF/jsp/products/detail.jsp:19"
+    },
+    {
+      "text": "수정되었습니다.",
+      "when": "상품을 수정하고 상세로 돌아왔을 때",
+      "evidence": "src/main/java/sample/ProductController.java:74"
+    },
+    {
+      "text": "재고가 남아 있어 삭제할 수 없습니다.",
+      "when": "재고가 1개 이상인 상품을 삭제하려 할 때",
+      "evidence": "src/main/java/sample/ProductController.java:82"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "src/main/webapp/WEB-INF/jsp/products/detail.jsp",
+    "src/main/webapp/WEB-INF/jsp/common/nav.jsp",
+    "src/main/java/sample/ProductController.java",
+    "src/main/java/sample/ProductStore.java"
+  ],
+  "sourceHash": "sha256:925d2de6ab3b4b4ce67856770c133d54b21aa36e3769efbd9059158ed824507d"
+}

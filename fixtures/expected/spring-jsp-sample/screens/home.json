@@ -1,0 +1,64 @@
+{
+  "id": "home",
+  "kind": "page",
+  "route": "/",
+  "title": {
+    "value": "대시보드",
+    "evidence": "src/main/webapp/WEB-INF/jsp/home.jsp:9"
+  },
+  "menuPath": {
+    "value": [
+      "대시보드"
+    ],
+    "evidence": "src/main/webapp/WEB-INF/jsp/common/nav.jsp:4"
+  },
+  "purpose": {
+    "value": "등록된 상품 수와 재고가 5개 미만인 상품을 확인하고 상품 업무로 이동합니다",
+    "evidence": "src/main/webapp/WEB-INF/jsp/home.jsp:9-18",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "영업담당",
+      "evidence": "src/main/java/sample/Accounts.java:12",
+      "confidence": "high"
+    },
+    {
+      "value": "관리자",
+      "evidence": "src/main/java/sample/Accounts.java:13",
+      "confidence": "high"
+    }
+  ],
+  "sections": [
+    {
+      "title": "재고 부족 상품",
+      "evidence": "src/main/webapp/WEB-INF/jsp/home.jsp:12"
+    }
+  ],
+  "fields": [],
+  "actions": [
+    {
+      "label": "상품 등록하기",
+      "effect": "상품 등록 화면으로 이동합니다",
+      "navigatesTo": "products-new",
+      "evidence": "src/main/webapp/WEB-INF/jsp/home.jsp:18",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "관리자만 사용할 수 있는 화면입니다.",
+      "when": "영업담당이 관리자 화면 주소로 들어갔을 때",
+      "evidence": "src/main/java/sample/HomeController.java:22"
+    }
+  ],
+  "unknowns": [],
+  "readFiles": [
+    "src/main/webapp/WEB-INF/jsp/home.jsp",
+    "src/main/webapp/WEB-INF/jsp/common/nav.jsp",
+    "src/main/java/sample/HomeController.java",
+    "src/main/java/sample/ProductStore.java",
+    "src/main/java/sample/AuthInterceptor.java"
+  ],
+  "sourceHash": "sha256:eec19738d8e95cde3f61619ed78a4be07bdfee46072a25c38a4ce4afa8d8d8d1"
+}
