@@ -65,3 +65,11 @@ test('build는 inventory에 없는 화면을 넣지 않는다', async () => {
   const { files } = await runBuild(dir, { assetsDir: 'skills/docent/assets', formats: ['html'] });
   assert.ok(!files.some((f) => f.includes('admin-users')));
 });
+
+test('삭제된 화면을 가리키는 화면도 다시 분석 대상', async () => {
+  const { dir } = await golden();
+  await rm(join(dir, 'app', 'orders', '[id]', 'edit'), { recursive: true });
+  const r = await runUpdate(dir);
+  assert.deepEqual(r.removed, ['orders-id-edit']);
+  assert.ok(r.reanalyze.some((x) => x.id === 'orders-id' && x.reason === '삭제된 화면 참조'), JSON.stringify(r.reanalyze));
+});

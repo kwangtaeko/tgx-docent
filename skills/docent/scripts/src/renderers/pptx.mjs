@@ -7,6 +7,14 @@ import { presetOf, revisionRows, screenTitle } from './html.mjs';
 const FONT = 'Malgun Gothic';
 const W = 13.333;
 const MAX_ROWS = 8;
+const MENU_LINES = 18;
+const FEATURES_PER_SLIDE = 9;
+// 표 높이 추정(11pt 한글 기준): 칸 너비(in)당 한 줄 글자 수, 한 줄 높이
+const CHARS_PER_IN = 6.5;
+const LINE_IN = 0.2;
+const ROW_PAD_IN = 0.12;
+const TABLE_BUDGET_IN = 5.2;
+const COL_W = [0.8, 1.8, 3.4];
 const TYPE_LABELS = { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' };
 const low = (x) => (x.confidence === 'low' ? '[확인 필요] ' : '');
 
@@ -35,10 +43,41 @@ async function readMaybe(path) {
   }
 }
 
+const SUB_MAX = 180;
 function title(slide, text, sub) {
   slide.addText(text, { x: 0.5, y: 0.3, w: W - 1, h: 0.6, fontFace: FONT, fontSize: 24, bold: true, color: '1F2328' });
-  if (sub) slide.addText(sub, { x: 0.5, y: 0.9, w: W - 1, h: 0.5, fontFace: FONT, fontSize: 13, color: '59636E' });
+  // 부제는 두 줄까지(넘치면 줄임표) — 아래 내용 영역(y 1.5~)을 침범하지 않게
+  if (sub) {
+    const short = sub.length > SUB_MAX ? `${sub.slice(0, SUB_MAX - 1)}…` : sub;
+    slide.addText(short, { x: 0.5, y: 0.9, w: W - 1, h: 0.55, fontFace: FONT, fontSize: 12, color: '59636E', valign: 'top', fit: 'shrink' });
+  }
 }
+
+// 행 높이를 글자 수로 추정해 한 장에 들어갈 만큼씩 나눈다
+function rowHeight(row) {
+  const lines = row.map((cell, i) => Math.max(1, Math.ceil(String(cell).length / Math.max(1, (COL_W[i] - 0.15) * CHARS_PER_IN))));
+  return ROW_PAD_IN + LINE_IN * Math.max(...lines);
+}
+
+export function chunkRows(rows) {
+  const chunks = [];
+  let current = [];
+  let height = 0;
+  for (const row of rows) {
+    const h = rowHeight(row);
+    if (current.length && (current.length >= MAX_ROWS || height + h > TABLE_BUDGET_IN)) {
+      chunks.push(current);
+      current = [];
+      height = 0;
+    }
+    current.push(row);
+    height += h;
+  }
+  if (current.length) chunks.push(current);
+  return chunks.length ? chunks : [[]];
+}
+
+const splitEvery = (list, n) => (list.length ? Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, (i + 1) * n)) : [[]]);
 
 function bullets(slide, lines, box) {
   slide.addText(
@@ -85,15 +124,19 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   cover.addText(options.title ?? '사용자 매뉴얼', { x: 0.8, y: 3.2, w: W - 1.6, h: 0.7, fontFace: FONT, fontSize: 24, color: '59636E' });
   cover.addText([options.organization, `기준일 ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.8, y: 4.2, w: W - 1.6, h: 0.5, fontFace: FONT, fontSize: 14, color: '59636E' });
 
-  // 소개
-  const intro = pptx.addSlide();
-  title(intro, '소개', input.summary.oneLiner.value);
-  bullets(intro, input.summary.features.map((f) => `${f.menu} — ${f.value}`), { x: 0.6, y: 1.6, w: W - 1.2, h: 5.4 });
+  // 소개(주요 기능이 많으면 여러 장)
+  splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
+    const intro = pptx.addSlide();
+    title(intro, `소개${i ? ' (계속)' : ''}`, input.summary.oneLiner.value);
+    bullets(intro, features.map((f) => `${f.menu} — ${f.value}`), { x: 0.6, y: 1.6, w: W - 1.2, h: 5.4 });
+  });
 
-  // 메뉴 구조
-  const menu = pptx.addSlide();
-  title(menu, '메뉴 구조');
-  menu.addText(menuLines(input).join('\n') || '메뉴 정보 없음', { x: 0.6, y: 1.2, w: W - 1.2, h: 5.8, fontFace: FONT, fontSize: 16, valign: 'top' });
+  // 메뉴 구조(길면 여러 장)
+  splitEvery(menuLines(input), MENU_LINES).forEach((lines, i) => {
+    const menu = pptx.addSlide();
+    title(menu, `메뉴 구조${i ? ' (계속)' : ''}`);
+    menu.addText(lines.join('\n') || '메뉴 정보 없음', { x: 0.6, y: 1.2, w: W - 1.2, h: 5.8, fontFace: FONT, fontSize: 16, valign: 'top' });
+  });
 
   // 워크플로우
   input.summary.workflows.forEach((wf, i) => {
@@ -117,7 +160,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
       continue;
     }
     const rows = screenRows(s);
-    const chunks = rows.length ? Array.from({ length: Math.ceil(rows.length / MAX_ROWS) }, (_, i) => rows.slice(i * MAX_ROWS, (i + 1) * MAX_ROWS)) : [[]];
+    const chunks = chunkRows(rows);
     const shot = media.images.has(entry.id) ? await readMaybe(join(mediaDir, 'img', `${entry.id}.png`)) : undefined;
     chunks.forEach((chunk, i) => {
       const slide = pptx.addSlide();
@@ -130,7 +173,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
       }
       const header = ['구분', '이름', '설명'].map((t) => ({ text: t, options: { bold: true, fill: { color: 'F6F8FA' } } }));
       const body = chunk.length ? chunk : [['', '입력 항목·버튼 없음', '']];
-      slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6.0, colW: [0.8, 1.8, 3.4], fontFace: FONT, fontSize: 11, border: { type: 'solid', color: 'D1D9E0', pt: 0.75 }, valign: 'top' });
+      slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6.0, colW: COL_W, fontFace: FONT, fontSize: 11, border: { type: 'solid', color: 'D1D9E0', pt: 0.75 }, valign: 'top' });
     });
   }
 

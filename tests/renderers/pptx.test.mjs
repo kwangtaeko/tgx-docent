@@ -85,3 +85,26 @@ test('화면 60개도 60초 안에', { timeout: 60000 }, async () => {
   const all = await slides(await renderPptx(input, { mediaDir: await emptyMedia() }));
   assert.ok(all.length >= 63);
 });
+
+test('버튼 설명이 길면 높이 기준으로 다음 장으로 넘긴다', async () => {
+  const input = await loadGolden();
+  input.options = opts('handover');
+  const s = input.screens.get('orders');
+  const long = '목록에서 주문 번호를 누르면 주문 상세 화면으로 이동하고, 상세 화면에서는 거래처와 납기일, 수량, 비고, 상태를 확인할 수 있습니다. 상태에 따라 수정이 제한됩니다.';
+  s.fields = [];
+  s.actions = Array.from({ length: 8 }, (_, i) => ({ ...s.actions[0], label: `버튼${i + 1}`, effect: long }));
+  const all = (await slides(await renderPptx(input, { mediaDir: await emptyMedia() }))).map(text);
+  const first = all.findIndex((t) => t.includes('버튼1 '));
+  assert.ok(first > 0);
+  assert.match(all[first + 1], /\(계속\)/);
+  assert.ok(!all[first].includes('버튼8 '), '한 장에 다 넣으면 넘친다');
+});
+
+test('메뉴 구조가 길면 여러 장으로 나눈다', async () => {
+  const input = await loadLarge(60);
+  input.options = opts('handover');
+  const all = (await slides(await renderPptx(input, { mediaDir: await emptyMedia() }))).map(text);
+  const menus = all.filter((t) => t.startsWith('메뉴 구조'));
+  assert.ok(menus.length >= 2, String(menus.length));
+  assert.match(menus[1], /\(계속\)/);
+});

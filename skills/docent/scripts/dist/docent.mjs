@@ -34404,6 +34404,13 @@ var PptxGenJS = class {
 var FONT = "Malgun Gothic";
 var W = 13.333;
 var MAX_ROWS = 8;
+var MENU_LINES = 18;
+var FEATURES_PER_SLIDE = 9;
+var CHARS_PER_IN = 6.5;
+var LINE_IN = 0.2;
+var ROW_PAD_IN = 0.12;
+var TABLE_BUDGET_IN = 5.2;
+var COL_W = [0.8, 1.8, 3.4];
 var TYPE_LABELS2 = { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" };
 var low = (x) => x.confidence === "low" ? "[\uD655\uC778 \uD544\uC694] " : "";
 function imageSize(buf) {
@@ -34426,10 +34433,36 @@ async function readMaybe(path) {
     return void 0;
   }
 }
+var SUB_MAX = 180;
 function title(slide, text, sub) {
   slide.addText(text, { x: 0.5, y: 0.3, w: W - 1, h: 0.6, fontFace: FONT, fontSize: 24, bold: true, color: "1F2328" });
-  if (sub) slide.addText(sub, { x: 0.5, y: 0.9, w: W - 1, h: 0.5, fontFace: FONT, fontSize: 13, color: "59636E" });
+  if (sub) {
+    const short = sub.length > SUB_MAX ? `${sub.slice(0, SUB_MAX - 1)}\u2026` : sub;
+    slide.addText(short, { x: 0.5, y: 0.9, w: W - 1, h: 0.55, fontFace: FONT, fontSize: 12, color: "59636E", valign: "top", fit: "shrink" });
+  }
 }
+function rowHeight(row) {
+  const lines = row.map((cell, i) => Math.max(1, Math.ceil(String(cell).length / Math.max(1, (COL_W[i] - 0.15) * CHARS_PER_IN))));
+  return ROW_PAD_IN + LINE_IN * Math.max(...lines);
+}
+function chunkRows(rows) {
+  const chunks = [];
+  let current = [];
+  let height = 0;
+  for (const row of rows) {
+    const h = rowHeight(row);
+    if (current.length && (current.length >= MAX_ROWS || height + h > TABLE_BUDGET_IN)) {
+      chunks.push(current);
+      current = [];
+      height = 0;
+    }
+    current.push(row);
+    height += h;
+  }
+  if (current.length) chunks.push(current);
+  return chunks.length ? chunks : [[]];
+}
+var splitEvery = (list, n) => list.length ? Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, (i + 1) * n)) : [[]];
 function bullets(slide, lines, box) {
   slide.addText(
     lines.map((t) => ({ text: t, options: { bullet: true, breakLine: true } })),
@@ -34469,12 +34502,16 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   cover.addText(input.projectName, { x: 0.8, y: 2.2, w: W - 1.6, h: 1, fontFace: FONT, fontSize: 40, bold: true });
   cover.addText(options.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", { x: 0.8, y: 3.2, w: W - 1.6, h: 0.7, fontFace: FONT, fontSize: 24, color: "59636E" });
   cover.addText([options.organization, `\uAE30\uC900\uC77C ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.8, y: 4.2, w: W - 1.6, h: 0.5, fontFace: FONT, fontSize: 14, color: "59636E" });
-  const intro = pptx.addSlide();
-  title(intro, "\uC18C\uAC1C", input.summary.oneLiner.value);
-  bullets(intro, input.summary.features.map((f) => `${f.menu} \u2014 ${f.value}`), { x: 0.6, y: 1.6, w: W - 1.2, h: 5.4 });
-  const menu = pptx.addSlide();
-  title(menu, "\uBA54\uB274 \uAD6C\uC870");
-  menu.addText(menuLines2(input).join("\n") || "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C", { x: 0.6, y: 1.2, w: W - 1.2, h: 5.8, fontFace: FONT, fontSize: 16, valign: "top" });
+  splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
+    const intro = pptx.addSlide();
+    title(intro, `\uC18C\uAC1C${i ? " (\uACC4\uC18D)" : ""}`, input.summary.oneLiner.value);
+    bullets(intro, features.map((f) => `${f.menu} \u2014 ${f.value}`), { x: 0.6, y: 1.6, w: W - 1.2, h: 5.4 });
+  });
+  splitEvery(menuLines2(input), MENU_LINES).forEach((lines, i) => {
+    const menu = pptx.addSlide();
+    title(menu, `\uBA54\uB274 \uAD6C\uC870${i ? " (\uACC4\uC18D)" : ""}`);
+    menu.addText(lines.join("\n") || "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C", { x: 0.6, y: 1.2, w: W - 1.2, h: 5.8, fontFace: FONT, fontSize: 16, valign: "top" });
+  });
   input.summary.workflows.forEach((wf, i) => {
     const slide = pptx.addSlide();
     title(slide, `\uC6CC\uD06C\uD50C\uB85C\uC6B0 \xB7 ${wf.name}`, wf.description);
@@ -34494,7 +34531,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
       continue;
     }
     const rows = screenRows(s);
-    const chunks = rows.length ? Array.from({ length: Math.ceil(rows.length / MAX_ROWS) }, (_, i) => rows.slice(i * MAX_ROWS, (i + 1) * MAX_ROWS)) : [[]];
+    const chunks = chunkRows(rows);
     const shot = media.images.has(entry.id) ? await readMaybe(join7(mediaDir, "img", `${entry.id}.png`)) : void 0;
     chunks.forEach((chunk, i) => {
       const slide = pptx.addSlide();
@@ -34507,7 +34544,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
       }
       const header = ["\uAD6C\uBD84", "\uC774\uB984", "\uC124\uBA85"].map((t) => ({ text: t, options: { bold: true, fill: { color: "F6F8FA" } } }));
       const body = chunk.length ? chunk : [["", "\uC785\uB825 \uD56D\uBAA9\xB7\uBC84\uD2BC \uC5C6\uC74C", ""]];
-      slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6, colW: [0.8, 1.8, 3.4], fontFace: FONT, fontSize: 11, border: { type: "solid", color: "D1D9E0", pt: 0.75 }, valign: "top" });
+      slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6, colW: COL_W, fontFace: FONT, fontSize: 11, border: { type: "solid", color: "D1D9E0", pt: 0.75 }, valign: "top" });
     });
   }
   if (preset === "delivery") {
@@ -36080,6 +36117,15 @@ async function runUpdate(projectDir) {
   ]);
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
   const reanalyze = await runPending(projectDir);
+  if (removed.length) {
+    const gone = new Set(removed);
+    for (const { id } of inventory.screens) {
+      if (reanalyze.some((x) => x.id === id)) continue;
+      const s = await readJsonIfExists(join23(dir, "screens", `${id}.json`)).catch(() => void 0);
+      const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
+      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870" });
+    }
+  }
   const rescenario = await runScenarios(projectDir);
   const recapture = [];
   for (const { id } of reanalyze) if (await exists3(media.img(id))) recapture.push(id);

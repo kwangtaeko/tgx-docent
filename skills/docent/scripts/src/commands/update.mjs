@@ -42,6 +42,16 @@ export async function runUpdate(projectDir) {
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
 
   const reanalyze = await runPending(projectDir);
+  // 사라진 화면을 버튼·상위 화면으로 가리키는 화면도 다시 분석해야 validate를 통과한다
+  if (removed.length) {
+    const gone = new Set(removed);
+    for (const { id } of inventory.screens) {
+      if (reanalyze.some((x) => x.id === id)) continue;
+      const s = await readJsonIfExists(join(dir, 'screens', `${id}.json`)).catch(() => undefined);
+      const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
+      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: '삭제된 화면 참조' });
+    }
+  }
   const rescenario = await runScenarios(projectDir);
   const recapture = [];
   for (const { id } of reanalyze) if (await exists(media.img(id))) recapture.push(id);

@@ -20,7 +20,8 @@ export async function loadLarge(n) {
   for (let i = 1; i <= n; i++) {
     const id = `screen-${String(i).padStart(3, '0')}`;
     inventory.screens.push({ ...entry, id, route: `/s/${i}` });
-    screens.set(id, { ...structuredClone(template), id, route: `/s/${i}`, title: { ...template.title, value: `화면 ${i}` }, actions: [] });
+    const menuPath = { ...template.menuPath, value: [`메뉴 ${Math.ceil(i / 2)}`, `화면 ${i}`] };
+    screens.set(id, { ...structuredClone(template), id, route: `/s/${i}`, title: { ...template.title, value: `화면 ${i}` }, menuPath, actions: [] });
   }
   return { ...base, inventory, screens, summary: { ...base.summary, workflows: [] } };
 }
