@@ -14,6 +14,7 @@
     "ajv": "^8.17.1",
     "gifenc": "^1.0.3",
     "pngjs": "^7.0.0",
+    "pptxgenjs": "^4.0.1",
     "yaml": "^2.9.1"
   },
   "devDependencies": {

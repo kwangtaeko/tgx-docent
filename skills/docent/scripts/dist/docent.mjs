@@ -19132,9 +19132,13 @@ function renderScreen(input, entry) {
 ${screenBody(input, entry)}`;
   return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: "../" });
 }
-function workflowMermaid(input, wf) {
+function workflowMermaid(input, wf, { forHtml = true } = {}) {
   const { screens } = input;
-  const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${escapeHtml(screenTitle(screens, id)).replace(/&quot;/g, "#quot;")}"]`);
+  const label = (id) => {
+    const title = screenTitle(screens, id);
+    return forHtml ? escapeHtml(title).replace(/&quot;/g, "#quot;") : title.replace(/"/g, "#quot;");
+  };
+  const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${label(id)}"]`);
   const edges = [];
   for (let i = 0; i + 1 < wf.steps.length; i++) {
     const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
