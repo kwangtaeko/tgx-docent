@@ -33,6 +33,8 @@ tools: Read, Grep, Glob, Write, Bash
 ## 규칙
 
 1. 근거는 `.docent/screens/<화면ID>.json`입니다. 그 화면의 `fields`·`actions`·`messages`에 있는 항목만 씁니다. `label`·`text`는 화면 JSON의 문구 그대로, `evidence`도 화면 JSON의 해당 항목 근거를 그대로 씁니다
+   - 이 화면의 버튼이 연 하위 화면(`opens`)이나 이동한 화면(`navigatesTo`)의 항목은 그 화면 JSON을 근거로 이어서 쓸 수 있습니다(예: 거래처 찾기 창에서 "선택"). 같은 화면으로 돌아오는 `goto`의 근거는 그 이동을 일으킨 버튼의 근거를 씁니다
+   - 화면 메뉴와 본문에 같은 이름의 링크가 있으면 개수가 2개가 되므로 `nth`로 본문 쪽을 지정합니다. 먼저 `$DOCENT record <화면ID>`로 돌려 보고 "N개" 오류가 나면 고칩니다
 2. `path`: 실제로 열 경로
    - 동적 경로(`/orders/[id]`)는 실행 중인 앱에서 실제로 있는 값을 고릅니다. `.docent/crawl.json`의 `visited`에서 맞는 경로를 찾거나, 목록 화면 링크에서 확인합니다
    - 하위 화면(모달·팝업)은 부모 화면 경로를 쓰고, 여는 버튼 클릭을 `setup`에 넣습니다(근거: 부모 화면 JSON의 `opens` 동작)

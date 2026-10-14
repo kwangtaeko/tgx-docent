@@ -35,6 +35,7 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 | Spring Boot(Gradle) | `build.gradle` + `org.springframework.boot` | — | `./gradlew bootRun` | 위와 같음 |
 | ASP.NET WebForms | `*.aspx`, `Web.config` | 자동 실행하지 않음 — IIS·Windows 필요. 처음부터 주소 받기 | | |
 
+- 캡처용으로는 **프로덕션 실행**을 권장합니다. 개발 서버는 화면 구석에 개발 도구 표시(예: Next.js의 "N" 배지, Vite 오류 오버레이)가 찍힙니다. Next.js라면 `start`를 `npm run build && npm run start`로 쓰고 `timeoutSec`을 늘립니다. 빌드가 실패하면 개발 서버로 되돌리고 `config.yaml`의 `mask.selectors`에 `nextjs-portal`을 넣어 가립니다
 - `docker compose up`은 `-d` 없이 씁니다(docent가 프로세스를 멈출 수 있어야 함)
 - 시작이 오래 걸리는 스택(Spring, docker)은 `timeoutSec`을 300 정도로 늘립니다
 
