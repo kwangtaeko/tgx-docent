@@ -4,6 +4,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import inventoryAgentSchema from '../../../schemas/inventory-agent.schema.json' with { type: 'json' };
 import inventorySchema from '../../../schemas/inventory.schema.json' with { type: 'json' };
 import runSchema from '../../../schemas/run.schema.json' with { type: 'json' };
+import scenarioSchema from '../../../schemas/scenario.schema.json' with { type: 'json' };
 import screenSchema from '../../../schemas/screen.schema.json' with { type: 'json' };
 import summarySchema from '../../../schemas/summary.schema.json' with { type: 'json' };
 
@@ -23,3 +24,4 @@ export const validateScreen = compile(screenSchema);
 export const validateInventoryAgent = compile(inventoryAgentSchema);
 export const validateSummary = compile(summarySchema);
 export const validateRun = compile(runSchema);
+export const validateScenario = compile(scenarioSchema);

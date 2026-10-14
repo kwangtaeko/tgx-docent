@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwangtaeko/tgx-docent/schemas/scenario.schema.json",
+  "title": "docent scenario (화면 캡처·GIF 녹화 시나리오)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "screenId",
+    "path",
+    "setup",
+    "steps",
+    "sourceHash"
+  ],
+  "properties": {
+    "screenId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/"
+    },
+    "setup": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "sourceHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "locked": {
+      "type": "boolean"
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "string",
+      "pattern": "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
+    },
+    "step": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "label",
+            "value"
+          ],
+          "properties": {
+            "do": {
+              "const": "fill"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "label",
+            "value"
+          ],
+          "properties": {
+            "do": {
+              "const": "select"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "label"
+          ],
+          "properties": {
+            "do": {
+              "const": "check"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "role",
+            "label"
+          ],
+          "properties": {
+            "do": {
+              "const": "click"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "role": {
+              "enum": [
+                "button",
+                "link",
+                "tab",
+                "menuitem",
+                "checkbox"
+              ]
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "nth": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "text"
+          ],
+          "properties": {
+            "do": {
+              "const": "expectText"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "ms"
+          ],
+          "properties": {
+            "do": {
+              "const": "wait"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "evidence",
+            "path"
+          ],
+          "properties": {
+            "do": {
+              "const": "goto"
+            },
+            "evidence": {
+              "$ref": "#/$defs/evidence"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
