@@ -17,6 +17,7 @@
   "agents": [
     "./skills/docent/agents/screen-analyzer.md",
     "./skills/docent/agents/route-explorer.md",
-    "./skills/docent/agents/summary-writer.md"
+    "./skills/docent/agents/summary-writer.md",
+    "./skills/docent/agents/scenario-writer.md"
   ]
 }

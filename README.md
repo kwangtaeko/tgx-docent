@@ -2,7 +2,7 @@
 
 웹앱 프로젝트의 소스를 분석해 **화면 목록, 화면별 매뉴얼, 프로젝트 소개, 워크플로우(HTML)와 소개 README**를 만드는 에이전트 플러그인입니다. 모든 서술에 소스 근거를 남기고, 소스만으로 확정할 수 없는 내용은 `[확인 필요]`로 표시합니다.
 
-> 개발 중(M2)입니다. 화면 캡처·GIF(M3), PDF·PPT·용도 프리셋(M4)은 아직 없습니다.
+> 개발 중(M3)입니다. PDF·PPT·용도 프리셋(M4)은 아직 없습니다.
 
 ## 쓰는 법 (Claude Code)
 
@@ -13,7 +13,7 @@
 
 대상 프로젝트에서 `/docent`를 실행하면 `.docent/out/`에 결과가 생깁니다.
 
-- `.docent/out/html/index.html` — 소개·화면 목록·화면별 매뉴얼·워크플로우
+- `.docent/out/html/index.html` — 소개·화면 목록·화면별 매뉴얼(캡처·조작 GIF)·워크플로우
 - `.docent/out/README.md` — 소개 README
 - `.docent/review.md` — 확인 필요 항목(답을 적고 `/docent-analyze`를 다시 실행)
 
@@ -25,6 +25,7 @@
 - `.env`, `appsettings*.json`, `web.config`, 키 파일 등 비밀 파일은 읽지 않습니다
 - 대상 프로젝트의 파일은 고치지 않고 `.docent/`에만 씁니다
 - Node.js 20.10 이상이 필요합니다
+- 화면 캡처·GIF는 대상 앱을 실행해야 합니다. docent는 실행 계획을 보여 주고 동의를 받은 뒤에만 설치·실행 명령을 돌리며, 캡처용 Playwright·Chromium도 동의 후 `~/.cache/docent/runtime`에 설치합니다. 녹화는 테스트 계정·테스트 데이터로 하세요
 
 ## 개발
 

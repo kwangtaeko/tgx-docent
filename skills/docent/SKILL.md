@@ -1,6 +1,6 @@
 ---
 name: docent
-description: 웹앱 프로젝트의 소스를 분석해 화면 목록, 화면별 매뉴얼, 프로젝트 소개, 워크플로우(HTML)와 소개 README를 만든다. 사용자가 매뉴얼·화면 목록·사용 설명서·산출물 문서·시스템 소개를 만들어 달라고 할 때 사용한다.
+description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면 목록, 화면별 매뉴얼(캡처·조작 GIF 포함), 프로젝트 소개, 워크플로우(HTML)와 소개 README를 만든다. 사용자가 매뉴얼·화면 목록·사용 설명서·산출물 문서·시스템 소개를 만들어 달라고 할 때 사용한다.
 ---
 
 # docent
@@ -18,6 +18,7 @@ description: 웹앱 프로젝트의 소스를 분석해 화면 목록, 화면별
 
 - `SKILL_DIR`: 이 `SKILL.md`가 있는 폴더의 **절대 경로**. (Claude Code는 스킬을 불러올 때 이 폴더를 "Base directory"로 알려 줍니다.)
 - `DOCENT`: `node <SKILL_DIR>/scripts/dist/docent.mjs` — 모든 명령은 대상 프로젝트 루트에서 실행하거나 `--project <경로>`를 붙입니다. Node.js 20.10 이상이 필요합니다.
+- Playwright가 필요한 명령(`run`의 자동 실행 확인 제외, `auth`·`crawl`·`capture`·`record`)은 Playwright가 없으면 exit 3으로 끝납니다. 이때는 사용자에게 설치 동의를 받고 `$DOCENT runtime install`을 실행하거나, 캡처 없이 진행합니다.
 - 서브에이전트 지시는 `<SKILL_DIR>/agents/`에 있습니다. 서브에이전트를 부를 때는 **항상 프로젝트 루트, `SKILL_DIR`, `DOCENT`를 절대 경로로 함께 전달**합니다. 서브에이전트는 환경변수나 상대 경로를 알지 못합니다.
 
 | 명령 | 하는 일 |
@@ -30,6 +31,12 @@ description: 웹앱 프로젝트의 소스를 분석해 화면 목록, 화면별
 | `$DOCENT review` | 확인 필요 항목을 `.docent/review.md`로 정리(사용자 답 보존) |
 | `$DOCENT build` | `.docent/out/html/`(소개·화면 목록·화면별 매뉴얼·워크플로우)와 `.docent/out/README.md` 생성 |
 | `$DOCENT session start` / `end` | 분석 세션 표시(비밀 파일 차단 훅이 이때만 동작) |
+| `$DOCENT runtime status` / `install` | 캡처용 Playwright·Chromium 확인 / 설치(**사용자 동의 후**, `~/.cache/docent/runtime`) |
+| `$DOCENT run start [--install]` / `stop` / `status` | `.docent/run.json`대로 대상 앱 실행·중지·확인 |
+| `$DOCENT auth login` / `save` | 로그인 상태 저장(login: `config.yaml`의 `auth` + 계정 환경변수, save: 사용자가 브라우저에서 직접 로그인) |
+| `$DOCENT crawl` | 실행 중인 앱을 링크로 돌며 화면 목록과 대조(`.docent/crawl.json`, review.md에 반영) |
+| `$DOCENT scenarios` | 시나리오를 (다시) 써야 하는 화면(캡처 경로 필요·GIF 대상·낡음) |
+| `$DOCENT capture [id…]` / `record [id…]` | 화면 캡처(`.docent/media/img`) / 조작 GIF(`.docent/media/gif`) |
 
 ## 전체 실행 (`/docent`)
 
@@ -64,7 +71,20 @@ description: 웹앱 프로젝트의 소스를 분석해 화면 목록, 화면별
 1. `$DOCENT validate`. 문제가 있는 화면만 다시 분석합니다(최대 2회). 그래도 남으면 문제 목록을 사용자에게 보여 줍니다
 2. `$DOCENT review` → 확인 필요 항목 수를 알리고, 사용자가 `.docent/review.md`에 답을 적고 체크한 뒤 `/docent-analyze`를 다시 실행하면 반영된다고 안내합니다
 
-### 6. 산출물
+### 6. 실행·캡처 (선택 — 안 되면 건너뜀)
+
+캡처·GIF는 앱이 실제로 떠야 만들 수 있습니다. 어느 단계든 끝내 안 되면 건너뛰고 7단계로 갑니다(산출물에 "캡처 없이 소스만으로 만들었습니다"가 표시됩니다).
+
+1. **준비**: `$DOCENT runtime status`. 없으면 "화면 캡처를 위해 Playwright와 Chromium(약 150MB)을 `~/.cache/docent/runtime`에 설치해도 될까요?"라고 묻고, 동의하면 `$DOCENT runtime install`
+2. **실행 계획**: `.docent/run.json`이 이미 있으면 `$DOCENT run start`. 없으면 `<SKILL_DIR>/references/run-guide.md`대로 실행 계획을 만들어 **사용자에게 보여 주고 동의를 받은 뒤** `run.json`을 쓰고 `$DOCENT run start --install`. 동의하지 않으면 사용자가 띄운 앱 주소를 받아 `{ "mode": "url", "baseUrl": … }`로 씁니다
+3. **실패하면**: 출력된 `run.log` 내용으로 무엇이 부족한지(환경변수 이름, DB, 포트) 구체적으로 알리고, 앱을 직접 띄운 주소를 받아 `mode: url`로 바꿔 다시 `$DOCENT run start`
+4. **로그인**: 로그인이 필요한 앱이면 `config.yaml`의 `auth`에 로그인 화면 라벨·버튼과 계정 환경변수 이름을 적고(값은 사용자가 셸에 설정), `$DOCENT auth login`. 화면이 있는 환경이면 `$DOCENT auth save`로 사용자가 직접 로그인해도 됩니다. 테스트 계정을 쓰도록 안내합니다
+5. **대조**: `$DOCENT crawl` — 화면 목록에 없는 경로·도달하지 못한 화면을 사용자에게 알립니다(review.md에도 들어감). 빠진 화면이 진짜 화면이면 2단계(화면 목록)로 돌아가 추가합니다
+6. **시나리오**: `$DOCENT scenarios`가 보여 주는 화면마다 `scenario-writer` 서브에이전트(또는 `<SKILL_DIR>/agents/scenario-writer.md` 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`·화면 ID·이유를 전달해 시나리오를 쓰게 합니다
+7. **캡처·녹화**: `$DOCENT capture` → `$DOCENT record`. 실패 항목은 review.md에 모입니다. 실패한 화면을 그럴듯하게 대신 만들지 않습니다
+8. **정리**: docent가 띄운 앱이면 `$DOCENT run stop`
+
+### 7. 산출물
 
 `$DOCENT build` → `.docent/out/html/index.html`과 `.docent/out/README.md` 위치를 알립니다. 마지막으로 `$DOCENT session end`.
 
@@ -72,4 +92,5 @@ description: 웹앱 프로젝트의 소스를 분석해 화면 목록, 화면별
 
 - `references/schema.md` — 중간 산출물 형식
 - `references/writing-style.md` — 문체 규칙
-- `agents/` — 서브에이전트 지시(`screen-analyzer`, `route-explorer`, `summary-writer`). Claude Code 플러그인에서는 같은 이름의 서브에이전트로 등록됩니다
+- `references/run-guide.md` — 앱 실행 계획 만드는 법
+- `agents/` — 서브에이전트 지시(`screen-analyzer`, `route-explorer`, `summary-writer`, `scenario-writer`). Claude Code 플러그인에서는 같은 이름의 서브에이전트로 등록됩니다
