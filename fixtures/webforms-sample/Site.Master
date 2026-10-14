@@ -1,0 +1,18 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.Master.cs" Inherits="WebFormsSample.SiteMaster" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title><asp:ContentPlaceHolder ID="TitleContent" runat="server" /> - 주문 관리</title>
+</head>
+<body>
+    <form id="mainForm" runat="server">
+        <asp:SiteMapDataSource ID="siteMap" runat="server" ShowStartingNode="true" />
+        <asp:Menu ID="mainMenu" runat="server" DataSourceID="siteMap" Orientation="Horizontal" />
+        <asp:LinkButton ID="btnLogout" runat="server" Text="로그아웃" OnClick="btnLogout_Click" CausesValidation="false" />
+        <main>
+            <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+        </main>
+    </form>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "id": "orders-list",
+  "kind": "page",
+  "route": "/Orders/List.aspx",
+  "title": {
+    "value": "주문 목록",
+    "evidence": "Orders/List.aspx:4"
+  },
+  "menuPath": {
+    "value": [
+      "주문관리",
+      "주문 목록"
+    ],
+    "evidence": "Web.sitemap:5"
+  },
+  "purpose": {
+    "value": "거래처명과 상태로 주문을 검색하고, 주문을 열어 수정하거나 새 주문을 등록합니다",
+    "evidence": "Orders/List.aspx:4-23",
+    "confidence": "high"
+  },
+  "roles": [],
+  "sections": [],
+  "fields": [
+    {
+      "label": "거래처명",
+      "type": "text",
+      "required": false,
+      "evidence": "Orders/List.aspx:6",
+      "confidence": "high"
+    },
+    {
+      "label": "상태",
+      "type": "select",
+      "required": false,
+      "evidence": "Orders/List.aspx:8",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "검색",
+      "effect": "조건에 맞는 주문을 DB에서 찾아 표로 보여 줍니다",
+      "evidence": "Orders/List.aspx:14",
+      "confidence": "low"
+    },
+    {
+      "label": "주문번호",
+      "effect": "주문번호를 누르면 그 주문의 수정 화면으로 이동합니다",
+      "navigatesTo": "orders-edit",
+      "evidence": "Orders/List.aspx:17",
+      "confidence": "high"
+    },
+    {
+      "label": "신규 등록",
+      "effect": "주문 등록 화면으로 이동합니다",
+      "navigatesTo": "orders-edit",
+      "evidence": "Orders/List.aspx:23",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "저장되었습니다.",
+      "when": "주문을 저장하고 목록으로 돌아왔을 때",
+      "evidence": "Orders/List.aspx.cs:14"
+    },
+    {
+      "text": "조건에 맞는 주문이 없습니다.",
+      "when": "검색 결과가 없을 때",
+      "evidence": "Orders/List.aspx:15"
+    }
+  ],
+  "unknowns": [
+    "검색 조건(거래처명 부분 일치 여부 등)은 DB 저장 프로시저 usp_SearchOrders에 있어 소스에서 확인할 수 없습니다",
+    "주문 데이터는 web.config의 연결 문자열(OrderDb)이 가리키는 데이터베이스에 있으며, 연결 문자열은 비밀 파일이라 읽지 않았습니다"
+  ],
+  "readFiles": [
+    "Orders/List.aspx",
+    "Orders/List.aspx.cs",
+    "App_Code/OrderRepository.cs",
+    "Site.Master"
+  ],
+  "sourceHash": "sha256:857200dbe96be60801906b0c5f50dfaf9c1f4a23ca62ab90284670b7136c9bd6"
+}

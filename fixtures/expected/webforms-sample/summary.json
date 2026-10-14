@@ -1,0 +1,52 @@
+{
+  "oneLiner": {
+    "value": "거래처 주문을 검색하고 등록·수정하는 주문 관리 시스템입니다",
+    "screens": [
+      "orders-list",
+      "orders-edit"
+    ]
+  },
+  "features": [
+    {
+      "menu": "홈",
+      "value": "오늘 접수된 주문 건수를 확인합니다",
+      "screens": [
+        "default"
+      ]
+    },
+    {
+      "menu": "주문관리",
+      "value": "주문을 거래처명·상태로 검색하고 새 주문을 등록하거나 수정합니다",
+      "screens": [
+        "orders-list",
+        "orders-edit"
+      ]
+    },
+    {
+      "menu": "관리자",
+      "value": "사용자 계정과 잠김 여부를 확인합니다",
+      "screens": [
+        "admin-users"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "로그인",
+      "description": "아이디와 비밀번호로 로그인하면 홈 화면으로 이동합니다",
+      "steps": [
+        "account-login",
+        "default"
+      ]
+    },
+    {
+      "name": "주문 등록",
+      "description": "주문 목록에서 신규 등록으로 들어가 주문을 입력하고 저장하면 주문 목록으로 돌아옵니다",
+      "steps": [
+        "orders-list",
+        "orders-edit",
+        "orders-list"
+      ]
+    }
+  ]
+}

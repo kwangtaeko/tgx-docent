@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<siteMap xmlns="http://schemas.microsoft.com/AspNet/SiteMap-File-1.0">
+  <siteMapNode url="~/Default.aspx" title="홈">
+    <siteMapNode title="주문관리">
+      <siteMapNode url="~/Orders/List.aspx" title="주문 목록" />
+      <siteMapNode url="~/Orders/Edit.aspx" title="주문 등록" />
+    </siteMapNode>
+    <siteMapNode title="관리자" roles="Admin">
+      <siteMapNode url="~/Admin/Users.aspx" title="사용자 관리" />
+    </siteMapNode>
+  </siteMapNode>
+</siteMap>

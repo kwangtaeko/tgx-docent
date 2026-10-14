@@ -1,0 +1,66 @@
+{
+  "id": "account-login",
+  "kind": "page",
+  "route": "/Account/Login.aspx",
+  "title": {
+    "value": "로그인",
+    "evidence": "Account/Login.aspx:7"
+  },
+  "purpose": {
+    "value": "아이디와 비밀번호로 시스템에 로그인합니다",
+    "evidence": "Account/Login.aspx:7-15",
+    "confidence": "high"
+  },
+  "roles": [],
+  "sections": [],
+  "fields": [
+    {
+      "label": "아이디",
+      "type": "text",
+      "required": true,
+      "evidence": "Account/Login.aspx:9",
+      "confidence": "high"
+    },
+    {
+      "label": "비밀번호",
+      "type": "password",
+      "required": true,
+      "evidence": "Account/Login.aspx:12",
+      "confidence": "high"
+    }
+  ],
+  "actions": [
+    {
+      "label": "로그인",
+      "effect": "계정을 확인하고 홈 화면으로 이동합니다. 계정이 틀리면 오류 메시지를 표시합니다",
+      "navigatesTo": "default",
+      "evidence": "Account/Login.aspx:15",
+      "confidence": "high"
+    }
+  ],
+  "messages": [
+    {
+      "text": "아이디를 입력하세요.",
+      "when": "아이디를 비우고 로그인했을 때",
+      "evidence": "Account/Login.aspx:11"
+    },
+    {
+      "text": "비밀번호를 입력하세요.",
+      "when": "비밀번호를 비우고 로그인했을 때",
+      "evidence": "Account/Login.aspx:14"
+    },
+    {
+      "text": "아이디 또는 비밀번호가 올바르지 않습니다.",
+      "when": "계정이 틀렸을 때",
+      "evidence": "Account/Login.aspx.cs:13"
+    }
+  ],
+  "unknowns": [
+    "계정 확인은 Membership 공급자 설정(web.config)을 따르며, 비밀 파일이라 읽지 않았습니다"
+  ],
+  "readFiles": [
+    "Account/Login.aspx",
+    "Account/Login.aspx.cs"
+  ],
+  "sourceHash": "sha256:75394f625dca5812a18455e291ee7392e0af96f573ffadb47fdc22710751fb53"
+}

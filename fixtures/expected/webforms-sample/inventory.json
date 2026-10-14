@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "screens": [
+    {
+      "id": "account-login",
+      "route": "/Account/Login.aspx",
+      "kind": "page",
+      "files": [
+        "Account/Login.aspx",
+        "Account/Login.aspx.cs"
+      ],
+      "evidence": "Account/Login.aspx:1",
+      "source": "agent"
+    },
+    {
+      "id": "admin-users",
+      "route": "/Admin/Users.aspx",
+      "kind": "page",
+      "files": [
+        "Admin/Users.aspx",
+        "Admin/Users.aspx.cs"
+      ],
+      "evidence": "Admin/Users.aspx:1",
+      "source": "agent"
+    },
+    {
+      "id": "default",
+      "route": "/Default.aspx",
+      "kind": "page",
+      "files": [
+        "Default.aspx",
+        "Default.aspx.cs"
+      ],
+      "evidence": "Default.aspx:1",
+      "source": "agent"
+    },
+    {
+      "id": "orders-edit",
+      "route": "/Orders/Edit.aspx",
+      "kind": "page",
+      "files": [
+        "Orders/Edit.aspx",
+        "Orders/Edit.aspx.cs"
+      ],
+      "evidence": "Orders/Edit.aspx:1",
+      "source": "agent"
+    },
+    {
+      "id": "orders-list",
+      "route": "/Orders/List.aspx",
+      "kind": "page",
+      "files": [
+        "Orders/List.aspx",
+        "Orders/List.aspx.cs"
+      ],
+      "evidence": "Orders/List.aspx:1",
+      "source": "agent"
+    }
+  ]
+}

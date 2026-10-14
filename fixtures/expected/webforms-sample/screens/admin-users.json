@@ -1,0 +1,39 @@
+{
+  "id": "admin-users",
+  "kind": "page",
+  "route": "/Admin/Users.aspx",
+  "title": {
+    "value": "사용자 관리",
+    "evidence": "Admin/Users.aspx:4"
+  },
+  "menuPath": {
+    "value": [
+      "관리자",
+      "사용자 관리"
+    ],
+    "evidence": "Web.sitemap:9"
+  },
+  "purpose": {
+    "value": "등록된 사용자의 아이디·이메일·잠김 여부를 확인합니다",
+    "evidence": "Admin/Users.aspx:4-11",
+    "confidence": "high"
+  },
+  "roles": [
+    {
+      "value": "관리자",
+      "evidence": "Admin/Users.aspx.cs:11",
+      "confidence": "high"
+    }
+  ],
+  "sections": [],
+  "fields": [],
+  "actions": [],
+  "messages": [],
+  "unknowns": [],
+  "readFiles": [
+    "Admin/Users.aspx",
+    "Admin/Users.aspx.cs",
+    "Site.Master"
+  ],
+  "sourceHash": "sha256:d703e97717323b0406356da3e1c10b6ab8e9527e30c205935493db21791380aa"
+}

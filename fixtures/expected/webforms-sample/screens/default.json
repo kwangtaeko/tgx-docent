@@ -1,0 +1,51 @@
+{
+  "id": "default",
+  "kind": "page",
+  "route": "/Default.aspx",
+  "title": {
+    "value": "홈",
+    "evidence": "Default.aspx:4"
+  },
+  "menuPath": {
+    "value": [
+      "홈"
+    ],
+    "evidence": "Web.sitemap:3"
+  },
+  "purpose": {
+    "value": "오늘 접수된 주문 건수를 확인하고 주문 업무로 이동합니다",
+    "evidence": "Default.aspx:4-7",
+    "confidence": "high"
+  },
+  "roles": [],
+  "sections": [],
+  "fields": [],
+  "actions": [
+    {
+      "label": "주문 목록 보기",
+      "effect": "주문 목록 화면으로 이동합니다",
+      "navigatesTo": "orders-list",
+      "evidence": "Default.aspx:6",
+      "confidence": "high"
+    },
+    {
+      "label": "주문 등록하기",
+      "effect": "주문 등록 화면으로 이동합니다",
+      "navigatesTo": "orders-edit",
+      "evidence": "Default.aspx:7",
+      "confidence": "high"
+    }
+  ],
+  "messages": [],
+  "unknowns": [
+    "오늘 접수 건수는 DB 저장 프로시저(usp_SearchOrders) 결과라 집계 기준을 소스에서 확인할 수 없습니다",
+    "접근 권한(인증·권한 규칙)은 web.config에 있어 확인하지 않았습니다(비밀 파일이라 읽지 않음)"
+  ],
+  "readFiles": [
+    "Default.aspx",
+    "Default.aspx.cs",
+    "Site.Master",
+    "App_Code/OrderRepository.cs"
+  ],
+  "sourceHash": "sha256:9e43328d7930354229a2e14a2e6a3d0459fbee63de1472ef0083d1bf2eee08eb"
+}
