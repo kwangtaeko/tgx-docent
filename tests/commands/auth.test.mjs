@@ -1,0 +1,74 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { access } from 'node:fs/promises';
+import { join } from 'node:path';
+import { authLogin, newContext } from '../../skills/docent/scripts/src/commands/auth.mjs';
+import { browser, closeBrowser } from '../helpers/browser.mjs';
+import { page, siteProject, startTestSite } from '../helpers/web.mjs';
+
+const AUTH = `auth:
+  loginPath: /login
+  fields:
+    - label: 아이디
+      env: DOCENT_T_USER
+    - label: 비밀번호
+      env: DOCENT_T_PASSWORD
+  submit: 로그인
+  successPath: /
+`;
+
+const site = await startTestSite({ pages: { '/': page('홈'), '/secret': page('비밀') }, protect: ['/secret'] });
+after(async () => {
+  await site.close();
+  await closeBrowser();
+});
+
+function withEnv(env, fn) {
+  const saved = {};
+  for (const [k, v] of Object.entries(env)) {
+    saved[k] = process.env[k];
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+  return fn().finally(() => {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  });
+}
+
+test('로그인 상태를 저장하고 그 상태로 보호 화면에 들어간다', async () => {
+  const dir = await siteProject(site.url, AUTH);
+  await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: 'p' }, () => authLogin(dir));
+  await access(join(dir, '.docent', 'auth', 'state.json'));
+  const context = await newContext(await browser(), dir);
+  const p = await context.newPage();
+  const res = await p.goto(`${site.url}/secret`);
+  assert.equal(new URL(p.url()).pathname, '/secret');
+  assert.equal(res.status(), 200);
+  await context.close();
+});
+
+test('비밀번호가 틀리면 실패하고 값은 메시지에 없다', async () => {
+  const dir = await siteProject(site.url, AUTH);
+  await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: 'wrong-secret-value' }, async () => {
+    await assert.rejects(authLogin(dir), (err) => {
+      assert.match(err.message, /로그인 실패/);
+      assert.doesNotMatch(err.message, /wrong-secret-value/);
+      return true;
+    });
+  });
+});
+
+test('환경변수가 없으면 이름을 알려 준다', async () => {
+  const dir = await siteProject(site.url, AUTH);
+  await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: undefined }, async () => {
+    await assert.rejects(authLogin(dir), /DOCENT_T_PASSWORD/);
+  });
+});
+
+test('auth 설정이 없으면 안내한다', async () => {
+  const dir = await siteProject(site.url, '');
+  await assert.rejects(authLogin(dir), /auth/);
+});

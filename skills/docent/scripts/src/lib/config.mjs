@@ -9,6 +9,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   screens: { include: [], exclude: [], idMap: {} },
   secrets: { paths: ['.env', '.env.*', 'appsettings*.json', 'web.config', '*.pem', '*.key', '*.pfx', 'id_rsa*'] },
   analyze: { concurrency: 4 },
+  mask: { selectors: [] },
+  gif: { screens: { include: [], exclude: [] } },
 });
 
 function isObject(v) {

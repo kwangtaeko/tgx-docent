@@ -1,6 +1,7 @@
 // docent CLI. 사용법: node docent.mjs <명령> [--project <디렉터리>]
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { authLogin, authSave } from './commands/auth.mjs';
 import { runBuild } from './commands/build.mjs';
 import { runInit } from './commands/init.mjs';
 import { runInventory } from './commands/inventory.mjs';
@@ -24,6 +25,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
   run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
+  auth login | save  로그인 상태 저장(login: config.yaml의 auth와 환경변수, save: 브라우저에서 직접 로그인)
   runtime status|install  화면 캡처용 Playwright 확인·설치(사용자 동의 후)
   session start  분석 세션 시작(비밀 파일 읽기 차단)
   session end    분석 세션 종료`;
@@ -108,6 +110,12 @@ async function main() {
         return 0;
       }
       break;
+    }
+    case 'auth': {
+      if (sub !== 'login' && sub !== 'save') break;
+      const r = sub === 'login' ? await authLogin(project) : await authSave(project);
+      console.log(`로그인 상태를 저장했습니다: ${r.statePath}`);
+      return 0;
     }
     case 'runtime': {
       if (sub !== 'status' && sub !== 'install') break;

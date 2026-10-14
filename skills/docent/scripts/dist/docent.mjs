@@ -14796,12 +14796,13 @@ var require__ = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join15, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join16, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// skills/docent/scripts/src/commands/build.mjs
-import { copyFile, mkdir as mkdir2, readFile as readFile5, rm, writeFile as writeFile2 } from "node:fs/promises";
-import { basename, dirname as dirname2, join as join5 } from "node:path";
+// skills/docent/scripts/src/commands/auth.mjs
+import { access, mkdir as mkdir2 } from "node:fs/promises";
+import { join as join5 } from "node:path";
+import { createInterface } from "node:readline/promises";
 
 // skills/docent/scripts/src/lib/config.mjs
 var import_yaml = __toESM(require_dist(), 1);
@@ -14812,7 +14813,9 @@ var DEFAULT_CONFIG = Object.freeze({
   detectors: [],
   screens: { include: [], exclude: [], idMap: {} },
   secrets: { paths: [".env", ".env.*", "appsettings*.json", "web.config", "*.pem", "*.key", "*.pfx", "id_rsa*"] },
-  analyze: { concurrency: 4 }
+  analyze: { concurrency: 4 },
+  mask: { selectors: [] },
+  gif: { screens: { include: [], exclude: [] } }
 });
 function isObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -14843,27 +14846,79 @@ async function loadConfig(projectDir) {
   return merge(DEFAULT_CONFIG, data ?? {});
 }
 
-// skills/docent/scripts/src/lib/project-date.mjs
+// skills/docent/scripts/src/lib/playwright.mjs
 import { execFileSync } from "node:child_process";
-function projectDate(projectDir, config) {
-  if (config.date) return String(config.date);
+import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { homedir } from "node:os";
+import { dirname, join as join2 } from "node:path";
+var PLAYWRIGHT_VERSION = "1.56.1";
+var PlaywrightMissing = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "PlaywrightMissing";
+  }
+};
+function runtimeDir() {
+  return process.env.DOCENT_RUNTIME_DIR || join2(homedir(), ".cache", "docent", "runtime");
+}
+var require2 = createRequire(import.meta.url);
+function loadFromDir(pkgDir) {
+  const pkgJson = join2(pkgDir, "package.json");
+  if (!existsSync(pkgJson)) return void 0;
+  const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
+  return { module: require2(pkgDir), version };
+}
+function globalRoot() {
   try {
-    const out = execFileSync("git", ["log", "-1", "--format=%cs"], {
-      cwd: projectDir,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"]
-    }).trim();
-    return out || "unknown";
+    return execFileSync("npm", ["root", "-g"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
-    return "unknown";
+    return void 0;
+  }
+}
+async function findPlaywright() {
+  const candidates = [];
+  if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
+  candidates.push(["runtime", join2(runtimeDir(), "node_modules", "playwright")]);
+  try {
+    candidates.push(["local", dirname(require2.resolve("playwright/package.json"))]);
+  } catch {
+  }
+  const root = globalRoot();
+  if (root) candidates.push(["global", join2(root, "playwright")]);
+  for (const [from, dir] of candidates) {
+    const found = loadFromDir(dir);
+    if (found) return { ...found, from, dir };
+  }
+  return void 0;
+}
+async function requirePlaywright() {
+  const found = await findPlaywright();
+  if (!found) {
+    throw new PlaywrightMissing(
+      `\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 \`docent runtime install\`\uB85C \uC124\uCE58\uD558\uC138\uC694 (${runtimeDir()}\uC5D0 playwright@${PLAYWRIGHT_VERSION}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).`
+    );
+  }
+  return found.module;
+}
+async function launchBrowser(options = {}) {
+  const { chromium } = await requirePlaywright();
+  try {
+    return await chromium.launch(options);
+  } catch (err) {
+    if (/Executable doesn't exist|browserType\.launch/.test(err.message)) {
+      throw new PlaywrightMissing(`Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \`docent runtime install\`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.
+${err.message.split("\n")[0]}`);
+    }
+    throw err;
   }
 }
 
 // skills/docent/scripts/src/lib/workspace.mjs
 import { mkdir, readFile as readFile2, writeFile } from "node:fs/promises";
-import { dirname, join as join2 } from "node:path";
+import { dirname as dirname2, join as join3 } from "node:path";
 function docentDir(projectDir) {
-  return join2(projectDir, ".docent");
+  return join3(projectDir, ".docent");
 }
 async function readJson(path) {
   return JSON.parse(await readFile2(path, "utf8"));
@@ -14877,352 +14932,42 @@ async function readJsonIfExists(path) {
   }
 }
 async function writeJson(path, data) {
-  await mkdir(dirname(path), { recursive: true });
+  await mkdir(dirname2(path), { recursive: true });
   await writeFile(path, JSON.stringify(data, null, 2) + "\n");
 }
 
-// skills/docent/scripts/src/renderers/escape.mjs
-var HTML = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (c) => HTML[c]);
-}
-function escapeComment(value) {
-  return String(value).replace(/-(?=-)/g, "- ").replace(/-$/, "- ");
-}
+// skills/docent/scripts/src/commands/run.mjs
+import { spawn, spawnSync } from "node:child_process";
+import { openSync, closeSync } from "node:fs";
+import { readFile as readFile3, rm, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join4, resolve } from "node:path";
 
-// skills/docent/scripts/src/renderers/html.mjs
-var TYPE_LABELS = {
-  text: "\uD14D\uC2A4\uD2B8",
-  textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8",
-  number: "\uC22B\uC790",
-  date: "\uB0A0\uC9DC",
-  select: "\uC120\uD0DD",
-  checkbox: "\uCCB4\uD06C\uBC15\uC2A4",
-  radio: "\uB2E8\uC77C \uC120\uD0DD",
-  file: "\uD30C\uC77C",
-  password: "\uBE44\uBC00\uBC88\uD638",
-  email: "\uC774\uBA54\uC77C",
-  other: "\uAE30\uD0C0"
-};
-var ev = (evidence) => `<!-- evidence: ${escapeComment(evidence)} -->`;
-var flag = (item) => item.confidence === "low" ? "<mark>[\uD655\uC778 \uD544\uC694]</mark> " : "";
-var nodeId = (id) => id.replace(/-/g, "_");
-function page({ title, body, root, projectName: projectName2, date, scripts = "" }) {
-  return `<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} \xB7 ${escapeHtml(projectName2)}</title>
-<link rel="stylesheet" href="${root}assets/style.css">
-</head>
-<body>
-<header class="site">
-  <a class="brand" href="${root}index.html">${escapeHtml(projectName2)}</a>
-  <nav><a href="${root}index.html">\uC18C\uAC1C</a><a href="${root}screens.html">\uD654\uBA74 \uBAA9\uB85D</a><a href="${root}workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a></nav>
-</header>
-<main>
-${body}
-</main>
-<footer class="site">docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${escapeHtml(date)}</footer>
-${scripts}</body>
-</html>
-`;
-}
-function screenTitle(screens, id) {
-  return screens.get(id)?.title.value ?? id;
-}
-function rolesOf(screens) {
-  const roles = /* @__PURE__ */ new Set();
-  for (const s of screens.values()) for (const r of s.roles) roles.add(r.value);
-  return [...roles];
-}
-function menuTree(inventory, screens) {
-  const root = /* @__PURE__ */ new Map();
-  for (const entry of inventory.screens) {
-    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
-    let level = root;
-    menu.forEach((name2, i) => {
-      if (!level.has(name2)) level.set(name2, { children: /* @__PURE__ */ new Map(), id: void 0 });
-      if (i === menu.length - 1) level.get(name2).id = entry.id;
-      level = level.get(name2).children;
+// skills/docent/scripts/src/lib/http.mjs
+import http from "node:http";
+import https from "node:https";
+function httpCheck(url, timeoutMs) {
+  return new Promise((resolve4) => {
+    const lib = url.startsWith("https:") ? https : http;
+    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
+      res.resume();
+      resolve4({ ok: res.statusCode < 500, status: res.statusCode });
     });
-  }
-  const render = (level) => level.size ? `<ul>${[...level].map(([name2, node]) => `<li>${node.id ? `<a href="screens/${escapeHtml(node.id)}.html">${escapeHtml(name2)}</a>` : escapeHtml(name2)}${render(node.children)}</li>`).join("")}</ul>` : "";
-  return render(root);
-}
-function renderIndex(input) {
-  const { inventory, screens, summary } = input;
-  const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)} <!-- screens: ${escapeComment(f.screens.join(", "))} --></li>`).join("\n");
-  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
-  const body = `<h1>${escapeHtml(input.projectName)}</h1>
-<p class="lead">${escapeHtml(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(", "))} --></p>
-<h2>\uC8FC\uC694 \uAE30\uB2A5</h2>
-<ul>
-${features}
-</ul>
-<h2>\uC0AC\uC6A9\uC790 \uC5ED\uD560</h2>
-<ul>${roles}</ul>
-<h2>\uBA54\uB274 \uAD6C\uC870</h2>
-${menuTree(inventory, screens)}
-<p>\uC804\uCCB4 \uD654\uBA74\uC740 <a href="screens.html">\uD654\uBA74 \uBAA9\uB85D</a>, \uC5C5\uBB34 \uD750\uB984\uC740 <a href="workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a>\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.</p>`;
-  return page({ ...input, title: "\uC18C\uAC1C", body, root: "" });
-}
-function renderList(input) {
-  const { inventory, screens } = input;
-  const rows = inventory.screens.map((entry) => {
-    const s = screens.get(entry.id);
-    const menu = s.menuPath?.value.join(" \u203A ") ?? "";
-    const where = entry.route ?? `${screenTitle(screens, entry.parentId)}\uC758 \uD558\uC704 \uD654\uBA74`;
-    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="screens/${escapeHtml(entry.id)}.html">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</td></tr>`;
-  }).join("\n");
-  const body = `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
-<p>\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
-<table>
-<thead><tr><th>ID</th><th>\uD654\uBA74</th><th>\uACBD\uB85C</th><th>\uBA54\uB274</th><th>\uC5ED\uD560</th><th>\uBAA9\uC801</th></tr></thead>
-<tbody>
-${rows}
-</tbody>
-</table>`;
-  return page({ ...input, title: "\uD654\uBA74 \uBAA9\uB85D", body, root: "" });
-}
-function table(headers, rows) {
-  if (!rows.length) return '<p class="empty">\uC5C6\uC74C</p>';
-  return `<table>
-<thead><tr>${headers.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
-<tbody>
-${rows.join("\n")}
-</tbody>
-</table>`;
-}
-function link(screens, id) {
-  return `<a href="${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a>`;
-}
-function renderScreen(input, entry) {
-  const { inventory, screens } = input;
-  const s = screens.get(entry.id);
-  const meta = [];
-  if (s.menuPath) meta.push(`<dt>\uBA54\uB274 \uC704\uCE58</dt><dd>${escapeHtml(s.menuPath.value.join(" \u203A "))} ${ev(s.menuPath.evidence)}</dd>`);
-  meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(screens, s.parentId)}</dd>`);
-  meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)} ${ev(s.purpose.evidence)}</dd>`);
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${ev(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
-  meta.push(`<dt>\uC0AC\uC6A9 \uC5ED\uD560</dt><dd>${roles}</dd>`);
-  const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)} ${ev(x.evidence)}</li>`).join("")}</ul>` : "";
-  const fields = table(
-    ["\uD56D\uBAA9", "\uD615\uC2DD", "\uD544\uC218"],
-    s.fields.map((f) => `<tr><td>${flag(f)}${escapeHtml(f.label)} ${ev(f.evidence)}</td><td>${escapeHtml(TYPE_LABELS[f.type])}</td><td>${f.required ? "\uD544\uC218" : ""}</td></tr>`)
-  );
-  const actions = table(
-    ["\uBC84\uD2BC", "\uB3D9\uC791", "\uC774\uC5B4\uC9C0\uB294 \uD654\uBA74"],
-    s.actions.map((a) => {
-      const next = [a.navigatesTo && `\uC774\uB3D9: ${link(screens, a.navigatesTo)}`, a.opens && `\uC5F4\uAE30: ${link(screens, a.opens)}`].filter(Boolean).join(", ");
-      return `<tr><td>${escapeHtml(a.label)}</td><td>${flag(a)}${escapeHtml(a.effect)} ${ev(a.evidence)}</td><td>${next}</td></tr>`;
-    })
-  );
-  const messages = table(
-    ["\uBA54\uC2DC\uC9C0", "\uB098\uC624\uB294 \uB54C"],
-    s.messages.map((m) => `<tr><td>${escapeHtml(m.text)} ${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`)
-  );
-  const children = inventory.screens.filter((x) => x.parentId === s.id);
-  const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul>${children.map((c) => `<li>${link(screens, c.id)}</li>`).join("")}</ul>` : "";
-  const unknowns = s.unknowns.length ? `<h2>\uD655\uC778 \uD544\uC694</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[\uD655\uC778 \uD544\uC694]</mark> ${escapeHtml(u)}</li>`).join("")}</ul>` : "";
-  const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(s.id)}</code></p>
-<h1>${escapeHtml(s.title.value)} ${ev(s.title.evidence)}</h1>
-<dl class="meta">
-${meta.join("\n")}
-</dl>
-${sections}
-<h2>\uC785\uB825 \uD56D\uBAA9</h2>
-${fields}
-<h2>\uBC84\uD2BC\uACFC \uB3D9\uC791</h2>
-${actions}
-<h2>\uC548\uB0B4 \uBA54\uC2DC\uC9C0</h2>
-${messages}
-${childList}
-${unknowns}`;
-  return page({ ...input, title: s.title.value, body, root: "../" });
-}
-function renderWorkflows(input) {
-  const { screens, summary } = input;
-  const blocks = summary.workflows.map((wf) => {
-    const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${escapeHtml(screenTitle(screens, id)).replace(/&quot;/g, "#quot;")}"]`);
-    const edges = [];
-    for (let i = 0; i + 1 < wf.steps.length; i++) {
-      const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
-      if (!edges.includes(edge)) edges.push(edge);
-    }
-    const steps = wf.steps.map((id) => `<li><a href="screens/${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a></li>`).join("");
-    return `<section class="workflow">
-<h2>${escapeHtml(wf.name)}</h2>
-<p>${escapeHtml(wf.description)}</p>
-<pre class="mermaid">
-${["flowchart LR", ...nodes, ...edges].join("\n")}
-</pre>
-<ol>${steps}</ol>
-</section>`;
-  }).join("\n");
-  const body = `<h1>\uC6CC\uD06C\uD50C\uB85C\uC6B0</h1>
-<p>\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.</p>
-${blocks}`;
-  const scripts = '<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n';
-  return page({ ...input, title: "\uC6CC\uD06C\uD50C\uB85C\uC6B0", body, root: "", scripts });
-}
-var STYLE = `:root { --fg: #1f2328; --muted: #59636e; --line: #d1d9e0; --bg: #ffffff; --accent: #0969da; --mark: #fff8c5; }
-* { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: var(--fg); background: var(--bg); line-height: 1.6; }
-header.site, footer.site { display: flex; gap: 1.5rem; align-items: center; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--line); }
-footer.site { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
-header.site nav { display: flex; gap: 1rem; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-.brand { font-weight: 700; color: var(--fg); }
-main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
-.lead { font-size: 1.15rem; }
-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1.5rem; }
-th, td { border: 1px solid var(--line); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
-th { background: #f6f8fa; }
-dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; }
-dl.meta dt { color: var(--muted); }
-dl.meta dd { margin: 0; }
-mark { background: var(--mark); padding: 0 0.2rem; }
-.crumb { color: var(--muted); font-size: 0.9rem; }
-.empty { color: var(--muted); }
-pre.mermaid { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
-@media print {
-  header.site nav, .crumb { display: none; }
-  main { max-width: none; padding: 0; }
-  a { color: var(--fg); }
-  h1, h2 { break-after: avoid; }
-  table, section.workflow { break-inside: avoid; }
-}
-`;
-function renderSite(input) {
-  const site = /* @__PURE__ */ new Map();
-  site.set("assets/style.css", STYLE);
-  site.set("index.html", renderIndex(input));
-  site.set("screens.html", renderList(input));
-  site.set("workflows.html", renderWorkflows(input));
-  for (const entry of input.inventory.screens) site.set(`screens/${entry.id}.html`, renderScreen(input, entry));
-  return site;
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", () => resolve4({ ok: false }));
+  });
 }
 
-// skills/docent/scripts/src/renderers/readme.mjs
-function menuLines(inventory, screens) {
-  const root = /* @__PURE__ */ new Map();
-  for (const entry of inventory.screens) {
-    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
-    let level = root;
-    for (const name2 of menu) {
-      if (!level.has(name2)) level.set(name2, /* @__PURE__ */ new Map());
-      level = level.get(name2);
-    }
+// skills/docent/scripts/src/lib/paths.mjs
+import { posix } from "node:path";
+function normalizeRel(p) {
+  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
+    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
   }
-  const lines = [];
-  const walk2 = (level, depth) => {
-    for (const [name2, children] of level) {
-      lines.push(`${"  ".repeat(depth)}- ${name2}`);
-      walk2(children, depth + 1);
-    }
-  };
-  walk2(root, 0);
-  return lines;
-}
-function renderReadme({ inventory, screens, summary, date, projectName: projectName2 }) {
-  const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
-  const lines = [
-    `# ${projectName2}`,
-    "",
-    `${summary.oneLiner.value} <!-- screens: ${summary.oneLiner.screens.join(", ")} -->`,
-    "",
-    "## \uC8FC\uC694 \uAE30\uB2A5",
-    "",
-    ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value} <!-- screens: ${f.screens.join(", ")} -->`),
-    "",
-    "## \uBA54\uB274 \uAD6C\uC870",
-    "",
-    ...menuLines(inventory, screens),
-    "",
-    "## \uC0AC\uC6A9\uC790 \uC5ED\uD560",
-    "",
-    ...roles.length ? roles.map((r) => `- ${r}`) : ["- \uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9"],
-    "",
-    "## \uB354 \uBCF4\uAE30",
-    "",
-    "- [\uC2DC\uC2A4\uD15C \uC18C\uAC1C](html/index.html)",
-    `- [\uD654\uBA74 \uBAA9\uB85D](html/screens.html) \u2014 \uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74`,
-    "- [\uC6CC\uD06C\uD50C\uB85C\uC6B0](html/workflows.html)",
-    "",
-    `> docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`,
-    ""
-  ];
-  return lines.join("\n");
-}
-
-// skills/docent/scripts/src/commands/validate.mjs
-import { readdir } from "node:fs/promises";
-import { join as join4 } from "node:path";
-
-// skills/docent/scripts/src/lib/evidence.mjs
-import { readFile as readFile3 } from "node:fs/promises";
-import { isAbsolute, resolve, sep } from "node:path";
-var TEXT_WINDOW = 5;
-var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
-var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
-function parseEvidence(s) {
-  const i = s.lastIndexOf(":");
-  const file = i > 0 ? s.slice(0, i) : "";
-  const loc = i > 0 ? s.slice(i + 1) : "";
-  const range = LINE_RANGE.exec(loc);
-  if (file && range) {
-    const startLine = Number(range[1]);
-    return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
+  const n = posix.normalize(p);
+  if (n === "." || n === ".." || n.startsWith("../")) {
+    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
   }
-  if (file && SYMBOL.test(loc)) return { file, symbol: loc };
-  throw new Error(`\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: ${s}`);
-}
-function escapeRegExp(text) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-async function checkEvidence(rootDir, evidence, opts = {}) {
-  let ev2;
-  try {
-    ev2 = parseEvidence(evidence);
-  } catch (err) {
-    return { ok: false, reason: err.message };
-  }
-  const rootPath = resolve(rootDir);
-  const target = resolve(rootPath, ev2.file);
-  if (ev2.file.includes("\\") || isAbsolute(ev2.file) || !target.startsWith(rootPath + sep)) {
-    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev2.file}` };
-  }
-  let lines;
-  try {
-    lines = (await readFile3(target, "utf8")).split(/\r?\n/);
-  } catch {
-    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev2.file}` };
-  }
-  if (lines.at(-1) === "") lines.pop();
-  let window;
-  if ("symbol" in ev2) {
-    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev2.symbol)}($|[^\\w$])`);
-    const hits = lines.flatMap((line, i) => pattern.test(line) ? [i] : []);
-    if (hits.length === 0) {
-      return { ok: false, reason: `${ev2.file}\uC5D0 ${ev2.symbol} \uC5C6\uC74C` };
-    }
-    window = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
-  } else {
-    const { startLine, endLine } = ev2;
-    if (startLine < 1 || startLine > endLine || endLine > lines.length) {
-      return { ok: false, reason: `${ev2.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
-    }
-    window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
-  }
-  if (opts.expectText !== void 0 && !window.some((line) => line.includes(opts.expectText))) {
-    return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
-  }
-  return { ok: true };
+  return n.replace(/\/$/, "");
 }
 
 // skills/docent/scripts/src/lib/schema.mjs
@@ -15781,31 +15526,534 @@ var validateInventoryAgent = compile(inventory_agent_schema_default);
 var validateSummary = compile(summary_schema_default);
 var validateRun = compile(run_schema_default);
 
-// skills/docent/scripts/src/lib/source-hash.mjs
-import { createHash } from "node:crypto";
-import { readFile as readFile4 } from "node:fs/promises";
-import { join as join3 } from "node:path";
+// skills/docent/scripts/src/commands/run.mjs
+var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function loadRun(projectDir) {
+  const run2 = await readJsonIfExists(join4(docentDir(projectDir), "run.json"));
+  if (!run2) throw new Error(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694");
+  const { valid, errors } = validateRun(run2);
+  if (!valid) throw new Error(`.docent/run.json \uD615\uC2DD \uC624\uB958: ${errors.join("; ")}`);
+  return run2;
+}
+var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
+var pidFile = (projectDir) => join4(docentDir(projectDir), ".run-pid");
+var logFile = (projectDir) => join4(docentDir(projectDir), "run.log");
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function killGroup(pid, signal) {
+  try {
+    if (process.platform === "win32") spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)]);
+    else process.kill(-pid, signal);
+  } catch {
+  }
+}
+async function readPid(projectDir) {
+  try {
+    const pid = Number((await readFile3(pidFile(projectDir), "utf8")).trim());
+    return Number.isInteger(pid) && pid > 0 ? pid : void 0;
+  } catch {
+    return void 0;
+  }
+}
+async function logTail(projectDir, lines = 20) {
+  try {
+    return (await readFile3(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n");
+  } catch {
+    return "";
+  }
+}
+function childEnv(run2) {
+  return { ...process.env, ...run2.env ?? {} };
+}
+async function runStart(projectDir, { install = false } = {}) {
+  const run2 = await loadRun(projectDir);
+  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
+  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
+  if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
+  const cwd = resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
+  if (install) {
+    for (const command of run2.install ?? []) {
+      const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
+      if (r.status !== 0) throw new Error(`\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: ${command} (exit ${r.status})`);
+    }
+  }
+  const fd = openSync(logFile(projectDir), "w");
+  const child = spawn(run2.start, { cwd, shell: true, detached: true, stdio: ["ignore", fd, fd], env: childEnv(run2) });
+  closeSync(fd);
+  let exited = false;
+  child.on("exit", () => {
+    exited = true;
+  });
+  child.unref();
+  await writeFile2(pidFile(projectDir), `${child.pid}
+`);
+  const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
+  while (Date.now() < deadline) {
+    if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
+    if (exited) break;
+    await sleep(1e3);
+  }
+  const reason = exited ? "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : `\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC(${run2.healthcheck?.timeoutSec ?? 120}\uCD08)`;
+  killGroup(child.pid, "SIGKILL");
+  await rm(pidFile(projectDir), { force: true });
+  throw new Error(`${reason}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:
+${await logTail(projectDir)}`);
+}
+async function runStop(projectDir) {
+  const pid = await readPid(projectDir);
+  if (!pid) return { stopped: false };
+  killGroup(pid, "SIGTERM");
+  for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
+  if (alive(pid)) killGroup(pid, "SIGKILL");
+  await rm(pidFile(projectDir), { force: true });
+  return { stopped: true };
+}
+async function runStatus(projectDir) {
+  let run2;
+  try {
+    run2 = await loadRun(projectDir);
+  } catch {
+    return { configured: false, up: false };
+  }
+  const pid = await readPid(projectDir);
+  const up = (await httpCheck(healthUrl(run2), 2e3)).ok;
+  return { configured: true, baseUrl: run2.baseUrl, up, ...pid && alive(pid) ? { pid } : {} };
+}
 
-// skills/docent/scripts/src/lib/paths.mjs
-import { posix } from "node:path";
-function normalizeRel(p) {
-  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+// skills/docent/scripts/src/commands/auth.mjs
+var statePath = (projectDir) => join5(docentDir(projectDir), "auth", "state.json");
+async function authLogin(projectDir) {
+  const { auth } = await loadConfig(projectDir);
+  if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
+    throw new Error("config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4");
   }
-  const n = posix.normalize(p);
-  if (n === "." || n === ".." || n.startsWith("../")) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+  const missing = auth.fields.filter((f) => !process.env[f.env]).map((f) => f.env);
+  if (missing.length) throw new Error(`\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  const run2 = await loadRun(projectDir);
+  const browser = await launchBrowser();
+  try {
+    const context = await browser.newContext();
+    const page2 = await context.newPage();
+    await page2.goto(new URL(auth.loginPath, run2.baseUrl).href);
+    for (const field of auth.fields) await page2.getByLabel(field.label, { exact: true }).fill(process.env[field.env]);
+    await Promise.all([
+      page2.waitForLoadState("load").catch(() => {
+      }),
+      page2.getByRole("button", { name: auth.submit, exact: true }).click()
+    ]);
+    await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
+    });
+    const path = new URL(page2.url()).pathname;
+    const success = auth.successPath ?? "/";
+    if (path === auth.loginPath || !path.startsWith(success)) {
+      throw new Error(`\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 ${success}\uAC00 \uC544\uB2C8\uB77C ${path}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218(${auth.fields.map((f) => f.env).join(", ")})\uB97C \uD655\uC778\uD558\uC138\uC694`);
+    }
+    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
+    await context.storageState({ path: statePath(projectDir) });
+    return { statePath: statePath(projectDir) };
+  } finally {
+    await browser.close();
   }
-  return n.replace(/\/$/, "");
+}
+async function authSave(projectDir) {
+  const run2 = await loadRun(projectDir);
+  const browser = await launchBrowser({ headless: false });
+  try {
+    const context = await browser.newContext();
+    const page2 = await context.newPage();
+    await page2.goto(run2.baseUrl);
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    await rl.question("\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 ");
+    rl.close();
+    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
+    await context.storageState({ path: statePath(projectDir) });
+    return { statePath: statePath(projectDir) };
+  } finally {
+    await browser.close();
+  }
+}
+
+// skills/docent/scripts/src/commands/build.mjs
+import { copyFile, mkdir as mkdir3, readFile as readFile6, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { basename, dirname as dirname3, join as join8 } from "node:path";
+
+// skills/docent/scripts/src/lib/project-date.mjs
+import { execFileSync as execFileSync2 } from "node:child_process";
+function projectDate(projectDir, config) {
+  if (config.date) return String(config.date);
+  try {
+    const out = execFileSync2("git", ["log", "-1", "--format=%cs"], {
+      cwd: projectDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim();
+    return out || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+// skills/docent/scripts/src/renderers/escape.mjs
+var HTML = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => HTML[c]);
+}
+function escapeComment(value) {
+  return String(value).replace(/-(?=-)/g, "- ").replace(/-$/, "- ");
+}
+
+// skills/docent/scripts/src/renderers/html.mjs
+var TYPE_LABELS = {
+  text: "\uD14D\uC2A4\uD2B8",
+  textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8",
+  number: "\uC22B\uC790",
+  date: "\uB0A0\uC9DC",
+  select: "\uC120\uD0DD",
+  checkbox: "\uCCB4\uD06C\uBC15\uC2A4",
+  radio: "\uB2E8\uC77C \uC120\uD0DD",
+  file: "\uD30C\uC77C",
+  password: "\uBE44\uBC00\uBC88\uD638",
+  email: "\uC774\uBA54\uC77C",
+  other: "\uAE30\uD0C0"
+};
+var ev = (evidence) => `<!-- evidence: ${escapeComment(evidence)} -->`;
+var flag = (item) => item.confidence === "low" ? "<mark>[\uD655\uC778 \uD544\uC694]</mark> " : "";
+var nodeId = (id) => id.replace(/-/g, "_");
+function page({ title, body, root, projectName: projectName2, date, scripts = "" }) {
+  return `<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(title)} \xB7 ${escapeHtml(projectName2)}</title>
+<link rel="stylesheet" href="${root}assets/style.css">
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="${root}index.html">${escapeHtml(projectName2)}</a>
+  <nav><a href="${root}index.html">\uC18C\uAC1C</a><a href="${root}screens.html">\uD654\uBA74 \uBAA9\uB85D</a><a href="${root}workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a></nav>
+</header>
+<main>
+${body}
+</main>
+<footer class="site">docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${escapeHtml(date)}</footer>
+${scripts}</body>
+</html>
+`;
+}
+function screenTitle(screens, id) {
+  return screens.get(id)?.title.value ?? id;
+}
+function rolesOf(screens) {
+  const roles = /* @__PURE__ */ new Set();
+  for (const s of screens.values()) for (const r of s.roles) roles.add(r.value);
+  return [...roles];
+}
+function menuTree(inventory, screens) {
+  const root = /* @__PURE__ */ new Map();
+  for (const entry of inventory.screens) {
+    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
+    if (!menu?.length) continue;
+    let level = root;
+    menu.forEach((name2, i) => {
+      if (!level.has(name2)) level.set(name2, { children: /* @__PURE__ */ new Map(), id: void 0 });
+      if (i === menu.length - 1) level.get(name2).id = entry.id;
+      level = level.get(name2).children;
+    });
+  }
+  const render = (level) => level.size ? `<ul>${[...level].map(([name2, node]) => `<li>${node.id ? `<a href="screens/${escapeHtml(node.id)}.html">${escapeHtml(name2)}</a>` : escapeHtml(name2)}${render(node.children)}</li>`).join("")}</ul>` : "";
+  return render(root);
+}
+function renderIndex(input) {
+  const { inventory, screens, summary } = input;
+  const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)} <!-- screens: ${escapeComment(f.screens.join(", "))} --></li>`).join("\n");
+  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+  const body = `<h1>${escapeHtml(input.projectName)}</h1>
+<p class="lead">${escapeHtml(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(", "))} --></p>
+<h2>\uC8FC\uC694 \uAE30\uB2A5</h2>
+<ul>
+${features}
+</ul>
+<h2>\uC0AC\uC6A9\uC790 \uC5ED\uD560</h2>
+<ul>${roles}</ul>
+<h2>\uBA54\uB274 \uAD6C\uC870</h2>
+${menuTree(inventory, screens)}
+<p>\uC804\uCCB4 \uD654\uBA74\uC740 <a href="screens.html">\uD654\uBA74 \uBAA9\uB85D</a>, \uC5C5\uBB34 \uD750\uB984\uC740 <a href="workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a>\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.</p>`;
+  return page({ ...input, title: "\uC18C\uAC1C", body, root: "" });
+}
+function renderList(input) {
+  const { inventory, screens } = input;
+  const rows = inventory.screens.map((entry) => {
+    const s = screens.get(entry.id);
+    const menu = s.menuPath?.value.join(" \u203A ") ?? "";
+    const where = entry.route ?? `${screenTitle(screens, entry.parentId)}\uC758 \uD558\uC704 \uD654\uBA74`;
+    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="screens/${escapeHtml(entry.id)}.html">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</td></tr>`;
+  }).join("\n");
+  const body = `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
+<p>\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
+<table>
+<thead><tr><th>ID</th><th>\uD654\uBA74</th><th>\uACBD\uB85C</th><th>\uBA54\uB274</th><th>\uC5ED\uD560</th><th>\uBAA9\uC801</th></tr></thead>
+<tbody>
+${rows}
+</tbody>
+</table>`;
+  return page({ ...input, title: "\uD654\uBA74 \uBAA9\uB85D", body, root: "" });
+}
+function table(headers, rows) {
+  if (!rows.length) return '<p class="empty">\uC5C6\uC74C</p>';
+  return `<table>
+<thead><tr>${headers.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
+<tbody>
+${rows.join("\n")}
+</tbody>
+</table>`;
+}
+function link(screens, id) {
+  return `<a href="${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a>`;
+}
+function renderScreen(input, entry) {
+  const { inventory, screens } = input;
+  const s = screens.get(entry.id);
+  const meta = [];
+  if (s.menuPath) meta.push(`<dt>\uBA54\uB274 \uC704\uCE58</dt><dd>${escapeHtml(s.menuPath.value.join(" \u203A "))} ${ev(s.menuPath.evidence)}</dd>`);
+  meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(screens, s.parentId)}</dd>`);
+  meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)} ${ev(s.purpose.evidence)}</dd>`);
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${ev(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
+  meta.push(`<dt>\uC0AC\uC6A9 \uC5ED\uD560</dt><dd>${roles}</dd>`);
+  const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)} ${ev(x.evidence)}</li>`).join("")}</ul>` : "";
+  const fields = table(
+    ["\uD56D\uBAA9", "\uD615\uC2DD", "\uD544\uC218"],
+    s.fields.map((f) => `<tr><td>${flag(f)}${escapeHtml(f.label)} ${ev(f.evidence)}</td><td>${escapeHtml(TYPE_LABELS[f.type])}</td><td>${f.required ? "\uD544\uC218" : ""}</td></tr>`)
+  );
+  const actions = table(
+    ["\uBC84\uD2BC", "\uB3D9\uC791", "\uC774\uC5B4\uC9C0\uB294 \uD654\uBA74"],
+    s.actions.map((a) => {
+      const next = [a.navigatesTo && `\uC774\uB3D9: ${link(screens, a.navigatesTo)}`, a.opens && `\uC5F4\uAE30: ${link(screens, a.opens)}`].filter(Boolean).join(", ");
+      return `<tr><td>${escapeHtml(a.label)}</td><td>${flag(a)}${escapeHtml(a.effect)} ${ev(a.evidence)}</td><td>${next}</td></tr>`;
+    })
+  );
+  const messages = table(
+    ["\uBA54\uC2DC\uC9C0", "\uB098\uC624\uB294 \uB54C"],
+    s.messages.map((m) => `<tr><td>${escapeHtml(m.text)} ${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`)
+  );
+  const children = inventory.screens.filter((x) => x.parentId === s.id);
+  const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul>${children.map((c) => `<li>${link(screens, c.id)}</li>`).join("")}</ul>` : "";
+  const unknowns = s.unknowns.length ? `<h2>\uD655\uC778 \uD544\uC694</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[\uD655\uC778 \uD544\uC694]</mark> ${escapeHtml(u)}</li>`).join("")}</ul>` : "";
+  const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(s.id)}</code></p>
+<h1>${escapeHtml(s.title.value)} ${ev(s.title.evidence)}</h1>
+<dl class="meta">
+${meta.join("\n")}
+</dl>
+${sections}
+<h2>\uC785\uB825 \uD56D\uBAA9</h2>
+${fields}
+<h2>\uBC84\uD2BC\uACFC \uB3D9\uC791</h2>
+${actions}
+<h2>\uC548\uB0B4 \uBA54\uC2DC\uC9C0</h2>
+${messages}
+${childList}
+${unknowns}`;
+  return page({ ...input, title: s.title.value, body, root: "../" });
+}
+function renderWorkflows(input) {
+  const { screens, summary } = input;
+  const blocks = summary.workflows.map((wf) => {
+    const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${escapeHtml(screenTitle(screens, id)).replace(/&quot;/g, "#quot;")}"]`);
+    const edges = [];
+    for (let i = 0; i + 1 < wf.steps.length; i++) {
+      const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
+      if (!edges.includes(edge)) edges.push(edge);
+    }
+    const steps = wf.steps.map((id) => `<li><a href="screens/${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a></li>`).join("");
+    return `<section class="workflow">
+<h2>${escapeHtml(wf.name)}</h2>
+<p>${escapeHtml(wf.description)}</p>
+<pre class="mermaid">
+${["flowchart LR", ...nodes, ...edges].join("\n")}
+</pre>
+<ol>${steps}</ol>
+</section>`;
+  }).join("\n");
+  const body = `<h1>\uC6CC\uD06C\uD50C\uB85C\uC6B0</h1>
+<p>\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.</p>
+${blocks}`;
+  const scripts = '<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n';
+  return page({ ...input, title: "\uC6CC\uD06C\uD50C\uB85C\uC6B0", body, root: "", scripts });
+}
+var STYLE = `:root { --fg: #1f2328; --muted: #59636e; --line: #d1d9e0; --bg: #ffffff; --accent: #0969da; --mark: #fff8c5; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: var(--fg); background: var(--bg); line-height: 1.6; }
+header.site, footer.site { display: flex; gap: 1.5rem; align-items: center; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--line); }
+footer.site { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+header.site nav { display: flex; gap: 1rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.brand { font-weight: 700; color: var(--fg); }
+main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+.lead { font-size: 1.15rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1.5rem; }
+th, td { border: 1px solid var(--line); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+th { background: #f6f8fa; }
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; }
+dl.meta dt { color: var(--muted); }
+dl.meta dd { margin: 0; }
+mark { background: var(--mark); padding: 0 0.2rem; }
+.crumb { color: var(--muted); font-size: 0.9rem; }
+.empty { color: var(--muted); }
+pre.mermaid { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
+@media print {
+  header.site nav, .crumb { display: none; }
+  main { max-width: none; padding: 0; }
+  a { color: var(--fg); }
+  h1, h2 { break-after: avoid; }
+  table, section.workflow { break-inside: avoid; }
+}
+`;
+function renderSite(input) {
+  const site = /* @__PURE__ */ new Map();
+  site.set("assets/style.css", STYLE);
+  site.set("index.html", renderIndex(input));
+  site.set("screens.html", renderList(input));
+  site.set("workflows.html", renderWorkflows(input));
+  for (const entry of input.inventory.screens) site.set(`screens/${entry.id}.html`, renderScreen(input, entry));
+  return site;
+}
+
+// skills/docent/scripts/src/renderers/readme.mjs
+function menuLines(inventory, screens) {
+  const root = /* @__PURE__ */ new Map();
+  for (const entry of inventory.screens) {
+    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
+    if (!menu?.length) continue;
+    let level = root;
+    for (const name2 of menu) {
+      if (!level.has(name2)) level.set(name2, /* @__PURE__ */ new Map());
+      level = level.get(name2);
+    }
+  }
+  const lines = [];
+  const walk2 = (level, depth) => {
+    for (const [name2, children] of level) {
+      lines.push(`${"  ".repeat(depth)}- ${name2}`);
+      walk2(children, depth + 1);
+    }
+  };
+  walk2(root, 0);
+  return lines;
+}
+function renderReadme({ inventory, screens, summary, date, projectName: projectName2 }) {
+  const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
+  const lines = [
+    `# ${projectName2}`,
+    "",
+    `${summary.oneLiner.value} <!-- screens: ${summary.oneLiner.screens.join(", ")} -->`,
+    "",
+    "## \uC8FC\uC694 \uAE30\uB2A5",
+    "",
+    ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value} <!-- screens: ${f.screens.join(", ")} -->`),
+    "",
+    "## \uBA54\uB274 \uAD6C\uC870",
+    "",
+    ...menuLines(inventory, screens),
+    "",
+    "## \uC0AC\uC6A9\uC790 \uC5ED\uD560",
+    "",
+    ...roles.length ? roles.map((r) => `- ${r}`) : ["- \uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9"],
+    "",
+    "## \uB354 \uBCF4\uAE30",
+    "",
+    "- [\uC2DC\uC2A4\uD15C \uC18C\uAC1C](html/index.html)",
+    `- [\uD654\uBA74 \uBAA9\uB85D](html/screens.html) \u2014 \uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74`,
+    "- [\uC6CC\uD06C\uD50C\uB85C\uC6B0](html/workflows.html)",
+    "",
+    `> docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`,
+    ""
+  ];
+  return lines.join("\n");
+}
+
+// skills/docent/scripts/src/commands/validate.mjs
+import { readdir } from "node:fs/promises";
+import { join as join7 } from "node:path";
+
+// skills/docent/scripts/src/lib/evidence.mjs
+import { readFile as readFile4 } from "node:fs/promises";
+import { isAbsolute, resolve as resolve2, sep } from "node:path";
+var TEXT_WINDOW = 5;
+var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
+var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
+function parseEvidence(s) {
+  const i = s.lastIndexOf(":");
+  const file = i > 0 ? s.slice(0, i) : "";
+  const loc = i > 0 ? s.slice(i + 1) : "";
+  const range = LINE_RANGE.exec(loc);
+  if (file && range) {
+    const startLine = Number(range[1]);
+    return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
+  }
+  if (file && SYMBOL.test(loc)) return { file, symbol: loc };
+  throw new Error(`\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: ${s}`);
+}
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+async function checkEvidence(rootDir, evidence, opts = {}) {
+  let ev2;
+  try {
+    ev2 = parseEvidence(evidence);
+  } catch (err) {
+    return { ok: false, reason: err.message };
+  }
+  const rootPath = resolve2(rootDir);
+  const target = resolve2(rootPath, ev2.file);
+  if (ev2.file.includes("\\") || isAbsolute(ev2.file) || !target.startsWith(rootPath + sep)) {
+    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev2.file}` };
+  }
+  let lines;
+  try {
+    lines = (await readFile4(target, "utf8")).split(/\r?\n/);
+  } catch {
+    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev2.file}` };
+  }
+  if (lines.at(-1) === "") lines.pop();
+  let window;
+  if ("symbol" in ev2) {
+    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev2.symbol)}($|[^\\w$])`);
+    const hits = lines.flatMap((line, i) => pattern.test(line) ? [i] : []);
+    if (hits.length === 0) {
+      return { ok: false, reason: `${ev2.file}\uC5D0 ${ev2.symbol} \uC5C6\uC74C` };
+    }
+    window = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
+  } else {
+    const { startLine, endLine } = ev2;
+    if (startLine < 1 || startLine > endLine || endLine > lines.length) {
+      return { ok: false, reason: `${ev2.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
+    }
+    window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
+  }
+  if (opts.expectText !== void 0 && !window.some((line) => line.includes(opts.expectText))) {
+    return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
+  }
+  return { ok: true };
 }
 
 // skills/docent/scripts/src/lib/source-hash.mjs
+import { createHash } from "node:crypto";
+import { readFile as readFile5 } from "node:fs/promises";
+import { join as join6 } from "node:path";
 async function hashFiles(rootDir, relPaths) {
   const hash = createHash("sha256");
   for (const rel of [...new Set(relPaths.map(normalizeRel))].sort()) {
     let content;
     try {
-      content = await readFile4(join3(rootDir, rel), "utf8");
+      content = await readFile5(join6(rootDir, rel), "utf8");
     } catch (err) {
       throw new Error(`\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: ${rel} (${err.code ?? err.message})`);
     }
@@ -15884,7 +16132,7 @@ function checkSummary(summary, screens, known, problems) {
 async function runValidate(projectDir) {
   const dir = docentDir(projectDir);
   const problems = [];
-  const inventory = await load(join4(dir, "inventory.json"), "inventory.json", problems);
+  const inventory = await load(join7(dir, "inventory.json"), "inventory.json", problems);
   if (inventory) {
     const r = validateInventory(inventory);
     if (!r.valid) problems.push(`inventory.json: ${r.errors.join("; ")}`);
@@ -15893,12 +16141,12 @@ async function runValidate(projectDir) {
   const screens = /* @__PURE__ */ new Map();
   let files = [];
   try {
-    files = (await readdir(join4(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
+    files = (await readdir(join7(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
     problems.push("screens/: \uB514\uB809\uD130\uB9AC \uC5C6\uC74C");
   }
   for (const file of files) {
-    const s = await load(join4(dir, "screens", file), `screens/${file}`, problems);
+    const s = await load(join7(dir, "screens", file), `screens/${file}`, problems);
     if (s === void 0) continue;
     const r = validateScreen(s);
     if (!r.valid) {
@@ -15913,7 +16161,7 @@ async function runValidate(projectDir) {
   for (const id of fileIds) if (inventory && !inventoryIds.has(id)) problems.push(`${id}: \uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4`);
   const allIds = /* @__PURE__ */ new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
-  const summary = await load(join4(dir, "summary.json"), "summary.json", problems);
+  const summary = await load(join7(dir, "summary.json"), "summary.json", problems);
   if (summary !== void 0) {
     const r = validateSummary(summary);
     if (!r.valid) problems.push(`summary.json: ${r.errors.join("; ")}`);
@@ -15925,16 +16173,16 @@ async function runValidate(projectDir) {
 // skills/docent/scripts/src/commands/build.mjs
 async function projectName(projectDir) {
   try {
-    const pkg = JSON.parse(await readFile5(join5(projectDir, "package.json"), "utf8"));
+    const pkg = JSON.parse(await readFile6(join8(projectDir, "package.json"), "utf8"));
     if (pkg.name) return pkg.name;
   } catch {
   }
   return basename(projectDir);
 }
 async function put(outDir, rel, content, files) {
-  const path = join5(outDir, rel);
-  await mkdir2(dirname2(path), { recursive: true });
-  await writeFile2(path, content);
+  const path = join8(outDir, rel);
+  await mkdir3(dirname3(path), { recursive: true });
+  await writeFile3(path, content);
   files.push(rel);
 }
 async function runBuild(projectDir, { assetsDir }) {
@@ -15944,30 +16192,30 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   const config = await loadConfig(projectDir);
   if (config.language !== "ko") console.warn(`docent: language "${config.language}"\uB294 \uC544\uC9C1 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544 \uD55C\uAD6D\uC5B4\uB85C \uB9CC\uB4ED\uB2C8\uB2E4.`);
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join5(dir, "inventory.json"));
+  const inventory = await readJson(join8(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
-  for (const { id } of inventory.screens) screens.set(id, await readJson(join5(dir, "screens", `${id}.json`)));
+  for (const { id } of inventory.screens) screens.set(id, await readJson(join8(dir, "screens", `${id}.json`)));
   const input = {
     inventory,
     screens,
-    summary: await readJson(join5(dir, "summary.json")),
+    summary: await readJson(join8(dir, "summary.json")),
     date: projectDate(projectDir, config),
     projectName: await projectName(projectDir)
   };
-  const outDir = join5(dir, "out");
-  await rm(outDir, { recursive: true, force: true });
+  const outDir = join8(dir, "out");
+  await rm2(outDir, { recursive: true, force: true });
   const files = [];
   for (const [rel, content] of renderSite(input)) await put(outDir, `html/${rel}`, content, files);
-  await mkdir2(join5(outDir, "html", "assets"), { recursive: true });
-  await copyFile(join5(assetsDir, "mermaid.min.js"), join5(outDir, "html", "assets", "mermaid.min.js"));
+  await mkdir3(join8(outDir, "html", "assets"), { recursive: true });
+  await copyFile(join8(assetsDir, "mermaid.min.js"), join8(outDir, "html", "assets", "mermaid.min.js"));
   files.push("html/assets/mermaid.min.js");
   await put(outDir, "README.md", renderReadme(input), files);
   return { files: files.sort() };
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-import { access, mkdir as mkdir3, readFile as readFile7, writeFile as writeFile3 } from "node:fs/promises";
-import { join as join7 } from "node:path";
+import { access as access2, mkdir as mkdir4, readFile as readFile8, writeFile as writeFile4 } from "node:fs/promises";
+import { join as join10 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -15976,8 +16224,8 @@ __export(nextjs_exports, {
   listScreens: () => listScreens,
   name: () => name
 });
-import { readFile as readFile6, readdir as readdir2, stat } from "node:fs/promises";
-import { join as join6, posix as posix2 } from "node:path";
+import { readFile as readFile7, readdir as readdir2, stat } from "node:fs/promises";
+import { join as join9, posix as posix2 } from "node:path";
 var name = "nextjs";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".next", ".git", ".docent"]);
 var PAGE_EXT = /\.(tsx|jsx|ts|js)$/;
@@ -16011,7 +16259,7 @@ function stripJsonc(text) {
 }
 async function readJson2(path) {
   try {
-    return JSON.parse(stripJsonc(await readFile6(path, "utf8")));
+    return JSON.parse(stripJsonc(await readFile7(path, "utf8")));
   } catch {
     return void 0;
   }
@@ -16032,7 +16280,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir2(join6(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir2(join9(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
@@ -16041,12 +16289,12 @@ async function walk(projectDir, rel) {
   return out;
 }
 async function detect(projectDir) {
-  const pkg = await readJson2(join6(projectDir, "package.json"));
+  const pkg = await readJson2(join9(projectDir, "package.json"));
   return Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
 }
 async function loadAliases(projectDir) {
   for (const file of ["tsconfig.json", "jsconfig.json"]) {
-    const config = await readJson2(join6(projectDir, file));
+    const config = await readJson2(join9(projectDir, file));
     const paths = config?.compilerOptions?.paths;
     if (!paths) continue;
     const baseUrl = config.compilerOptions.baseUrl ?? ".";
@@ -16078,13 +16326,13 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
       } catch {
         continue;
       }
-      if (await isFile(join6(projectDir, rel))) return rel;
+      if (await isFile(join9(projectDir, rel))) return rel;
     }
   }
   return void 0;
 }
 async function describePage(projectDir, file, route, aliases) {
-  const source = await readFile6(join6(projectDir, file), "utf8");
+  const source = await readFile7(join9(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
   for (const pattern of IMPORT_PATTERNS) {
     for (const match of source.matchAll(pattern)) specs.add(match[1]);
@@ -16112,7 +16360,7 @@ async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = [];
   for (const dir of ["app", "src/app"]) {
-    if (!await isDir(join6(projectDir, dir))) continue;
+    if (!await isDir(join9(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       if (/(^|\/)page\.(tsx|jsx|ts|js)$/.test(file)) {
         screens.push(await describePage(projectDir, file, appRoute(dir, file), aliases));
@@ -16120,7 +16368,7 @@ async function listScreens(projectDir) {
     }
   }
   for (const dir of ["pages", "src/pages"]) {
-    if (!await isDir(join6(projectDir, dir))) continue;
+    if (!await isDir(join9(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       const rel = file.slice(dir.length + 1);
       if (!PAGE_EXT.test(file) || rel.startsWith("api/") || /^_(app|document|error)\./.test(rel)) continue;
@@ -16156,7 +16404,7 @@ analyze:
 }
 async function exists(path) {
   try {
-    await access(path);
+    await access2(path);
     return true;
   } catch {
     return false;
@@ -16164,17 +16412,17 @@ async function exists(path) {
 }
 async function runInit(projectDir) {
   const dir = docentDir(projectDir);
-  await mkdir3(dir, { recursive: true });
-  const ignorePath = join7(dir, ".gitignore");
+  await mkdir4(dir, { recursive: true });
+  const ignorePath = join10(dir, ".gitignore");
   if (!await exists(ignorePath)) {
-    await writeFile3(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
+    await writeFile4(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
   } else {
-    const current = await readFile7(ignorePath, "utf8");
+    const current = await readFile8(ignorePath, "utf8");
     const have = new Set(current.split(/\r?\n/));
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
-    if (missing.length) await writeFile3(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
+    if (missing.length) await writeFile4(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join7(dir, "config.yaml");
+  const configPath = join10(dir, "config.yaml");
   if (await exists(configPath)) {
     return { created: false, detectors: (await loadConfig(projectDir)).detectors };
   }
@@ -16182,13 +16430,13 @@ async function runInit(projectDir) {
   for (const detector of DETECTORS) {
     if (await detector.detect(projectDir)) detectors.push(detector.name);
   }
-  await writeFile3(configPath, configYaml(detectors));
+  await writeFile4(configPath, configYaml(detectors));
   return { created: true, detectors };
 }
 
 // skills/docent/scripts/src/commands/inventory.mjs
-import { access as access2 } from "node:fs/promises";
-import { join as join8 } from "node:path";
+import { access as access3 } from "node:fs/promises";
+import { join as join11 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash2 } from "node:crypto";
@@ -16243,7 +16491,7 @@ function matchesAny(route, globs) {
 }
 async function fileExists(path) {
   try {
-    await access2(path);
+    await access3(path);
     return true;
   } catch {
     return false;
@@ -16252,7 +16500,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join8(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join11(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
     return [];
@@ -16274,7 +16522,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join8(projectDir, file))) {
+    if (!await fileExists(join11(projectDir, file))) {
       problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
       return void 0;
     }
@@ -16289,7 +16537,7 @@ async function checkEntry(projectDir, label, entry, problems) {
 async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
-  const previous = await readJsonIfExists(join8(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join11(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
@@ -16340,7 +16588,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join8(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join11(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -16368,17 +16616,17 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
-  await writeJson(join8(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join11(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
-import { readFile as readFile9 } from "node:fs/promises";
-import { join as join10 } from "node:path";
+import { readFile as readFile10 } from "node:fs/promises";
+import { join as join13 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
-import { readFile as readFile8, writeFile as writeFile4 } from "node:fs/promises";
-import { join as join9 } from "node:path";
+import { readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
+import { join as join12 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
   "",
@@ -16428,39 +16676,39 @@ function renderReview(screens, previous) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join9(dir, "inventory.json"));
+  const inventory = await readJson(join12(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join9(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join12(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join9(dir, "review.md");
+  const path = join12(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
-    previous = parseReview(await readFile8(path, "utf8"));
+    previous = parseReview(await readFile9(path, "utf8"));
   } catch {
   }
   const text = renderReview(screens, previous);
-  await writeFile4(path, text);
+  await writeFile5(path, text);
   return { items: text.split("\n").filter((l) => LINE.test(l)).length };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join10(dir, "inventory.json"));
+  const inventory = await readJson(join13(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile9(join10(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile10(join13(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join10(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join13(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -16489,191 +16737,20 @@ async function runPending(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/session.mjs
-import { mkdir as mkdir4, rm as rm2, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join11 } from "node:path";
+import { mkdir as mkdir5, rm as rm3, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join14 } from "node:path";
 async function startSession(projectDir) {
-  await mkdir4(docentDir(projectDir), { recursive: true });
-  await writeFile5(join11(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await mkdir5(docentDir(projectDir), { recursive: true });
+  await writeFile6(join14(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm2(join11(docentDir(projectDir), ".session"), { force: true });
-}
-
-// skills/docent/scripts/src/commands/run.mjs
-import { spawn, spawnSync } from "node:child_process";
-import { openSync, closeSync } from "node:fs";
-import { readFile as readFile10, rm as rm3, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join12, resolve as resolve2 } from "node:path";
-
-// skills/docent/scripts/src/lib/http.mjs
-import http from "node:http";
-import https from "node:https";
-function httpCheck(url, timeoutMs) {
-  return new Promise((resolve4) => {
-    const lib = url.startsWith("https:") ? https : http;
-    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
-      res.resume();
-      resolve4({ ok: res.statusCode < 500, status: res.statusCode });
-    });
-    req.on("timeout", () => req.destroy(new Error("timeout")));
-    req.on("error", () => resolve4({ ok: false }));
-  });
-}
-
-// skills/docent/scripts/src/commands/run.mjs
-var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function loadRun(projectDir) {
-  const run2 = await readJsonIfExists(join12(docentDir(projectDir), "run.json"));
-  if (!run2) throw new Error(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694");
-  const { valid, errors } = validateRun(run2);
-  if (!valid) throw new Error(`.docent/run.json \uD615\uC2DD \uC624\uB958: ${errors.join("; ")}`);
-  return run2;
-}
-var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
-var pidFile = (projectDir) => join12(docentDir(projectDir), ".run-pid");
-var logFile = (projectDir) => join12(docentDir(projectDir), "run.log");
-function alive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
-function killGroup(pid, signal) {
-  try {
-    if (process.platform === "win32") spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)]);
-    else process.kill(-pid, signal);
-  } catch {
-  }
-}
-async function readPid(projectDir) {
-  try {
-    const pid = Number((await readFile10(pidFile(projectDir), "utf8")).trim());
-    return Number.isInteger(pid) && pid > 0 ? pid : void 0;
-  } catch {
-    return void 0;
-  }
-}
-async function logTail(projectDir, lines = 20) {
-  try {
-    return (await readFile10(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n");
-  } catch {
-    return "";
-  }
-}
-function childEnv(run2) {
-  return { ...process.env, ...run2.env ?? {} };
-}
-async function runStart(projectDir, { install = false } = {}) {
-  const run2 = await loadRun(projectDir);
-  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
-  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
-  if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
-  if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
-  const cwd = resolve2(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
-  if (install) {
-    for (const command of run2.install ?? []) {
-      const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
-      if (r.status !== 0) throw new Error(`\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: ${command} (exit ${r.status})`);
-    }
-  }
-  const fd = openSync(logFile(projectDir), "w");
-  const child = spawn(run2.start, { cwd, shell: true, detached: true, stdio: ["ignore", fd, fd], env: childEnv(run2) });
-  closeSync(fd);
-  let exited = false;
-  child.on("exit", () => {
-    exited = true;
-  });
-  child.unref();
-  await writeFile6(pidFile(projectDir), `${child.pid}
-`);
-  const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
-  while (Date.now() < deadline) {
-    if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
-    if (exited) break;
-    await sleep(1e3);
-  }
-  const reason = exited ? "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : `\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC(${run2.healthcheck?.timeoutSec ?? 120}\uCD08)`;
-  killGroup(child.pid, "SIGKILL");
-  await rm3(pidFile(projectDir), { force: true });
-  throw new Error(`${reason}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:
-${await logTail(projectDir)}`);
-}
-async function runStop(projectDir) {
-  const pid = await readPid(projectDir);
-  if (!pid) return { stopped: false };
-  killGroup(pid, "SIGTERM");
-  for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
-  if (alive(pid)) killGroup(pid, "SIGKILL");
-  await rm3(pidFile(projectDir), { force: true });
-  return { stopped: true };
-}
-async function runStatus(projectDir) {
-  let run2;
-  try {
-    run2 = await loadRun(projectDir);
-  } catch {
-    return { configured: false, up: false };
-  }
-  const pid = await readPid(projectDir);
-  const up = (await httpCheck(healthUrl(run2), 2e3)).ok;
-  return { configured: true, baseUrl: run2.baseUrl, up, ...pid && alive(pid) ? { pid } : {} };
+  await rm3(join14(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join14 } from "node:path";
-
-// skills/docent/scripts/src/lib/playwright.mjs
-import { execFileSync as execFileSync2 } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { homedir } from "node:os";
-import { dirname as dirname3, join as join13 } from "node:path";
-var PLAYWRIGHT_VERSION = "1.56.1";
-var PlaywrightMissing = class extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "PlaywrightMissing";
-  }
-};
-function runtimeDir() {
-  return process.env.DOCENT_RUNTIME_DIR || join13(homedir(), ".cache", "docent", "runtime");
-}
-var require2 = createRequire(import.meta.url);
-function loadFromDir(pkgDir) {
-  const pkgJson = join13(pkgDir, "package.json");
-  if (!existsSync(pkgJson)) return void 0;
-  const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
-  return { module: require2(pkgDir), version };
-}
-function globalRoot() {
-  try {
-    return execFileSync2("npm", ["root", "-g"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  } catch {
-    return void 0;
-  }
-}
-async function findPlaywright() {
-  const candidates = [];
-  if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
-  candidates.push(["runtime", join13(runtimeDir(), "node_modules", "playwright")]);
-  try {
-    candidates.push(["local", dirname3(require2.resolve("playwright/package.json"))]);
-  } catch {
-  }
-  const root = globalRoot();
-  if (root) candidates.push(["global", join13(root, "playwright")]);
-  for (const [from, dir] of candidates) {
-    const found = loadFromDir(dir);
-    if (found) return { ...found, from, dir };
-  }
-  return void 0;
-}
-
-// skills/docent/scripts/src/commands/runtime.mjs
+import { join as join15 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -16686,7 +16763,7 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join14(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join15(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
@@ -16702,10 +16779,11 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
   run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778
+  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join15(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join16(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -16782,6 +16860,12 @@ async function main() {
         return 0;
       }
       break;
+    }
+    case "auth": {
+      if (sub !== "login" && sub !== "save") break;
+      const r = sub === "login" ? await authLogin(project) : await authSave(project);
+      console.log(`\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: ${r.statePath}`);
+      return 0;
     }
     case "runtime": {
       if (sub !== "status" && sub !== "install") break;
