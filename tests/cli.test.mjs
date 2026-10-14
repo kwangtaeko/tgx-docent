@@ -82,3 +82,16 @@ test('build --preset portfolio --format html', async () => {
   await assert.rejects(stat(join(docent, 'out', 'html', 'screens')));
   await assert.rejects(stat(join(docent, 'out', 'README.md')));
 });
+
+test('--format 값이 비면 실패 코드', async () => {
+  const dir = await copyFixture();
+  run(['init'], dir);
+  await writeAgentModal(dir);
+  run(['inventory'], dir);
+  const docent = join(dir, '.docent');
+  await cp(join(EXPECTED, 'screens'), join(docent, 'screens'), { recursive: true });
+  await cp(join(EXPECTED, 'summary.json'), join(docent, 'summary.json'));
+  const r = run(['build', '--format', ','], dir);
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout + r.stderr, /만들 형식이 없습니다/);
+});

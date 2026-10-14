@@ -40,3 +40,11 @@ test('인쇄 문서 안의 화면 링크는 모두 내부 앵커', async () => {
   const html = renderPrint(await withPreset('handover'));
   assert.ok(!html.includes('href="screens/'));
 });
+
+test('인쇄용 소개의 미리보기는 GIF 대신 캡처 PNG', async () => {
+  const input = await loadGolden();
+  input.media = { images: new Set(['orders']), gifs: new Set(['orders', 'home']) };
+  const html = renderPrint(input);
+  assert.ok(html.includes('media/img/orders.png'));
+  assert.ok(!html.includes('.gif'));
+});

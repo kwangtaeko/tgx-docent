@@ -35,3 +35,12 @@ test('화면 60개도 60초 안에', { timeout: 60000 }, async () => {
   await renderPdf(join(dir, 'print.html'), out, { title: '사용자 매뉴얼', date: input.date });
   assert.ok(pageCount(await readFile(out)) >= 60);
 });
+
+test('Mermaid가 준비되지 않으면 diagramsReady false', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'docent-pdf-'));
+  await writeFile(join(dir, 'print.html'), '<!doctype html><html><body><p>본문</p></body></html>');
+  const r = await renderPdf(join(dir, 'print.html'), join(dir, 'x.pdf'), { waitMs: 500 });
+  assert.deepEqual(r, { diagramsReady: false });
+  const ok = await printDir(await loadGolden());
+  assert.deepEqual(await renderPdf(join(ok, 'print.html'), join(ok, 'y.pdf'), {}), { diagramsReady: true });
+});

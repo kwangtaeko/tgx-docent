@@ -26,11 +26,6 @@ export function screenHref(input, id, from = 'root') {
   return from === 'screens' ? `${id}.html` : `screens/${id}.html`;
 }
 
-// 근거 주석만 지운다(이스케이프된 본문 &lt;!-- 는 그대로)
-export function stripEvidence(html) {
-  return html.replace(/ ?<!-- (?:evidence|screens): [^>]*?-->/g, '');
-}
-
 function page({ title, body, root, projectName, date, scripts = '' }) {
   return `<!doctype html>
 <html lang="ko">
@@ -137,12 +132,14 @@ export function introBody(input, { from = 'root', heading = true } = {}) {
   const media = mediaOf(input);
   const limit = presetOf(input) === 'portfolio' ? 6 : 3;
   const prefix = from === 'screens' ? '../' : '';
-  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
+  // 인쇄(PDF)에서는 GIF가 첫 장면만 찍히므로 캡처 PNG를 쓴다
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id) && (!input.printAnchors || media.images.has(e.id))).slice(0, limit);
   const preview = gifs.length
     ? `<h2>화면 미리보기</h2>\n<div class="preview">${gifs
         .map((e) => {
           const title = h(screenTitle(screens, e.id));
-          return `<figure><img src="${prefix}media/gif/${h(e.id)}.gif" alt="${title} 조작 예시"><figcaption><a href="${screenHref(input, e.id, from)}">${title}</a></figcaption></figure>`;
+          const src = input.printAnchors ? `${prefix}media/img/${h(e.id)}.png` : `${prefix}media/gif/${h(e.id)}.gif`;
+          return `<figure><img src="${src}" alt="${title} 조작 예시"><figcaption><a href="${screenHref(input, e.id, from)}">${title}</a></figcaption></figure>`;
         })
         .join('')}</div>`
     : '';

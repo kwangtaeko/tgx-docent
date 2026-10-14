@@ -85,6 +85,7 @@ async function main() {
       show('다시 분석', r.reanalyze.map((x) => `${x.id}(${x.reason})`));
       show('시나리오 작성', r.rescenario.map((x) => `${x.id}(${x.reason})`));
       show('다시 캡처', r.recapture);
+      listProblems('제외한 항목:', r.problems);
       return 0;
     }
     case 'pending': {

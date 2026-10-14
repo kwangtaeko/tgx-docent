@@ -16,9 +16,9 @@
 - `.docent/out/html/index.html` — 소개·화면 목록·화면별 매뉴얼(캡처·조작 GIF)·워크플로우
 - `.docent/out/README.md` — 소개 README
 - `.docent/out/사용자매뉴얼.pdf`, `.pptx` — PDF·PPT(요청 시)
+- `.docent/review.md` — 확인 필요 항목(답을 적고 `/docent-analyze`를 다시 실행)
 
 용도에 맞춰 `delivery`(납품: 표지·목차·개정 이력), `handover`(인수인계: 근거·소스 파일 유지), `portfolio`(외부 공개: 소개·GIF 중심) 프리셋을 고를 수 있습니다. 코드가 바뀌면 `/docent-update`로 바뀐 화면만 다시 처리합니다.
-- `.docent/review.md` — 확인 필요 항목(답을 적고 `/docent-analyze`를 다시 실행)
 
 다른 에이전트(Codex 등)는 `skills/docent/` 폴더를 복사해 `SKILL.md`를 따르게 하면 됩니다. 이 경우 비밀 파일 차단 훅이 없으므로 `SKILL.md`의 규칙에만 의존합니다.
 

@@ -17,7 +17,7 @@ async function golden() {
 
 test('변화가 없으면 할 일이 없다', async () => {
   const { dir } = await golden();
-  assert.deepEqual(await runUpdate(dir), { added: [], removed: [], reanalyze: [], rescenario: [], recapture: [] });
+  assert.deepEqual(await runUpdate(dir), { added: [], removed: [], reanalyze: [], rescenario: [], recapture: [], problems: [] });
 });
 
 test('공통 파일이 바뀌면 그 파일을 읽은 화면을 다시 분석하고, 캡처가 있는 화면만 다시 찍는다', async () => {
@@ -72,4 +72,11 @@ test('삭제된 화면을 가리키는 화면도 다시 분석 대상', async ()
   const r = await runUpdate(dir);
   assert.deepEqual(r.removed, ['orders-id-edit']);
   assert.ok(r.reanalyze.some((x) => x.id === 'orders-id' && x.reason === '삭제된 화면 참조'), JSON.stringify(r.reanalyze));
+});
+
+test('update는 inventory 제외 항목을 함께 돌려준다', async () => {
+  const { dir } = await golden();
+  await rm(join(dir, 'app', 'orders', 'new', 'customer-search.tsx'));
+  const r = await runUpdate(dir);
+  assert.ok(r.problems.some((p) => /파일 없음/.test(p)), JSON.stringify(r.problems));
 });

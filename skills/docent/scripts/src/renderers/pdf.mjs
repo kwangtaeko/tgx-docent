@@ -3,13 +3,17 @@ import { pathToFileURL } from 'node:url';
 import { launchBrowser } from '../lib/playwright.mjs';
 import { escapeHtml as h } from './escape.mjs';
 
-export async function renderPdf(printHtmlPath, outPath, { title, date, browser } = {}) {
+// → { diagramsReady }: Mermaid 렌더가 끝나지 않았으면 false(PDF에 원문이 들어갔을 수 있음)
+export async function renderPdf(printHtmlPath, outPath, { title, date, browser, waitMs = 20000 } = {}) {
   const own = !browser;
   const b = browser ?? (await launchBrowser());
   try {
     const page = await b.newPage();
     await page.goto(pathToFileURL(printHtmlPath).href, { waitUntil: 'load' });
-    await page.waitForSelector('body[data-ready="1"]', { timeout: 20000 }).catch(() => {});
+    const diagramsReady = await page
+      .waitForSelector('body[data-ready="1"]', { timeout: waitMs })
+      .then(() => true)
+      .catch(() => false);
     await page.pdf({
       path: outPath,
       format: 'A4',
@@ -20,6 +24,7 @@ export async function renderPdf(printHtmlPath, outPath, { title, date, browser }
       footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#59636e"><span class="pageNumber"></span> / <span class="totalPages"></span>${date ? ` · ${h(date)}` : ''}</div>`,
     });
     await page.close();
+    return { diagramsReady };
   } finally {
     if (own) await b.close();
   }

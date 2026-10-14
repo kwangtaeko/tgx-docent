@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import JSZip from 'jszip';
 import { PNG } from 'pngjs';
-import { renderPptx } from '../../skills/docent/scripts/src/renderers/pptx.mjs';
+import { cropForSlide, renderPptx } from '../../skills/docent/scripts/src/renderers/pptx.mjs';
 import { loadGolden, loadLarge } from '../helpers/golden.mjs';
 
 async function slides(buf) {
@@ -107,4 +107,13 @@ test('메뉴 구조가 길면 여러 장으로 나눈다', async () => {
   const menus = all.filter((t) => t.startsWith('메뉴 구조'));
   assert.ok(menus.length >= 2, String(menus.length));
   assert.match(menus[1], /\(계속\)/);
+});
+
+test('세로로 긴 캡처는 위쪽만 잘라 넣는다', () => {
+  const tall = new PNG({ width: 100, height: 1000 });
+  const cropped = PNG.sync.read(cropForSlide(PNG.sync.write(tall), 6.0, 5.6));
+  assert.equal(cropped.width, 100);
+  assert.equal(cropped.height, Math.round(100 * (5.6 / 6.0) * 1.5));
+  const short = PNG.sync.write(new PNG({ width: 100, height: 100 }));
+  assert.equal(cropForSlide(short, 6.0, 5.6), short);
 });

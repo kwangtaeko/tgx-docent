@@ -123,13 +123,18 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
         if (!browser) skipped.push({ format: 'pdf', reason: 'Playwright가 없어 PDF를 만들지 못했습니다(docent runtime install)' });
         else {
           await put(outDir, 'html/print.html', renderPrint(input), files);
-          await renderPdf(join(outDir, 'html', 'print.html'), join(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
+          const { diagramsReady } = await renderPdf(join(outDir, 'html', 'print.html'), join(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
+          if (!diagramsReady && input.summary.workflows.length) warnings.push('PDF의 워크플로우 다이어그램이 준비되지 않아 Mermaid 원문이 들어갔을 수 있습니다');
           files.push(`${base}.pdf`);
         }
       }
       if (wants('pptx')) {
         let diagrams;
-        if (browser) diagrams = await renderDiagrams(browser, input, { assetsDir });
+        if (browser) {
+          diagrams = await renderDiagrams(browser, input, { assetsDir });
+          const failed = diagrams.filter((d) => !d).length;
+          if (failed) warnings.push(`워크플로우 다이어그램 ${failed}개를 그리지 못해 단계 목록만 넣었습니다`);
+        }
         else if (input.summary.workflows.length) warnings.push('Playwright가 없어 PPT의 워크플로우 다이어그램 대신 단계 목록을 넣었습니다');
         const buf = await renderPptx(input, { diagrams, mediaDir: join(dir, 'media') });
         await writeFile(join(outDir, `${base}.pptx`), buf);

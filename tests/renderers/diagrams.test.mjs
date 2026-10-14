@@ -35,3 +35,19 @@ test('mermaid.render에 넘기는 정의는 HTML 엔티티가 아닌 원문 라�
   assert.ok(raw.includes('주문 & 출고 #quot;목록#quot;'));
   assert.ok(workflowMermaid(input, wf).includes('주문 &amp; 출고'));
 });
+
+test('다이어그램 하나가 실패해도 나머지를 만든다', async () => {
+  const { mkdtemp, copyFile, writeFile } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  // 첫 번째 render만 실패하는 mermaid
+  const dir = await mkdtemp(join(tmpdir(), 'docent-mm-'));
+  await copyFile(join(ASSETS, 'mermaid.min.js'), join(dir, 'real.js'));
+  await writeFile(join(dir, 'mermaid.min.js'), (await import('node:fs')).readFileSync(join(ASSETS, 'mermaid.min.js'), 'utf8') +
+    `\n;(() => { const r = window.mermaid.render.bind(window.mermaid); let n = 0; window.mermaid.render = (...a) => (n++ === 0 ? Promise.reject(new Error('x')) : r(...a)); })();`);
+  const input = await loadGolden();
+  const pngs = await renderDiagrams(await browser(), input, { assetsDir: dir });
+  assert.equal(pngs.length, input.summary.workflows.length);
+  assert.equal(pngs[0], null);
+  assert.ok(pngs[1].subarray(1, 4).equals(Buffer.from('PNG')));
+});

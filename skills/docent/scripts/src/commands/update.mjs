@@ -28,7 +28,7 @@ async function idsIn(dir, ext) {
 export async function runUpdate(projectDir) {
   const dir = docentDir(projectDir);
   const before = new Set(((await readJsonIfExists(join(dir, 'inventory.json'))) ?? { screens: [] }).screens.map((s) => s.id));
-  const { inventory } = await runInventory(projectDir);
+  const { inventory, problems } = await runInventory(projectDir);
   const now = new Set(inventory.screens.map((s) => s.id));
 
   const added = [...now].filter((id) => !before.has(id)).sort();
@@ -55,5 +55,5 @@ export async function runUpdate(projectDir) {
   const rescenario = await runScenarios(projectDir);
   const recapture = [];
   for (const { id } of reanalyze) if (await exists(media.img(id))) recapture.push(id);
-  return { added, removed, reanalyze, rescenario, recapture };
+  return { added, removed, reanalyze, rescenario, recapture, problems };
 }

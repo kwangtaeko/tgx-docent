@@ -1,6 +1,7 @@
 // PPTX 산출물(pptxgenjs). 표지 → 소개 → 메뉴 구조 → 워크플로우 → 화면별 → (납품용) 개정 이력. (설계 문서 10장)
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { PNG } from 'pngjs';
 import PptxGenJS from 'pptxgenjs';
 import { presetOf, revisionRows, screenTitle } from './html.mjs';
 import { orderedMenuEntries } from './menu.mjs';
@@ -16,6 +17,7 @@ const LINE_IN = 0.2;
 const ROW_PAD_IN = 0.12;
 const TABLE_BUDGET_IN = 5.2;
 const COL_W = [0.8, 1.8, 3.4];
+const SHOT_BOX = { x: 0.5, y: 1.5, w: 6.0, h: 5.6 };
 const TYPE_LABELS = { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' };
 const low = (x) => (x.confidence === 'low' ? '[확인 필요] ' : '');
 
@@ -24,6 +26,17 @@ function imageSize(buf) {
   if (buf.subarray(1, 4).toString('latin1') === 'PNG') return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
   if (buf.subarray(0, 3).toString('latin1') === 'GIF') return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
   return { width: 4, height: 3 };
+}
+
+// 세로로 아주 긴 전체 화면 캡처는 슬라이드에서 너무 작아지므로 위쪽만 남긴다(전체는 HTML에)
+export function cropForSlide(buf, boxW, boxH) {
+  const { width, height } = imageSize(buf);
+  const maxHeight = Math.round(width * (boxH / boxW) * 1.5);
+  if (height <= maxHeight) return buf;
+  const src = PNG.sync.read(buf);
+  const out = new PNG({ width, height: maxHeight });
+  PNG.bitblt(src, out, 0, 0, width, maxHeight, 0, 0);
+  return PNG.sync.write(out);
 }
 
 function fit(buf, box) {
@@ -160,11 +173,12 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
     }
     const rows = screenRows(s);
     const chunks = chunkRows(rows);
-    const shot = media.images.has(entry.id) ? await readMaybe(join(mediaDir, 'img', `${entry.id}.png`)) : undefined;
+    const raw = media.images.has(entry.id) ? await readMaybe(join(mediaDir, 'img', `${entry.id}.png`)) : undefined;
+    const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = pptx.addSlide();
       title(slide, `${s.title.value}${i ? ' (계속)' : ''}`, `${low(s.purpose)}${s.purpose.value}`);
-      const box = { x: 0.5, y: 1.5, w: 6.0, h: 5.6 };
+      const box = SHOT_BOX;
       if (shot) slide.addImage({ data: dataUri(shot, 'image/png'), ...fit(shot, box) });
       else {
         slide.addShape(pptx.ShapeType.rect, { ...box, line: { color: 'D1D9E0', dashType: 'dash' }, fill: { color: 'F6F8FA' } });
