@@ -78,7 +78,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
     inventory,
     screens,
     summary: await readJson(join(dir, 'summary.json')),
-    date: projectDate(projectDir, config),
+    date: projectDate(projectDir, config, [...new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
     projectName: await projectName(projectDir),
   };
   if (options.preset === 'delivery') {

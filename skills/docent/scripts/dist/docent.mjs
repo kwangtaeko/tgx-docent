@@ -17164,7 +17164,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join29(s) {
+      BufferList.prototype.join = function join30(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -27436,7 +27436,7 @@ var require_gifenc = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join28, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join29, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/auth.mjs
@@ -28673,11 +28673,23 @@ async function authSave(projectDir) {
 
 // skills/docent/scripts/src/commands/build.mjs
 import { copyFile, mkdir as mkdir3, readFile as readFile7, readdir as readdir2, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
-import { basename, dirname as dirname3, join as join10 } from "node:path";
+import { basename, dirname as dirname3, join as join11 } from "node:path";
 
 // skills/docent/scripts/src/lib/project-date.mjs
 import { execFileSync as execFileSync2 } from "node:child_process";
-function projectDate(projectDir, config) {
+import { statSync } from "node:fs";
+import { join as join6 } from "node:path";
+function newestMtime(projectDir, files) {
+  let newest = 0;
+  for (const file of files) {
+    try {
+      newest = Math.max(newest, statSync(join6(projectDir, file)).mtimeMs);
+    } catch {
+    }
+  }
+  return newest ? new Date(newest).toISOString().slice(0, 10) : void 0;
+}
+function projectDate(projectDir, config, files = []) {
   if (config.date) return String(config.date);
   try {
     const out = execFileSync2("git", ["log", "-1", "--format=%cs"], {
@@ -28685,10 +28697,10 @@ function projectDate(projectDir, config) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"]
     }).trim();
-    return out || "unknown";
+    if (out) return out;
   } catch {
-    return "unknown";
   }
+  return newestMtime(projectDir, files) ?? "unknown";
 }
 
 // skills/docent/scripts/src/renderers/escape.mjs
@@ -29199,13 +29211,13 @@ function renderReadme({ inventory, screens, summary, date, projectName: projectN
 }
 
 // skills/docent/scripts/src/renderers/diagrams.mjs
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 async function renderDiagrams(browser, input, { assetsDir }) {
   const context = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 1400, height: 900 } });
   try {
     const page2 = await context.newPage();
     await page2.setContent('<!doctype html><html><body style="margin:0;background:#fff"><div id="d" style="display:inline-block;padding:16px;background:#fff"></div></body></html>');
-    await page2.addScriptTag({ path: join6(assetsDir, "mermaid.min.js") });
+    await page2.addScriptTag({ path: join7(assetsDir, "mermaid.min.js") });
     await page2.evaluate(() => window.mermaid.initialize({ startOnLoad: false, theme: "default" }));
     const pngs = [];
     for (const [i, wf] of input.summary.workflows.entries()) {
@@ -29257,7 +29269,7 @@ async function renderPdf(printHtmlPath, outPath, { title: title2, date, browser,
 // skills/docent/scripts/src/renderers/pptx.mjs
 var import_pngjs = __toESM(require_png(), 1);
 import { readFile as readFile5 } from "node:fs/promises";
-import { join as join7 } from "node:path";
+import { join as join8 } from "node:path";
 
 // node_modules/pptxgenjs/dist/pptxgen.es.js
 var import_jszip = __toESM(require_lib3());
@@ -34711,7 +34723,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
     const s = input.screens.get(entry.id);
     if (preset === "portfolio") {
       if (!media.gifs.has(entry.id)) continue;
-      const gif = await readMaybe(join7(mediaDir, "gif", `${entry.id}.gif`));
+      const gif = await readMaybe(join8(mediaDir, "gif", `${entry.id}.gif`));
       const slide = pptx.addSlide();
       title(slide, s.title.value, s.purpose.value);
       if (gif) slide.addImage({ data: dataUri(gif, "image/gif"), ...fit(gif, { x: 0.6, y: 1.5, w: W - 1.2, h: 5.6 }) });
@@ -34719,7 +34731,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
     }
     const rows = screenRows(s);
     const chunks = chunkRows(rows);
-    const raw = media.images.has(entry.id) ? await readMaybe(join7(mediaDir, "img", `${entry.id}.png`)) : void 0;
+    const raw = media.images.has(entry.id) ? await readMaybe(join8(mediaDir, "img", `${entry.id}.png`)) : void 0;
     const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = pptx.addSlide();
@@ -34832,18 +34844,18 @@ function resolveOutputOptions(config, cli = {}) {
 
 // skills/docent/scripts/src/commands/validate.mjs
 import { readdir } from "node:fs/promises";
-import { join as join9 } from "node:path";
+import { join as join10 } from "node:path";
 
 // skills/docent/scripts/src/lib/source-hash.mjs
 import { createHash as createHash2 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
-import { join as join8 } from "node:path";
+import { join as join9 } from "node:path";
 async function hashFiles(rootDir, relPaths) {
   const hash = createHash2("sha256");
   for (const rel of [...new Set(relPaths.map(normalizeRel))].sort()) {
     let content;
     try {
-      content = await readFile6(join8(rootDir, rel), "utf8");
+      content = await readFile6(join9(rootDir, rel), "utf8");
     } catch (err) {
       throw new Error(`\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: ${rel} (${err.code ?? err.message})`);
     }
@@ -34922,13 +34934,13 @@ function checkSummary(summary, screens, known, problems) {
 async function checkScenarios(projectDir, dir, ids, problems) {
   let files = [];
   try {
-    files = (await readdir(join9(dir, "scenarios"))).filter((f) => f.endsWith(".json")).sort();
+    files = (await readdir(join10(dir, "scenarios"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
     return;
   }
   for (const file of files) {
     const label = `scenarios/${file}`;
-    const sc = await load(join9(dir, "scenarios", file), label, problems);
+    const sc = await load(join10(dir, "scenarios", file), label, problems);
     if (sc === void 0) continue;
     const r = validateScenario(sc);
     if (!r.valid) {
@@ -34947,7 +34959,7 @@ async function checkScenarios(projectDir, dir, ids, problems) {
 async function runValidate(projectDir) {
   const dir = docentDir(projectDir);
   const problems = [];
-  const inventory = await load(join9(dir, "inventory.json"), "inventory.json", problems);
+  const inventory = await load(join10(dir, "inventory.json"), "inventory.json", problems);
   if (inventory) {
     const r = validateInventory(inventory);
     if (!r.valid) problems.push(`inventory.json: ${r.errors.join("; ")}`);
@@ -34956,12 +34968,12 @@ async function runValidate(projectDir) {
   const screens = /* @__PURE__ */ new Map();
   let files = [];
   try {
-    files = (await readdir(join9(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
+    files = (await readdir(join10(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
     problems.push("screens/: \uB514\uB809\uD130\uB9AC \uC5C6\uC74C");
   }
   for (const file of files) {
-    const s = await load(join9(dir, "screens", file), `screens/${file}`, problems);
+    const s = await load(join10(dir, "screens", file), `screens/${file}`, problems);
     if (s === void 0) continue;
     const r = validateScreen(s);
     if (!r.valid) {
@@ -34977,7 +34989,7 @@ async function runValidate(projectDir) {
   const allIds = /* @__PURE__ */ new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
   await checkScenarios(projectDir, dir, allIds, problems);
-  const summary = await load(join9(dir, "summary.json"), "summary.json", problems);
+  const summary = await load(join10(dir, "summary.json"), "summary.json", problems);
   if (summary !== void 0) {
     const r = validateSummary(summary);
     if (!r.valid) problems.push(`summary.json: ${r.errors.join("; ")}`);
@@ -34989,14 +35001,14 @@ async function runValidate(projectDir) {
 // skills/docent/scripts/src/commands/build.mjs
 async function projectName(projectDir) {
   try {
-    const pkg = JSON.parse(await readFile7(join10(projectDir, "package.json"), "utf8"));
+    const pkg = JSON.parse(await readFile7(join11(projectDir, "package.json"), "utf8"));
     if (pkg.name) return pkg.name;
   } catch {
   }
   return basename(projectDir);
 }
 async function put(outDir, rel, content, files) {
-  const path = join10(outDir, rel);
+  const path = join11(outDir, rel);
   await mkdir3(dirname3(path), { recursive: true });
   await writeFile3(path, content);
   files.push(rel);
@@ -35005,7 +35017,7 @@ async function collectMedia(projectDir, inventory) {
   const ids = new Set(inventory.screens.map((s) => s.id));
   const pick2 = async (sub, ext) => {
     try {
-      const names = await readdir2(join10(docentDir(projectDir), "media", sub));
+      const names = await readdir2(join11(docentDir(projectDir), "media", sub));
       return new Set(names.filter((n) => n.endsWith(`.${ext}`)).map((n) => n.slice(0, -ext.length - 1)).filter((id) => ids.has(id)));
     } catch {
       return /* @__PURE__ */ new Set();
@@ -35032,24 +35044,24 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   const skipped = [];
   if (config.language !== "ko") warnings.push(`language "${config.language}"\uB294 \uC544\uC9C1 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544 \uD55C\uAD6D\uC5B4\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4`);
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join10(dir, "inventory.json"));
+  const inventory = await readJson(join11(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
-  for (const { id } of inventory.screens) screens.set(id, await readJson(join10(dir, "screens", `${id}.json`)));
+  for (const { id } of inventory.screens) screens.set(id, await readJson(join11(dir, "screens", `${id}.json`)));
   const media = await collectMedia(projectDir, inventory);
   const input = {
     options,
     media,
     inventory,
     screens,
-    summary: await readJson(join10(dir, "summary.json")),
-    date: projectDate(projectDir, config),
+    summary: await readJson(join11(dir, "summary.json")),
+    date: projectDate(projectDir, config, [.../* @__PURE__ */ new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
     projectName: await projectName(projectDir)
   };
   if (options.preset === "delivery") {
     const n = uncertainCount(screens);
     if (n) warnings.push(`\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 ${n}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694`);
   }
-  const outDir = join10(dir, "out");
+  const outDir = join11(dir, "out");
   await rm2(outDir, { recursive: true, force: true });
   await mkdir3(outDir, { recursive: true });
   const files = [];
@@ -35057,15 +35069,15 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   const needsHtmlDir = wants("html") || wants("pdf");
   if (wants("html")) for (const [rel, content] of renderSite(input)) await put(outDir, `html/${rel}`, content, files);
   if (needsHtmlDir) {
-    await mkdir3(join10(outDir, "html", "assets"), { recursive: true });
-    await copyFile(join10(assetsDir, "mermaid.min.js"), join10(outDir, "html", "assets", "mermaid.min.js"));
+    await mkdir3(join11(outDir, "html", "assets"), { recursive: true });
+    await copyFile(join11(assetsDir, "mermaid.min.js"), join11(outDir, "html", "assets", "mermaid.min.js"));
     files.push("html/assets/mermaid.min.js");
     for (const [kind, ext] of [["img", "png"], ["gif", "gif"]]) {
       const set = kind === "img" ? media.images : media.gifs;
       if (!set.size) continue;
-      await mkdir3(join10(outDir, "html", "media", kind), { recursive: true });
+      await mkdir3(join11(outDir, "html", "media", kind), { recursive: true });
       for (const id of set) {
-        await copyFile(join10(dir, "media", kind, `${id}.${ext}`), join10(outDir, "html", "media", kind, `${id}.${ext}`));
+        await copyFile(join11(dir, "media", kind, `${id}.${ext}`), join11(outDir, "html", "media", kind, `${id}.${ext}`));
         files.push(`html/media/${kind}/${id}.${ext}`);
       }
     }
@@ -35084,7 +35096,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
         if (!browser) skipped.push({ format: "pdf", reason: "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)" });
         else {
           await put(outDir, "html/print.html", renderPrint(input), files);
-          const { diagramsReady } = await renderPdf(join10(outDir, "html", "print.html"), join10(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
+          const { diagramsReady } = await renderPdf(join11(outDir, "html", "print.html"), join11(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
           if (!diagramsReady && input.summary.workflows.length) warnings.push("PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4");
           files.push(`${base}.pdf`);
         }
@@ -35096,8 +35108,8 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
           const failed = diagrams.filter((d) => !d).length;
           if (failed) warnings.push(`\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 ${failed}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4`);
         } else if (input.summary.workflows.length) warnings.push("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4");
-        const buf = await renderPptx(input, { diagrams, mediaDir: join10(dir, "media") });
-        await writeFile3(join10(outDir, `${base}.pptx`), buf);
+        const buf = await renderPptx(input, { diagrams, mediaDir: join11(dir, "media") });
+        await writeFile3(join11(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);
       }
     } finally {
@@ -35108,24 +35120,24 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
 }
 
 // skills/docent/scripts/src/commands/capture.mjs
-import { join as join12 } from "node:path";
+import { join as join13 } from "node:path";
 
 // skills/docent/scripts/src/lib/media.mjs
 import { mkdir as mkdir4, rm as rm3, stat } from "node:fs/promises";
-import { join as join11 } from "node:path";
+import { join as join12 } from "node:path";
 function mediaPaths(projectDir) {
-  const root = join11(docentDir(projectDir), "media");
+  const root = join12(docentDir(projectDir), "media");
   return {
     root,
-    img: (id) => join11(root, "img", `${id}.png`),
-    gif: (id) => join11(root, "gif", `${id}.gif`),
-    fail: (id) => join11(root, "fail", `${id}.png`),
-    failures: join11(root, "failures.json")
+    img: (id) => join12(root, "img", `${id}.png`),
+    gif: (id) => join12(root, "gif", `${id}.gif`),
+    fail: (id) => join12(root, "fail", `${id}.png`),
+    failures: join12(root, "failures.json")
   };
 }
 async function ensureMediaDirs(projectDir) {
   const { root } = mediaPaths(projectDir);
-  for (const sub of ["img", "gif", "fail"]) await mkdir4(join11(root, sub), { recursive: true });
+  for (const sub of ["img", "gif", "fail"]) await mkdir4(join12(root, sub), { recursive: true });
 }
 async function readFailures(projectDir) {
   try {
@@ -35138,7 +35150,7 @@ var order = (a, b) => a.id === b.id ? a.kind < b.kind ? -1 : 1 : a.id < b.id ? -
 var sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
 async function withLock(path, fn) {
   const lock = `${path}.lock`;
-  await mkdir4(join11(lock, ".."), { recursive: true });
+  await mkdir4(join12(lock, ".."), { recursive: true });
   const deadline = Date.now() + 1e4;
   for (; ; ) {
     try {
@@ -35304,7 +35316,7 @@ function isLoginPath(path, loginPath) {
 }
 async function loadScenario(projectDir, id) {
   try {
-    return await readJsonIfExists(join12(docentDir(projectDir), "scenarios", `${id}.json`));
+    return await readJsonIfExists(join13(docentDir(projectDir), "scenarios", `${id}.json`));
   } catch {
     return void 0;
   }
@@ -35332,7 +35344,7 @@ async function openScreen(page2, { baseUrl, path, setup, loginPath }) {
 async function runCapture(projectDir, ids) {
   const run2 = await loadRun(projectDir);
   const config = await loadConfig(projectDir);
-  const inventory = await readJson(join12(docentDir(projectDir), "inventory.json"));
+  const inventory = await readJson(join13(docentDir(projectDir), "inventory.json"));
   const targets = ids?.length ? inventory.screens.filter((s) => ids.includes(s.id)) : inventory.screens;
   const paths = mediaPaths(projectDir);
   const loginPath = config.auth?.loginPath ?? "/login";
@@ -35379,7 +35391,7 @@ async function runCapture(projectDir, ids) {
 }
 
 // skills/docent/scripts/src/commands/crawl.mjs
-import { join as join13 } from "node:path";
+import { join as join14 } from "node:path";
 var LOGOUT = /(log[-_]?(out|off)|sign[-_]?(out|off))/i;
 var FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
 function escapeRegExp2(text) {
@@ -35413,7 +35425,7 @@ function followable(href, origin) {
 }
 async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const run2 = await loadRun(projectDir);
-  const inventory = await readJson(join13(docentDir(projectDir), "inventory.json"));
+  const inventory = await readJson(join14(docentDir(projectDir), "inventory.json"));
   const pages = inventory.screens.filter((s) => s.kind === "page" && s.route);
   const origin = new URL(run2.baseUrl).origin;
   const browser = await launchBrowser();
@@ -35451,7 +35463,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const unmatched = visited.filter((p) => !matchers.some(([, re]) => re.test(p))).sort();
   const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
   const result = { baseUrl: run2.baseUrl, visited: [...visited].sort(), unmatched, unreached };
-  await writeJson(join13(docentDir(projectDir), "crawl.json"), result);
+  await writeJson(join14(docentDir(projectDir), "crawl.json"), result);
   const warnings = [];
   const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
   if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
@@ -35462,7 +35474,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
 
 // skills/docent/scripts/src/commands/record.mjs
 import { writeFile as writeFile4 } from "node:fs/promises";
-import { join as join15 } from "node:path";
+import { join as join16 } from "node:path";
 
 // skills/docent/scripts/src/renderers/gif.mjs
 var gifencModule = __toESM(require_gifenc(), 1);
@@ -35495,7 +35507,7 @@ function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
 }
 
 // skills/docent/scripts/src/commands/scenarios.mjs
-import { join as join14 } from "node:path";
+import { join as join15 } from "node:path";
 function gifTargets(screens, config) {
   const { include = [], exclude = [] } = config.gif?.screens ?? {};
   return screens.filter((s) => include.length ? include.includes(s.id) : (s.actions ?? []).length > 0).filter((s) => !exclude.includes(s.id)).map((s) => s.id);
@@ -35505,10 +35517,10 @@ var needsPath = (entry) => entry.kind !== "page" || !entry.route || entry.route.
 async function runScenarios(projectDir) {
   const dir = docentDir(projectDir);
   const config = await loadConfig(projectDir);
-  const inventory = await readJson(join14(dir, "inventory.json"));
+  const inventory = await readJson(join15(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
   for (const { id } of inventory.screens) {
-    const s = await readJsonIfExists(join14(dir, "screens", `${id}.json`)).catch(() => void 0);
+    const s = await readJsonIfExists(join15(dir, "screens", `${id}.json`)).catch(() => void 0);
     if (s?.sourceHash) screens.set(id, s);
   }
   const gif = new Set(gifTargets([...screens.values()], config));
@@ -35516,7 +35528,7 @@ async function runScenarios(projectDir) {
   for (const entry of inventory.screens) {
     const screen = screens.get(entry.id);
     if (!screen) continue;
-    const scenario = await readJsonIfExists(join14(dir, "scenarios", `${entry.id}.json`)).catch(() => void 0);
+    const scenario = await readJsonIfExists(join15(dir, "scenarios", `${entry.id}.json`)).catch(() => void 0);
     if (!scenario) {
       if (needsPath(entry)) list.push({ id: entry.id, reason: "\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694" });
       else if (gif.has(entry.id)) list.push({ id: entry.id, reason: "GIF \uB300\uC0C1" });
@@ -35534,7 +35546,7 @@ var FPS = 10;
 var sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
 async function loadScreen(projectDir, id) {
   try {
-    return await readJsonIfExists(join15(docentDir(projectDir), "screens", `${id}.json`));
+    return await readJsonIfExists(join16(docentDir(projectDir), "screens", `${id}.json`));
   } catch {
     return void 0;
   }
@@ -35565,7 +35577,7 @@ async function recordSteps(page2, steps) {
 async function runRecord(projectDir, ids) {
   const run2 = await loadRun(projectDir);
   const config = await loadConfig(projectDir);
-  const inventory = await readJson(join15(docentDir(projectDir), "inventory.json"));
+  const inventory = await readJson(join16(docentDir(projectDir), "inventory.json"));
   const paths = mediaPaths(projectDir);
   const loginPath = config.auth?.loginPath ?? "/login";
   let targetIds = ids;
@@ -35645,7 +35657,7 @@ async function runRecord(projectDir, ids) {
 
 // skills/docent/scripts/src/commands/init.mjs
 import { access as access2, mkdir as mkdir5, readFile as readFile13, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join21 } from "node:path";
+import { join as join22 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -35655,11 +35667,11 @@ __export(nextjs_exports, {
   name: () => name
 });
 import { readFile as readFile9 } from "node:fs/promises";
-import { join as join17 } from "node:path";
+import { join as join18 } from "node:path";
 
 // skills/docent/scripts/src/detectors/shared.mjs
 import { readFile as readFile8, readdir as readdir3, stat as stat2 } from "node:fs/promises";
-import { join as join16, posix as posix2 } from "node:path";
+import { join as join17, posix as posix2 } from "node:path";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit", "dist", "build", "coverage"]);
 var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", ".vue", ".svelte", "/index.tsx", "/index.ts", "/index.jsx", "/index.js"];
 var IMPORT_PATTERNS = [
@@ -35712,7 +35724,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir3(join16(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir3(join17(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
@@ -35721,12 +35733,12 @@ async function walk(projectDir, rel) {
   return out;
 }
 async function hasDependency(projectDir, names) {
-  const pkg = await readJsonc(join16(projectDir, "package.json"));
+  const pkg = await readJsonc(join17(projectDir, "package.json"));
   return names.some((n) => Boolean(pkg?.dependencies?.[n] || pkg?.devDependencies?.[n]));
 }
 async function loadAliases(projectDir, extra = []) {
   for (const file of ["tsconfig.json", "jsconfig.json"]) {
-    const config = await readJsonc(join16(projectDir, file));
+    const config = await readJsonc(join17(projectDir, file));
     const paths = config?.compilerOptions?.paths;
     if (!paths) continue;
     const baseUrl = config.compilerOptions.baseUrl ?? ".";
@@ -35761,13 +35773,13 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
       } catch {
         continue;
       }
-      if (await isFile(join16(projectDir, rel))) return rel;
+      if (await isFile(join17(projectDir, rel))) return rel;
     }
   }
   return void 0;
 }
 async function screenFiles(projectDir, file, aliases) {
-  const source = await readFile8(join16(projectDir, file), "utf8");
+  const source = await readFile8(join17(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
   for (const pattern of IMPORT_PATTERNS) {
     for (const match of source.matchAll(pattern)) specs.add(match[1]);
@@ -35793,7 +35805,7 @@ async function detect(projectDir) {
   return hasDependency(projectDir, ["next"]);
 }
 async function describePage(projectDir, file, route, aliases) {
-  const source = await readFile9(join17(projectDir, file), "utf8");
+  const source = await readFile9(join18(projectDir, file), "utf8");
   return { route, files: await screenFiles(projectDir, file, aliases), evidence: `${file}:${lineOf(source, /\bexport\s+default\b/)}` };
 }
 function appRoute(dir, file) {
@@ -35810,7 +35822,7 @@ async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = [];
   for (const dir of ["app", "src/app"]) {
-    if (!await isDir(join17(projectDir, dir))) continue;
+    if (!await isDir(join18(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       if (/(^|\/)page\.(tsx|jsx|ts|js)$/.test(file)) {
         screens.push(await describePage(projectDir, file, appRoute(dir, file), aliases));
@@ -35818,7 +35830,7 @@ async function listScreens(projectDir) {
     }
   }
   for (const dir of ["pages", "src/pages"]) {
-    if (!await isDir(join17(projectDir, dir))) continue;
+    if (!await isDir(join18(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       const rel = file.slice(dir.length + 1);
       if (!PAGE_EXT.test(file) || rel.startsWith("api/") || /^_(app|document|error)\./.test(rel)) continue;
@@ -35836,7 +35848,7 @@ __export(react_router_exports, {
   name: () => name2
 });
 import { readFile as readFile10 } from "node:fs/promises";
-import { join as join18, posix as posix3 } from "node:path";
+import { join as join19, posix as posix3 } from "node:path";
 
 // skills/docent/scripts/src/detectors/route-tree.mjs
 var REDIRECTS = /* @__PURE__ */ new Set(["Navigate", "Redirect"]);
@@ -36187,7 +36199,7 @@ async function detect2(projectDir) {
 }
 async function routeConfigFile(projectDir) {
   for (const file of ["app/routes.ts", "app/routes.js", "app/routes.tsx", "app/routes.jsx"]) {
-    if (await isFile(join18(projectDir, file))) return file;
+    if (await isFile(join19(projectDir, file))) return file;
   }
   return void 0;
 }
@@ -36195,10 +36207,10 @@ function add(screens, route, files, evidence) {
   if (route !== void 0 && !screens.has(route)) screens.set(route, { route, files, evidence });
 }
 async function fromRouteConfig(projectDir, file, aliases, screens) {
-  const source = await readFile10(join18(projectDir, file), "utf8");
+  const source = await readFile10(join19(projectDir, file), "utf8");
   for (const { path, node } of flattenRoutes(parseRouteConfig(source))) {
     const target = posix3.join(posix3.dirname(file), node.component.importPath);
-    const files = await isFile(join18(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+    const files = await isFile(join19(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
     add(screens, toDocentPath(path), files, `${file}:${node.line}`);
   }
 }
@@ -36207,9 +36219,9 @@ async function componentFile(projectDir, file, source, component, aliases) {
   return spec ? resolveImport(projectDir, file, spec, aliases) : void 0;
 }
 async function fromCodeRouters(projectDir, aliases, screens) {
-  const root = await isDir(join18(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join19(projectDir, "src")) ? "src" : "";
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f)).sort()) {
-    const source = await readFile10(join18(projectDir, file), "utf8");
+    const source = await readFile10(join19(projectDir, file), "utf8");
     if (!ROUTER_HINT.test(source)) continue;
     const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];
     for (const { path, node } of routes) {
@@ -36236,7 +36248,7 @@ __export(sveltekit_exports, {
   name: () => name3
 });
 import { readFile as readFile11 } from "node:fs/promises";
-import { join as join19, posix as posix4 } from "node:path";
+import { join as join20, posix as posix4 } from "node:path";
 var name3 = "sveltekit";
 var ROUTES = "src/routes";
 var LIB_ALIASES = [
@@ -36252,7 +36264,7 @@ function routeOf(file) {
   return "/" + parts.map((p) => p.replace(/^(\[{1,2}(?:\.\.\.)?[^\]=]+)=[^\]]+(\]{1,2})$/, "$1$2")).join("/");
 }
 async function listScreens3(projectDir) {
-  if (!await isDir(join19(projectDir, ROUTES))) return [];
+  if (!await isDir(join20(projectDir, ROUTES))) return [];
   const aliases = await loadAliases(projectDir, LIB_ALIASES);
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
@@ -36261,9 +36273,9 @@ async function listScreens3(projectDir) {
     const dir = posix4.dirname(file);
     for (const loader of LOADERS) {
       const path = `${dir}/${loader}`;
-      if (await isFile(join19(projectDir, path)) && !imports.includes(path)) imports.push(path);
+      if (await isFile(join20(projectDir, path)) && !imports.includes(path)) imports.push(path);
     }
-    const source = await readFile11(join19(projectDir, file), "utf8");
+    const source = await readFile11(join20(projectDir, file), "utf8");
     screens.push({ route: routeOf(file), files: [page2, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
   }
   return screens.sort(byRoute);
@@ -36277,7 +36289,7 @@ __export(vue_exports, {
   name: () => name4
 });
 import { readFile as readFile12 } from "node:fs/promises";
-import { join as join20 } from "node:path";
+import { join as join21 } from "node:path";
 var name4 = "vue";
 var VUE_ALIASES = [{ prefix: "@/", wildcard: true, targets: ["src/*"] }];
 var NUXT_ALIASES = [
@@ -36298,8 +36310,8 @@ function pageRoute(pagesDir, file) {
   return "/" + parts.join("/");
 }
 async function nuxtScreens(projectDir) {
-  const pagesDir = await isDir(join20(projectDir, "app", "pages")) ? "app/pages" : "pages";
-  if (!await isDir(join20(projectDir, pagesDir))) return [];
+  const pagesDir = await isDir(join21(projectDir, "app", "pages")) ? "app/pages" : "pages";
+  if (!await isDir(join21(projectDir, pagesDir))) return [];
   const aliases = await loadAliases(projectDir, NUXT_ALIASES);
   const files = (await walk(projectDir, pagesDir)).filter((f) => f.endsWith(".vue"));
   const dirs = new Set(files.map((f) => f.slice(0, f.lastIndexOf("/"))));
@@ -36308,7 +36320,7 @@ async function nuxtScreens(projectDir) {
     if (dirs.has(file.replace(/\.vue$/, ""))) continue;
     const route = pageRoute(pagesDir, file);
     if (isCatchAllOnly(route)) continue;
-    const source = await readFile12(join20(projectDir, file), "utf8");
+    const source = await readFile12(join21(projectDir, file), "utf8");
     const list = await screenFiles(projectDir, file, aliases);
     const parent = file.endsWith("/index.vue") ? `${file.slice(0, -"/index.vue".length)}.vue` : void 0;
     if (parent && files.includes(parent) && !list.includes(parent)) list.push(parent);
@@ -36318,17 +36330,17 @@ async function nuxtScreens(projectDir) {
 }
 async function routerScreens(projectDir) {
   const aliases = await loadAliases(projectDir, VUE_ALIASES);
-  const root = await isDir(join20(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join21(projectDir, "src")) ? "src" : "";
   const screens = /* @__PURE__ */ new Map();
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT2.test(f)).sort()) {
-    const source = await readFile12(join20(projectDir, file), "utf8");
+    const source = await readFile12(join21(projectDir, file), "utf8");
     if (!/createRouter\s*\(|RouteRecordRaw/.test(source) && !/(^|\/)router\//.test(file)) continue;
     for (const { path, node } of flattenRoutes(parseRouteObjects(source))) {
       const route = toDocentPath(path);
       if (route === void 0 || screens.has(route)) continue;
       const spec = node.component.importPath ?? findImport(source, node.component.name);
       const target = spec ? await resolveImport(projectDir, file, spec, aliases) : void 0;
-      const files = target && await isFile(join20(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+      const files = target && await isFile(join21(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
       screens.set(route, { route, files, evidence: `${file}:${node.line}` });
     }
   }
@@ -36400,7 +36412,7 @@ async function exists2(path) {
 async function runInit(projectDir) {
   const dir = docentDir(projectDir);
   await mkdir5(dir, { recursive: true });
-  const ignorePath = join21(dir, ".gitignore");
+  const ignorePath = join22(dir, ".gitignore");
   if (!await exists2(ignorePath)) {
     await writeFile5(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
   } else {
@@ -36409,7 +36421,7 @@ async function runInit(projectDir) {
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
     if (missing.length) await writeFile5(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join21(dir, "config.yaml");
+  const configPath = join22(dir, "config.yaml");
   if (await exists2(configPath)) {
     return { created: false, detectors: (await loadConfig(projectDir)).detectors };
   }
@@ -36423,7 +36435,7 @@ async function runInit(projectDir) {
 
 // skills/docent/scripts/src/commands/inventory.mjs
 import { access as access3 } from "node:fs/promises";
-import { join as join22 } from "node:path";
+import { join as join23 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash3 } from "node:crypto";
@@ -36491,7 +36503,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join22(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join23(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
     return [];
@@ -36513,7 +36525,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join22(projectDir, file))) {
+    if (!await fileExists(join23(projectDir, file))) {
       problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
       return void 0;
     }
@@ -36528,7 +36540,7 @@ async function checkEntry(projectDir, label, entry, problems) {
 async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
-  const previous = await readJsonIfExists(join22(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join23(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
@@ -36579,7 +36591,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join22(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join23(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -36607,17 +36619,17 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
-  await writeJson(join22(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join23(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
 import { readFile as readFile15 } from "node:fs/promises";
-import { join as join24 } from "node:path";
+import { join as join25 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
 import { readFile as readFile14, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join23 } from "node:path";
+import { join as join24 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
   "",
@@ -36693,21 +36705,21 @@ function renderReview(screens, previous, extra = {}) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join23(dir, "inventory.json"));
+  const inventory = await readJson(join24(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join23(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join24(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join23(dir, "review.md");
+  const path = join24(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
     previous = parseReview(await readFile14(path, "utf8"));
   } catch {
   }
-  const crawl = await readJsonIfExists(join23(dir, "crawl.json")).catch(() => void 0);
+  const crawl = await readJsonIfExists(join24(dir, "crawl.json")).catch(() => void 0);
   const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
   const failures = await readFailures(projectDir);
   const text = renderReview(screens, previous, { crawl, routes, failures });
@@ -36718,17 +36730,17 @@ async function runReview(projectDir) {
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join24(dir, "inventory.json"));
+  const inventory = await readJson(join25(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile15(join24(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile15(join25(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join24(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join25(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -36758,19 +36770,19 @@ async function runPending(projectDir) {
 
 // skills/docent/scripts/src/commands/session.mjs
 import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
-import { join as join25 } from "node:path";
+import { join as join26 } from "node:path";
 async function startSession(projectDir) {
   await mkdir6(docentDir(projectDir), { recursive: true });
-  await writeFile7(join25(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile7(join26(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm4(join25(docentDir(projectDir), ".session"), { force: true });
+  await rm4(join26(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join26 } from "node:path";
+import { join as join27 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -36783,13 +36795,13 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join26(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join27(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
 // skills/docent/scripts/src/commands/update.mjs
 import { access as access4, readdir as readdir4 } from "node:fs/promises";
-import { join as join27 } from "node:path";
+import { join as join28 } from "node:path";
 async function exists3(path) {
   try {
     await access4(path);
@@ -36807,16 +36819,16 @@ async function idsIn(dir, ext) {
 }
 async function runUpdate(projectDir) {
   const dir = docentDir(projectDir);
-  const before = new Set((await readJsonIfExists(join27(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
+  const before = new Set((await readJsonIfExists(join28(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
   const { inventory, problems } = await runInventory(projectDir);
   const now = new Set(inventory.screens.map((s) => s.id));
   const added = [...now].filter((id) => !before.has(id)).sort();
   const media = mediaPaths(projectDir);
   const leftovers = /* @__PURE__ */ new Set([
-    ...await idsIn(join27(dir, "screens"), ".json"),
-    ...await idsIn(join27(dir, "scenarios"), ".json"),
-    ...await idsIn(join27(media.root, "img"), ".png"),
-    ...await idsIn(join27(media.root, "gif"), ".gif")
+    ...await idsIn(join28(dir, "screens"), ".json"),
+    ...await idsIn(join28(dir, "scenarios"), ".json"),
+    ...await idsIn(join28(media.root, "img"), ".png"),
+    ...await idsIn(join28(media.root, "gif"), ".gif")
   ]);
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
   const reanalyze = await runPending(projectDir);
@@ -36824,7 +36836,7 @@ async function runUpdate(projectDir) {
     const gone = new Set(removed);
     for (const { id } of inventory.screens) {
       if (reanalyze.some((x) => x.id === id)) continue;
-      const s = await readJsonIfExists(join27(dir, "screens", `${id}.json`)).catch(() => void 0);
+      const s = await readJsonIfExists(join28(dir, "screens", `${id}.json`)).catch(() => void 0);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
       if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870" });
     }
@@ -36858,7 +36870,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join28(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join29(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
