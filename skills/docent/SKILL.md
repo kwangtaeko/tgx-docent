@@ -25,6 +25,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 | --- | --- |
 | `$DOCENT init` | `.docent/config.yaml`, `.docent/.gitignore` 생성(있으면 유지), 프레임워크 감지 |
 | `$DOCENT inventory` | 감지기 결과 + `.docent/inventory.agent.json`을 합쳐 `.docent/inventory.json` 작성 |
+| `$DOCENT update` | 코드가 바뀐 뒤 계획: 새 화면, 삭제 후보, 다시 분석·시나리오·캡처할 화면 |
 | `$DOCENT pending` | 다시 분석할 화면 목록(분석 결과 없음·소스 변경·사용자가 답한 확인 항목) |
 | `$DOCENT hash <파일…>` | 화면 JSON의 `sourceHash` 값 계산 |
 | `$DOCENT validate` | 스키마·근거·연결·해시 검사 (문제 있으면 exit 1) |
@@ -88,6 +89,17 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 ### 7. 산출물
 
 `$DOCENT build` → `.docent/out/html/index.html`과 `.docent/out/README.md` 위치를 알립니다. 마지막으로 `$DOCENT session end`.
+
+## 갱신 (`/docent-update`)
+
+코드가 바뀐 뒤 바뀐 화면만 다시 처리합니다.
+
+1. `$DOCENT session start` → `$DOCENT update`로 계획을 봅니다
+2. **삭제 후보**(라우트가 사라진 화면)는 사용자에게 보여 주고, 지워도 된다고 하면 `.docent/screens/<id>.json`, `.docent/scenarios/<id>.json`, `.docent/media/*/<id>.*`를 지우고 `summary.json`에서 그 화면을 뺍니다(summary-writer로 다시 써도 됨)
+3. **다시 분석** 화면마다 screen-analyzer(3단계와 같음) → `$DOCENT validate`
+4. 화면이 바뀌었으면 summary-writer로 소개·워크플로우를 다시 씁니다
+5. **시나리오 작성** 화면마다 scenario-writer → 앱이 떠 있으면(6단계) `$DOCENT capture <다시 캡처 화면…>`·`$DOCENT record`
+6. `$DOCENT review` → `$DOCENT build`(지난번과 같은 프리셋·형식) → `$DOCENT session end`
 
 ## 참고 문서
 

@@ -15076,7 +15076,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join24(s) {
+      BufferList.prototype.join = function join25(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -24987,8 +24987,8 @@ var require_gifenc = __commonJS({
           }
         }
         const color = hasAlpha ? [r, g, b, a] : [r, g, b];
-        const exists3 = existsInPalette(palette, color);
-        if (!exists3)
+        const exists4 = existsInPalette(palette, color);
+        if (!exists4)
           palette.push(color);
         if ((i = bins[i].fw) == 0)
           break;
@@ -27436,7 +27436,7 @@ var require_png = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join23, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join24, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/auth.mjs
@@ -34729,16 +34729,16 @@ function hasEdge(screens, a, b) {
   return s.parentId === b || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
 }
 function checkSummary(summary, screens, known, problems) {
-  const exists3 = (id) => known.has(id);
+  const exists4 = (id) => known.has(id);
   const loaded = (id) => screens.has(id);
   const supported = (ids) => ids.some((id) => !loaded(id) || screens.get(id).purpose.confidence !== "low");
   const claims = [["\uD55C \uC904 \uC18C\uAC1C", summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
-    for (const id of claim.screens) if (!exists3(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
+    for (const id of claim.screens) if (!exists4(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
     if (!supported(claim.screens)) problems.push(`summary.json: "${label}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD655\uC2E0\uB3C4 \uB192\uC740 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4`);
   }
   for (const wf of summary.workflows) {
-    const missing = wf.steps.filter((id) => !exists3(id));
+    const missing = wf.steps.filter((id) => !exists4(id));
     if (missing.length) {
       problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${missing.join(", ")}`);
       continue;
@@ -36047,12 +36047,52 @@ async function runtimeInstall() {
   return runtimeStatus();
 }
 
+// skills/docent/scripts/src/commands/update.mjs
+import { access as access4, readdir as readdir4 } from "node:fs/promises";
+import { join as join23 } from "node:path";
+async function exists3(path) {
+  try {
+    await access4(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function idsIn(dir, ext) {
+  try {
+    return (await readdir4(dir)).filter((n) => n.endsWith(ext)).map((n) => n.slice(0, -ext.length));
+  } catch {
+    return [];
+  }
+}
+async function runUpdate(projectDir) {
+  const dir = docentDir(projectDir);
+  const before = new Set((await readJsonIfExists(join23(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
+  const { inventory } = await runInventory(projectDir);
+  const now = new Set(inventory.screens.map((s) => s.id));
+  const added = [...now].filter((id) => !before.has(id)).sort();
+  const media = mediaPaths(projectDir);
+  const leftovers = /* @__PURE__ */ new Set([
+    ...await idsIn(join23(dir, "screens"), ".json"),
+    ...await idsIn(join23(dir, "scenarios"), ".json"),
+    ...await idsIn(join23(media.root, "img"), ".png"),
+    ...await idsIn(join23(media.root, "gif"), ".gif")
+  ]);
+  const removed = [...leftovers].filter((id) => !now.has(id)).sort();
+  const reanalyze = await runPending(projectDir);
+  const rescenario = await runScenarios(projectDir);
+  const recapture = [];
+  for (const { id } of reanalyze) if (await exists3(media.img(id))) recapture.push(id);
+  return { added, removed, reanalyze, rescenario, recapture };
+}
+
 // skills/docent/scripts/src/docent.mjs
 var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]
 
 \uBA85\uB839:
   init           \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
   inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
+  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)
   pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4
   validate       \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
@@ -36069,7 +36109,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join23(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join24(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -36099,6 +36139,16 @@ async function main() {
       console.log(`\uD654\uBA74 ${inventory.screens.length}\uAC1C (page ${pages}, \uD558\uC704 \uD654\uBA74 ${inventory.screens.length - pages})`);
       for (const s of inventory.screens) console.log(`- ${s.id}	${s.route ?? `(${s.parentId}\uC758 \uD558\uC704 \uD654\uBA74)`}	${s.source}`);
       listProblems("\uC81C\uC678\uD55C \uD56D\uBAA9:", problems);
+      return 0;
+    }
+    case "update": {
+      const r = await runUpdate(project);
+      const show = (title2, list) => console.log(`${title2}: ${list.length ? list.join(", ") : "\uC5C6\uC74C"}`);
+      show("\uC0C8 \uD654\uBA74", r.added);
+      show("\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)", r.removed);
+      show("\uB2E4\uC2DC \uBD84\uC11D", r.reanalyze.map((x) => `${x.id}(${x.reason})`));
+      show("\uC2DC\uB098\uB9AC\uC624 \uC791\uC131", r.rescenario.map((x) => `${x.id}(${x.reason})`));
+      show("\uB2E4\uC2DC \uCEA1\uCC98", r.recapture);
       return 0;
     }
     case "pending": {

@@ -14,6 +14,7 @@ import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
 import { runApprove, runStart, runStatus, runStop } from './commands/run.mjs';
 import { runtimeInstall, runtimeStatus } from './commands/runtime.mjs';
+import { runUpdate } from './commands/update.mjs';
 import { runValidate } from './commands/validate.mjs';
 import { PlaywrightMissing } from './lib/playwright.mjs';
 import { hashFiles } from './lib/source-hash.mjs';
@@ -23,6 +24,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
 명령:
   init           프로젝트를 파악해 .docent/config.yaml을 만듭니다
   inventory      화면 목록(.docent/inventory.json)을 만듭니다
+  update         코드가 바뀐 뒤 다시 할 일(새 화면·삭제 후보·재분석·시나리오·재캡처)
   pending        다시 분석할 화면(결과 없음·소스 변경·확인 항목 답변)을 보여 줍니다
   validate       분석 결과의 스키마·근거·연결을 검사합니다
   review         확인 필요 항목(.docent/review.md)을 모읍니다
@@ -73,6 +75,16 @@ async function main() {
       console.log(`화면 ${inventory.screens.length}개 (page ${pages}, 하위 화면 ${inventory.screens.length - pages})`);
       for (const s of inventory.screens) console.log(`- ${s.id}\t${s.route ?? `(${s.parentId}의 하위 화면)`}\t${s.source}`);
       listProblems('제외한 항목:', problems);
+      return 0;
+    }
+    case 'update': {
+      const r = await runUpdate(project);
+      const show = (title, list) => console.log(`${title}: ${list.length ? list.join(', ') : '없음'}`);
+      show('새 화면', r.added);
+      show('삭제 후보(자동으로 지우지 않음)', r.removed);
+      show('다시 분석', r.reanalyze.map((x) => `${x.id}(${x.reason})`));
+      show('시나리오 작성', r.rescenario.map((x) => `${x.id}(${x.reason})`));
+      show('다시 캡처', r.recapture);
       return 0;
     }
     case 'pending': {
