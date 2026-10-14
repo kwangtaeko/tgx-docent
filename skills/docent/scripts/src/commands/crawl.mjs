@@ -1,0 +1,89 @@
+// docent crawl — 실행 중인 앱을 링크로 돌아다니며 화면 목록과 대조한다. (설계 문서 6장 3번)
+import { join } from 'node:path';
+import { launchBrowser } from '../lib/playwright.mjs';
+import { docentDir, readJson, writeJson } from '../lib/workspace.mjs';
+import { newContext } from './auth.mjs';
+import { loadRun } from './run.mjs';
+
+const SKIP_PATH = /(^|\/)(log-?out|sign-?out)(\/|$)/i;
+const FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// inventory 라우트 → 실제 경로에 맞는 정규식
+export function routeMatcher(route) {
+  let body = '';
+  for (const seg of route.split('/').filter(Boolean)) {
+    if (/^\(.*\)$/.test(seg) || seg.startsWith('@')) continue; // route group·병렬 슬롯
+    if (/^\[\[\.\.\..+\]\]$/.test(seg)) body += '(?:/.+)?';
+    else if (/^\[\.\.\..+\]$/.test(seg)) body += '/.+';
+    else if (/^\[.+\]$/.test(seg)) body += '/[^/]+';
+    else body += '/' + escapeRegExp(seg.replace(/^\(\.{1,3}\)+/, ''));
+  }
+  return new RegExp(`^${body || '/'}$`);
+}
+
+function normalizePath(pathname) {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+}
+
+function followable(href, origin) {
+  let url;
+  try {
+    url = new URL(href);
+  } catch {
+    return undefined;
+  }
+  if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return undefined;
+  const path = normalizePath(url.pathname);
+  if (SKIP_PATH.test(path) || FILE_EXT.test(path)) return undefined;
+  return path;
+}
+
+export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
+  const run = await loadRun(projectDir);
+  const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
+  const pages = inventory.screens.filter((s) => s.kind === 'page' && s.route);
+  const origin = new URL(run.baseUrl).origin;
+
+  const browser = await launchBrowser();
+  const visited = [];
+  try {
+    const context = await newContext(browser, projectDir);
+    const page = await context.newPage();
+    const seen = new Set(['/']);
+    const queue = [{ path: normalizePath(new URL(run.baseUrl).pathname), depth: 0 }];
+    seen.add(queue[0].path);
+    while (queue.length && visited.length < maxPages) {
+      const { path, depth } = queue.shift();
+      try {
+        await page.goto(new URL(path, origin).href, { waitUntil: 'load', timeout: 15000 });
+      } catch {
+        continue;
+      }
+      const landed = normalizePath(new URL(page.url()).pathname);
+      if (new URL(page.url()).origin !== origin) continue;
+      if (!visited.includes(landed)) visited.push(landed);
+      if (depth >= maxDepth) continue;
+      const hrefs = await page.$$eval('a[href]', (as) => as.map((a) => a.href));
+      for (const href of hrefs) {
+        const next = followable(href, origin);
+        if (next && !seen.has(next)) {
+          seen.add(next);
+          queue.push({ path: next, depth: depth + 1 });
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+
+  const matchers = pages.map((s) => [s.id, routeMatcher(s.route)]);
+  const unmatched = visited.filter((p) => !matchers.some(([, re]) => re.test(p))).sort();
+  const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
+  const result = { baseUrl: run.baseUrl, visited: [...visited].sort(), unmatched, unreached };
+  await writeJson(join(docentDir(projectDir), 'crawl.json'), result);
+  return { visited, unmatched, unreached };
+}

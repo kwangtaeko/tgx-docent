@@ -1,0 +1,55 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { routeMatcher, runCrawl } from '../../skills/docent/scripts/src/commands/crawl.mjs';
+import { closeBrowser } from '../helpers/browser.mjs';
+import { writeJsonFile } from '../helpers/fixture.mjs';
+import { page, siteProject, startTestSite } from '../helpers/web.mjs';
+
+const HOME = page('홈', `
+  <a href="/a">A</a> <a href="/items/1">아이템</a> <a href="https://example.com/x">외부</a>
+  <a href="mailto:x@y.z">메일</a> <a href="/files/r.pdf">PDF</a> <a href="/logout">로그아웃</a>
+  <a href="/hidden?x=1#h">숨은</a> <a href="javascript:void(0)">js</a>`);
+
+const site = await startTestSite({
+  pages: { '/': HOME, '/a': page('A', '<a href="/">홈</a>'), '/items/1': page('아이템'), '/hidden': page('숨은 화면'), '/files/r.pdf': 'pdf' },
+});
+after(async () => {
+  await site.close();
+  await closeBrowser();
+});
+
+async function project() {
+  const dir = await siteProject(site.url);
+  const entry = (id, route) => ({ id, route, kind: 'page', files: ['x.ts'], evidence: 'x.ts:1', source: 'agent' });
+  await writeJsonFile(join(dir, '.docent', 'inventory.json'), {
+    version: 1,
+    screens: [entry('home', '/'), entry('a', '/a'), entry('items-id', '/items/[id]'), entry('never', '/never')],
+  });
+  return dir;
+}
+
+test('같은 출처 링크만 따라가고 대조 결과를 저장한다', async () => {
+  const dir = await project();
+  const r = await runCrawl(dir);
+  assert.deepEqual([...r.visited].sort(), ['/', '/a', '/hidden', '/items/1']);
+  assert.deepEqual(r.unmatched, ['/hidden']);
+  assert.deepEqual(r.unreached, ['never']);
+  const saved = JSON.parse(await readFile(join(dir, '.docent', 'crawl.json'), 'utf8'));
+  assert.deepEqual(saved, { baseUrl: site.url, visited: [...r.visited].sort(), unmatched: ['/hidden'], unreached: ['never'] });
+});
+
+test('maxPages', async () => {
+  const dir = await project();
+  assert.equal((await runCrawl(dir, { maxPages: 2 })).visited.length, 2);
+});
+
+test('routeMatcher', () => {
+  assert.ok(routeMatcher('/(shop)/items/[...slug]').test('/items/a/b'));
+  assert.ok(routeMatcher('/items/[id]').test('/items/1'));
+  assert.ok(!routeMatcher('/items/[id]').test('/items/1/edit'));
+  assert.ok(routeMatcher('/docs/[[...slug]]').test('/docs'));
+  assert.ok(routeMatcher('/').test('/'));
+  assert.ok(!routeMatcher('/').test('/a'));
+});

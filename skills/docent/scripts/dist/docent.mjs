@@ -308,13 +308,13 @@ var require_directives = __commonJS({
        * @param onError - May be called even if the action was successful
        * @returns `true` on success
        */
-      add(line, onError) {
+      add(line2, onError) {
         if (this.atNextDocument) {
           this.yaml = { explicit: _Directives.defaultYaml.explicit, version: "1.1" };
           this.tags = Object.assign({}, _Directives.defaultTags);
           this.atNextDocument = false;
         }
-        const parts = line.trim().split(/[ \t]+/);
+        const parts = line2.trim().split(/[ \t]+/);
         const name2 = parts.shift();
         switch (name2) {
           case "%TAG": {
@@ -1911,9 +1911,9 @@ var require_stringifyCollection = __commonJS({
       } else {
         str = lines[0];
         for (let i = 1; i < lines.length; ++i) {
-          const line = lines[i];
-          str += line ? `
-${indent}${line}` : "\n";
+          const line2 = lines[i];
+          str += line2 ? `
+${indent}${line2}` : "\n";
         }
       }
       if (comment) {
@@ -1971,7 +1971,7 @@ ${indent}${line}` : "\n";
           str += ",";
         } else if (ctx.options.trailingComma) {
           if (ctx.options.lineWidth > 0) {
-            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str.length + 2) > ctx.options.lineWidth);
+            reqNewline || (reqNewline = lines.reduce((sum, line2) => sum + line2.length + 2, 2) + (str.length + 2) > ctx.options.lineWidth);
           }
           if (reqNewline) {
             str += ",";
@@ -1987,14 +1987,14 @@ ${indent}${line}` : "\n";
         return start + end;
       } else {
         if (!reqNewline) {
-          const len = lines.reduce((sum, line) => sum + line.length + 2, 2);
+          const len = lines.reduce((sum, line2) => sum + line2.length + 2, 2);
           reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
         }
         if (reqNewline) {
           let str = start;
-          for (const line of lines)
-            str += line ? `
-${indentStep}${indent}${line}` : "\n";
+          for (const line2 of lines)
+            str += line2 ? `
+${indentStep}${indent}${line2}` : "\n";
           return `${str}
 ${indent}${end}`;
         } else {
@@ -3737,10 +3737,10 @@ var require_errors = __commonJS({
       if (error.pos[0] === -1)
         return;
       error.linePos = error.pos.map((pos) => lc.linePos(pos));
-      const { line, col } = error.linePos[0];
-      error.message += ` at line ${line}, column ${col}`;
+      const { line: line2, col } = error.linePos[0];
+      error.message += ` at line ${line2}, column ${col}`;
       let ci = col - 1;
-      let lineStr = src.substring(lc.lineStarts[line - 1], lc.lineStarts[line]).replace(/[\n\r]+$/, "");
+      let lineStr = src.substring(lc.lineStarts[line2 - 1], lc.lineStarts[line2]).replace(/[\n\r]+$/, "");
       if (ci >= 60 && lineStr.length > 80) {
         const trimStart = Math.min(ci - 39, lineStr.length - 79);
         lineStr = "\u2026" + lineStr.substring(trimStart);
@@ -3748,8 +3748,8 @@ var require_errors = __commonJS({
       }
       if (lineStr.length > 80)
         lineStr = lineStr.substring(0, 79) + "\u2026";
-      if (line > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
-        let prev = src.substring(lc.lineStarts[line - 2], lc.lineStarts[line - 1]);
+      if (line2 > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
+        let prev = src.substring(lc.lineStarts[line2 - 2], lc.lineStarts[line2 - 1]);
         if (prev.length > 80)
           prev = prev.substring(0, 79) + "\u2026\n";
         lineStr = prev + lineStr;
@@ -3757,7 +3757,7 @@ var require_errors = __commonJS({
       if (/[^ ]/.test(lineStr)) {
         let count = 1;
         const end = error.linePos[1];
-        if (end?.line === line && end.col > col) {
+        if (end?.line === line2 && end.col > col) {
           count = Math.max(1, Math.min(end.col - col, 80 - ci));
         }
         const pointer = " ".repeat(ci) + "^".repeat(count);
@@ -4706,8 +4706,8 @@ var require_resolve_flow_scalar = __commonJS({
       return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
     }
     function unfoldLines(source) {
-      const line = /(.*?)\r?\n/sy;
-      let match = line.exec(source);
+      const line2 = /(.*?)\r?\n/sy;
+      let match = line2.exec(source);
       if (!match)
         return source;
       let trimEnd, trimBoth;
@@ -4720,8 +4720,8 @@ var require_resolve_flow_scalar = __commonJS({
       }
       let res = match[1].replace(trimEnd, "");
       let sep2 = " ";
-      let pos = line.lastIndex;
-      while (match = line.exec(source)) {
+      let pos = line2.lastIndex;
+      while (match = line2.exec(source)) {
         const lm = match[1].replace(trimBoth, "");
         if (lm === "") {
           if (sep2 === "\n")
@@ -4732,7 +4732,7 @@ var require_resolve_flow_scalar = __commonJS({
           res += sep2 + lm;
           sep2 = " ";
         }
-        pos = line.lastIndex;
+        pos = line2.lastIndex;
       }
       const last = /[ \t]*(.*)/sy;
       last.lastIndex = pos;
@@ -5862,40 +5862,40 @@ var require_lexer = __commonJS({
         }
       }
       *parseStream() {
-        let line = this.getLine();
-        if (line === null)
+        let line2 = this.getLine();
+        if (line2 === null)
           return this.setNext("stream");
-        if (line[0] === cst.BOM) {
+        if (line2[0] === cst.BOM) {
           yield* this.pushCount(1);
-          line = line.substring(1);
+          line2 = line2.substring(1);
         }
-        if (line[0] === "%") {
-          let dirEnd = line.length;
-          let cs = line.indexOf("#");
+        if (line2[0] === "%") {
+          let dirEnd = line2.length;
+          let cs = line2.indexOf("#");
           while (cs !== -1) {
-            const ch = line[cs - 1];
+            const ch = line2[cs - 1];
             if (ch === " " || ch === "	") {
               dirEnd = cs - 1;
               break;
             } else {
-              cs = line.indexOf("#", cs + 1);
+              cs = line2.indexOf("#", cs + 1);
             }
           }
           while (true) {
-            const ch = line[dirEnd - 1];
+            const ch = line2[dirEnd - 1];
             if (ch === " " || ch === "	")
               dirEnd -= 1;
             else
               break;
           }
           const n = (yield* this.pushCount(dirEnd)) + (yield* this.pushSpaces(true));
-          yield* this.pushCount(line.length - n);
+          yield* this.pushCount(line2.length - n);
           this.pushNewline();
           return "stream";
         }
         if (this.atLineEnd()) {
           const sp = yield* this.pushSpaces(true);
-          yield* this.pushCount(line.length - sp);
+          yield* this.pushCount(line2.length - sp);
           yield* this.pushNewline();
           return "stream";
         }
@@ -5936,13 +5936,13 @@ var require_lexer = __commonJS({
       }
       *parseDocument() {
         yield* this.pushSpaces(true);
-        const line = this.getLine();
-        if (line === null)
+        const line2 = this.getLine();
+        if (line2 === null)
           return this.setNext("doc");
         let n = yield* this.pushIndicators();
-        switch (line[n]) {
+        switch (line2[n]) {
           case "#":
-            yield* this.pushCount(line.length - n);
+            yield* this.pushCount(line2.length - n);
           // fallthrough
           case void 0:
             yield* this.pushNewline();
@@ -5967,7 +5967,7 @@ var require_lexer = __commonJS({
           case ">":
             n += yield* this.parseBlockScalarHeader();
             n += yield* this.pushSpaces(true);
-            yield* this.pushCount(line.length - n);
+            yield* this.pushCount(line2.length - n);
             yield* this.pushNewline();
             return yield* this.parseBlockScalar();
           default:
@@ -5987,11 +5987,11 @@ var require_lexer = __commonJS({
           }
           sp += yield* this.pushSpaces(true);
         } while (nl + sp > 0);
-        const line = this.getLine();
-        if (line === null)
+        const line2 = this.getLine();
+        if (line2 === null)
           return this.setNext("flow");
-        if (indent !== -1 && indent < this.indentNext && line[0] !== "#" || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
-          const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line[0] === "]" || line[0] === "}");
+        if (indent !== -1 && indent < this.indentNext && line2[0] !== "#" || indent === 0 && (line2.startsWith("---") || line2.startsWith("...")) && isEmpty(line2[3])) {
+          const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line2[0] === "]" || line2[0] === "}");
           if (!atFlowEndMarker) {
             this.flowLevel = 0;
             yield cst.FLOW_END;
@@ -5999,17 +5999,17 @@ var require_lexer = __commonJS({
           }
         }
         let n = 0;
-        while (line[n] === ",") {
+        while (line2[n] === ",") {
           n += yield* this.pushCount(1);
           n += yield* this.pushSpaces(true);
           this.flowKey = false;
         }
         n += yield* this.pushIndicators();
-        switch (line[n]) {
+        switch (line2[n]) {
           case void 0:
             return "flow";
           case "#":
-            yield* this.pushCount(line.length - n);
+            yield* this.pushCount(line2.length - n);
             return "flow";
           case "{":
           case "[":
@@ -7584,13 +7584,13 @@ var require_scope = __commonJS({
       }
     };
     exports.ValueScopeName = ValueScopeName;
-    var line = (0, code_1._)`\n`;
+    var line2 = (0, code_1._)`\n`;
     var ValueScope = class extends Scope {
       constructor(opts) {
         super(opts);
         this._values = {};
         this._scope = opts.scope;
-        this.opts = { ...opts, _n: opts.lines ? line : code_1.nil };
+        this.opts = { ...opts, _n: opts.lines ? line2 : code_1.nil };
       }
       get() {
         return this._scope;
@@ -14796,7 +14796,7 @@ var require__ = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join16, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join17, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/auth.mjs
@@ -15629,6 +15629,18 @@ async function runStatus(projectDir) {
 
 // skills/docent/scripts/src/commands/auth.mjs
 var statePath = (projectDir) => join5(docentDir(projectDir), "auth", "state.json");
+async function exists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function newContext(browser, projectDir, options = {}) {
+  const state = statePath(projectDir);
+  return browser.newContext({ ...options, ...await exists(state) ? { storageState: state } : {} });
+}
 async function authLogin(projectDir) {
   const { auth } = await loadConfig(projectDir);
   if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
@@ -16026,7 +16038,7 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   let window;
   if ("symbol" in ev2) {
     const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev2.symbol)}($|[^\\w$])`);
-    const hits = lines.flatMap((line, i) => pattern.test(line) ? [i] : []);
+    const hits = lines.flatMap((line2, i) => pattern.test(line2) ? [i] : []);
     if (hits.length === 0) {
       return { ok: false, reason: `${ev2.file}\uC5D0 ${ev2.symbol} \uC5C6\uC74C` };
     }
@@ -16038,7 +16050,7 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
     }
     window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
-  if (opts.expectText !== void 0 && !window.some((line) => line.includes(opts.expectText))) {
+  if (opts.expectText !== void 0 && !window.some((line2) => line2.includes(opts.expectText))) {
     return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
   }
   return { ok: true };
@@ -16104,16 +16116,16 @@ function hasEdge(screens, a, b) {
   return s.parentId === b || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
 }
 function checkSummary(summary, screens, known, problems) {
-  const exists2 = (id) => known.has(id);
+  const exists3 = (id) => known.has(id);
   const loaded = (id) => screens.has(id);
   const supported = (ids) => ids.some((id) => !loaded(id) || screens.get(id).purpose.confidence !== "low");
   const claims = [["\uD55C \uC904 \uC18C\uAC1C", summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
-    for (const id of claim.screens) if (!exists2(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
+    for (const id of claim.screens) if (!exists3(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
     if (!supported(claim.screens)) problems.push(`summary.json: "${label}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD655\uC2E0\uB3C4 \uB192\uC740 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4`);
   }
   for (const wf of summary.workflows) {
-    const missing = wf.steps.filter((id) => !exists2(id));
+    const missing = wf.steps.filter((id) => !exists3(id));
     if (missing.length) {
       problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${missing.join(", ")}`);
       continue;
@@ -16213,9 +16225,86 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   return { files: files.sort() };
 }
 
+// skills/docent/scripts/src/commands/crawl.mjs
+import { join as join9 } from "node:path";
+var SKIP_PATH = /(^|\/)(log-?out|sign-?out)(\/|$)/i;
+var FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
+function escapeRegExp2(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function routeMatcher(route) {
+  let body = "";
+  for (const seg of route.split("/").filter(Boolean)) {
+    if (/^\(.*\)$/.test(seg) || seg.startsWith("@")) continue;
+    if (/^\[\[\.\.\..+\]\]$/.test(seg)) body += "(?:/.+)?";
+    else if (/^\[\.\.\..+\]$/.test(seg)) body += "/.+";
+    else if (/^\[.+\]$/.test(seg)) body += "/[^/]+";
+    else body += "/" + escapeRegExp2(seg.replace(/^\(\.{1,3}\)+/, ""));
+  }
+  return new RegExp(`^${body || "/"}$`);
+}
+function normalizePath(pathname) {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+}
+function followable(href, origin) {
+  let url;
+  try {
+    url = new URL(href);
+  } catch {
+    return void 0;
+  }
+  if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return void 0;
+  const path = normalizePath(url.pathname);
+  if (SKIP_PATH.test(path) || FILE_EXT.test(path)) return void 0;
+  return path;
+}
+async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
+  const run2 = await loadRun(projectDir);
+  const inventory = await readJson(join9(docentDir(projectDir), "inventory.json"));
+  const pages = inventory.screens.filter((s) => s.kind === "page" && s.route);
+  const origin = new URL(run2.baseUrl).origin;
+  const browser = await launchBrowser();
+  const visited = [];
+  try {
+    const context = await newContext(browser, projectDir);
+    const page2 = await context.newPage();
+    const seen = /* @__PURE__ */ new Set(["/"]);
+    const queue = [{ path: normalizePath(new URL(run2.baseUrl).pathname), depth: 0 }];
+    seen.add(queue[0].path);
+    while (queue.length && visited.length < maxPages) {
+      const { path, depth } = queue.shift();
+      try {
+        await page2.goto(new URL(path, origin).href, { waitUntil: "load", timeout: 15e3 });
+      } catch {
+        continue;
+      }
+      const landed = normalizePath(new URL(page2.url()).pathname);
+      if (new URL(page2.url()).origin !== origin) continue;
+      if (!visited.includes(landed)) visited.push(landed);
+      if (depth >= maxDepth) continue;
+      const hrefs = await page2.$$eval("a[href]", (as) => as.map((a) => a.href));
+      for (const href of hrefs) {
+        const next = followable(href, origin);
+        if (next && !seen.has(next)) {
+          seen.add(next);
+          queue.push({ path: next, depth: depth + 1 });
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+  const matchers = pages.map((s) => [s.id, routeMatcher(s.route)]);
+  const unmatched = visited.filter((p) => !matchers.some(([, re]) => re.test(p))).sort();
+  const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
+  const result = { baseUrl: run2.baseUrl, visited: [...visited].sort(), unmatched, unreached };
+  await writeJson(join9(docentDir(projectDir), "crawl.json"), result);
+  return { visited, unmatched, unreached };
+}
+
 // skills/docent/scripts/src/commands/init.mjs
 import { access as access2, mkdir as mkdir4, readFile as readFile8, writeFile as writeFile4 } from "node:fs/promises";
-import { join as join10 } from "node:path";
+import { join as join11 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -16225,7 +16314,7 @@ __export(nextjs_exports, {
   name: () => name
 });
 import { readFile as readFile7, readdir as readdir2, stat } from "node:fs/promises";
-import { join as join9, posix as posix2 } from "node:path";
+import { join as join10, posix as posix2 } from "node:path";
 var name = "nextjs";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".next", ".git", ".docent"]);
 var PAGE_EXT = /\.(tsx|jsx|ts|js)$/;
@@ -16280,7 +16369,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir2(join9(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir2(join10(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
@@ -16289,12 +16378,12 @@ async function walk(projectDir, rel) {
   return out;
 }
 async function detect(projectDir) {
-  const pkg = await readJson2(join9(projectDir, "package.json"));
+  const pkg = await readJson2(join10(projectDir, "package.json"));
   return Boolean(pkg?.dependencies?.next || pkg?.devDependencies?.next);
 }
 async function loadAliases(projectDir) {
   for (const file of ["tsconfig.json", "jsconfig.json"]) {
-    const config = await readJson2(join9(projectDir, file));
+    const config = await readJson2(join10(projectDir, file));
     const paths = config?.compilerOptions?.paths;
     if (!paths) continue;
     const baseUrl = config.compilerOptions.baseUrl ?? ".";
@@ -16326,13 +16415,13 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
       } catch {
         continue;
       }
-      if (await isFile(join9(projectDir, rel))) return rel;
+      if (await isFile(join10(projectDir, rel))) return rel;
     }
   }
   return void 0;
 }
 async function describePage(projectDir, file, route, aliases) {
-  const source = await readFile7(join9(projectDir, file), "utf8");
+  const source = await readFile7(join10(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
   for (const pattern of IMPORT_PATTERNS) {
     for (const match of source.matchAll(pattern)) specs.add(match[1]);
@@ -16343,8 +16432,8 @@ async function describePage(projectDir, file, route, aliases) {
     if (resolved && resolved !== file) imports.add(resolved);
   }
   const lines = source.split(/\r?\n/);
-  const line = lines.findIndex((l) => /\bexport\s+default\b/.test(l)) + 1 || 1;
-  return { route, files: [file, ...[...imports].sort()], evidence: `${file}:${line}` };
+  const line2 = lines.findIndex((l) => /\bexport\s+default\b/.test(l)) + 1 || 1;
+  return { route, files: [file, ...[...imports].sort()], evidence: `${file}:${line2}` };
 }
 function appRoute(dir, file) {
   const parts = file.slice(dir.length + 1).split("/").slice(0, -1);
@@ -16360,7 +16449,7 @@ async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = [];
   for (const dir of ["app", "src/app"]) {
-    if (!await isDir(join9(projectDir, dir))) continue;
+    if (!await isDir(join10(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       if (/(^|\/)page\.(tsx|jsx|ts|js)$/.test(file)) {
         screens.push(await describePage(projectDir, file, appRoute(dir, file), aliases));
@@ -16368,7 +16457,7 @@ async function listScreens(projectDir) {
     }
   }
   for (const dir of ["pages", "src/pages"]) {
-    if (!await isDir(join9(projectDir, dir))) continue;
+    if (!await isDir(join10(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       const rel = file.slice(dir.length + 1);
       if (!PAGE_EXT.test(file) || rel.startsWith("api/") || /^_(app|document|error)\./.test(rel)) continue;
@@ -16402,7 +16491,7 @@ analyze:
   concurrency: 4
 `.replace("detectors:\n  []", "detectors: []");
 }
-async function exists(path) {
+async function exists2(path) {
   try {
     await access2(path);
     return true;
@@ -16413,8 +16502,8 @@ async function exists(path) {
 async function runInit(projectDir) {
   const dir = docentDir(projectDir);
   await mkdir4(dir, { recursive: true });
-  const ignorePath = join10(dir, ".gitignore");
-  if (!await exists(ignorePath)) {
+  const ignorePath = join11(dir, ".gitignore");
+  if (!await exists2(ignorePath)) {
     await writeFile4(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
   } else {
     const current = await readFile8(ignorePath, "utf8");
@@ -16422,8 +16511,8 @@ async function runInit(projectDir) {
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
     if (missing.length) await writeFile4(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join10(dir, "config.yaml");
-  if (await exists(configPath)) {
+  const configPath = join11(dir, "config.yaml");
+  if (await exists2(configPath)) {
     return { created: false, detectors: (await loadConfig(projectDir)).detectors };
   }
   const detectors = [];
@@ -16436,7 +16525,7 @@ async function runInit(projectDir) {
 
 // skills/docent/scripts/src/commands/inventory.mjs
 import { access as access3 } from "node:fs/promises";
-import { join as join11 } from "node:path";
+import { join as join12 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash2 } from "node:crypto";
@@ -16500,7 +16589,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join11(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join12(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
     return [];
@@ -16522,7 +16611,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join11(projectDir, file))) {
+    if (!await fileExists(join12(projectDir, file))) {
       problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
       return void 0;
     }
@@ -16537,7 +16626,7 @@ async function checkEntry(projectDir, label, entry, problems) {
 async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
-  const previous = await readJsonIfExists(join11(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join12(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
@@ -16588,7 +16677,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join11(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join12(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -16616,17 +16705,17 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
-  await writeJson(join11(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join12(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
 import { readFile as readFile10 } from "node:fs/promises";
-import { join as join13 } from "node:path";
+import { join as join14 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
 import { readFile as readFile9, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join12 } from "node:path";
+import { join as join13 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
   "",
@@ -16637,8 +16726,8 @@ var LINE = /^- \[([ xX])\] (.*?)\s*<!-- key: (.+?) -->\s*$/;
 var ANSWER = " \uB2F5:";
 function parseReview(text) {
   const previous = /* @__PURE__ */ new Map();
-  for (const line of text.split(/\r?\n/)) {
-    const m = LINE.exec(line);
+  for (const line2 of text.split(/\r?\n/)) {
+    const m = LINE.exec(line2);
     if (!m) continue;
     const i = m[2].indexOf(ANSWER);
     previous.set(m[3], { checked: m[1] !== " ", answer: i >= 0 ? m[2].slice(i + ANSWER.length).trim() : "" });
@@ -16655,7 +16744,19 @@ function items(s) {
   s.unknowns.forEach((u, i) => out.push([`unknowns[${i}]`, u]));
   return out;
 }
-function renderReview(screens, previous) {
+function line(key, text, previous) {
+  const prev = previous.get(key);
+  const answer = prev?.answer ? `${ANSWER} ${prev.answer}` : "";
+  return `- [${prev?.checked ? "x" : " "}] ${text}${answer} <!-- key: ${key} -->`;
+}
+function crawlItems(crawl, routes) {
+  if (!crawl) return [];
+  return [
+    ...crawl.unmatched.map((p) => [`crawl|unmatched|${p}`, `\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: ${p}`]),
+    ...crawl.unreached.map((id) => [`crawl|unreached|${id}`, `\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: ${id} (${routes.get(id) ?? "\uACBD\uB85C \uC5C6\uC74C"})`])
+  ];
+}
+function renderReview(screens, previous, extra = {}) {
   const lines = [...HEADER];
   let count = 0;
   for (const s of screens) {
@@ -16663,12 +16764,16 @@ function renderReview(screens, previous) {
     if (!list.length) continue;
     lines.push(`## ${s.id} \xB7 ${s.title.value}`, "");
     for (const [path, text] of list) {
-      const key = `${s.id}|${path}`;
-      const prev = previous.get(key);
-      const answer = prev?.answer ? `${ANSWER} ${prev.answer}` : "";
-      lines.push(`- [${prev?.checked ? "x" : " "}] ${text}${answer} <!-- key: ${key} -->`);
+      lines.push(line(`${s.id}|${path}`, text, previous));
       count++;
     }
+    lines.push("");
+  }
+  const crawl = crawlItems(extra.crawl, extra.routes ?? /* @__PURE__ */ new Map());
+  if (crawl.length) {
+    lines.push("## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870", "");
+    for (const [key, text] of crawl) lines.push(line(key, text, previous));
+    count += crawl.length;
     lines.push("");
   }
   if (!count) lines.push("\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.", "");
@@ -16676,21 +16781,23 @@ function renderReview(screens, previous) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join12(dir, "inventory.json"));
+  const inventory = await readJson(join13(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join12(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join13(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join12(dir, "review.md");
+  const path = join13(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
     previous = parseReview(await readFile9(path, "utf8"));
   } catch {
   }
-  const text = renderReview(screens, previous);
+  const crawl = await readJsonIfExists(join13(dir, "crawl.json")).catch(() => void 0);
+  const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
+  const text = renderReview(screens, previous, { crawl, routes });
   await writeFile5(path, text);
   return { items: text.split("\n").filter((l) => LINE.test(l)).length };
 }
@@ -16698,17 +16805,17 @@ async function runReview(projectDir) {
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join13(dir, "inventory.json"));
+  const inventory = await readJson(join14(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile10(join13(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile10(join14(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join13(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join14(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -16738,19 +16845,19 @@ async function runPending(projectDir) {
 
 // skills/docent/scripts/src/commands/session.mjs
 import { mkdir as mkdir5, rm as rm3, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join14 } from "node:path";
+import { join as join15 } from "node:path";
 async function startSession(projectDir) {
   await mkdir5(docentDir(projectDir), { recursive: true });
-  await writeFile6(join14(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile6(join15(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm3(join14(docentDir(projectDir), ".session"), { force: true });
+  await rm3(join15(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join15 } from "node:path";
+import { join as join16 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -16763,7 +16870,7 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join15(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join16(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
@@ -16779,11 +16886,12 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
   run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778
+  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)
   auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join16(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join17(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -16860,6 +16968,13 @@ async function main() {
         return 0;
       }
       break;
+    }
+    case "crawl": {
+      const r = await runCrawl(project);
+      console.log(`\uBC29\uBB38 ${r.visited.length}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C ${r.unmatched.length}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 ${r.unreached.length}\uAC1C \u2192 .docent/crawl.json`);
+      for (const p of r.unmatched) console.log(`- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: ${p}`);
+      for (const id of r.unreached) console.log(`- \uB3C4\uB2EC \uBABB \uD568: ${id}`);
+      return 0;
     }
     case "auth": {
       if (sub !== "login" && sub !== "save") break;

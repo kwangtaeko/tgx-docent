@@ -3,6 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { authLogin, authSave } from './commands/auth.mjs';
 import { runBuild } from './commands/build.mjs';
+import { runCrawl } from './commands/crawl.mjs';
 import { runInit } from './commands/init.mjs';
 import { runInventory } from './commands/inventory.mjs';
 import { runPending } from './commands/pending.mjs';
@@ -25,6 +26,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
   run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
+  crawl          실행 중인 앱을 링크로 돌며 화면 목록과 대조(.docent/crawl.json)
   auth login | save  로그인 상태 저장(login: config.yaml의 auth와 환경변수, save: 브라우저에서 직접 로그인)
   runtime status|install  화면 캡처용 Playwright 확인·설치(사용자 동의 후)
   session start  분석 세션 시작(비밀 파일 읽기 차단)
@@ -110,6 +112,13 @@ async function main() {
         return 0;
       }
       break;
+    }
+    case 'crawl': {
+      const r = await runCrawl(project);
+      console.log(`방문 ${r.visited.length}개, 목록에 없는 경로 ${r.unmatched.length}개, 도달하지 못한 화면 ${r.unreached.length}개 → .docent/crawl.json`);
+      for (const p of r.unmatched) console.log(`- 목록에 없음: ${p}`);
+      for (const id of r.unreached) console.log(`- 도달 못 함: ${id}`);
+      return 0;
     }
     case 'auth': {
       if (sub !== 'login' && sub !== 'save') break;

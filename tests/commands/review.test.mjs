@@ -55,3 +55,19 @@ test('runReview는 .docent/review.md를 쓰고 기존 답을 보존한다', asyn
   await runReview(dir);
   assert.match(await readFile(path, 'utf8'), /- \[x\] 여신.* 답: 외부 시스템 기준 <!-- key/);
 });
+
+test('실행 앱 대조 결과를 review.md에 넣고 답을 보존한다', async () => {
+  const dir = await copyFixture();
+  const docent = await copyGoldenWorkspace(dir);
+  await writeFile(join(docent, 'crawl.json'), JSON.stringify({ baseUrl: 'http://x', visited: ['/', '/hidden'], unmatched: ['/hidden'], unreached: ['admin-users'] }));
+  await runReview(dir);
+  const path = join(docent, 'review.md');
+  let text = await readFile(path, 'utf8');
+  assert.match(text, /## 실행 중인 앱 대조/);
+  assert.match(text, /^- \[ \] 화면 목록에 없는 경로: \/hidden <!-- key: crawl\|unmatched\|\/hidden -->$/m);
+  assert.match(text, /^- \[ \] 앱에서 링크로 도달하지 못한 화면: admin-users \(\/admin\/users\) <!-- key: crawl\|unreached\|admin-users -->$/m);
+  await writeFile(path, text.replace('- [ ] 화면 목록에 없는 경로: /hidden', '- [x] 화면 목록에 없는 경로: /hidden 답: 테스트용'));
+  await runReview(dir);
+  text = await readFile(path, 'utf8');
+  assert.match(text, /- \[x\] 화면 목록에 없는 경로: \/hidden 답: 테스트용 <!-- key/);
+});
