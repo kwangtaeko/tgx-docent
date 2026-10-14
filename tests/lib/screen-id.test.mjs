@@ -6,7 +6,7 @@ test('기본 규칙', () => {
   assert.equal(routeToId('/'), 'home');
   assert.equal(routeToId('/order/[id]/edit'), 'order-id-edit');
   assert.equal(routeToId('/Orders/New'), 'orders-new');
-  assert.equal(routeToId('/order/new.aspx'), 'order-new-aspx');
+  assert.equal(routeToId('/order/new.aspx'), 'order-new');
 });
 
 test('route group과 병렬 슬롯은 ID에서 빠진다', () => {
@@ -56,4 +56,19 @@ test('사라진 라우트의 ID는 이전 맵에 있어도 쓰이지 않는다',
   const before = assignIds(['/x']);
   const after = assignIds(['/y'], before);
   assert.deepEqual([...after.keys()], ['/y']);
+});
+
+test('ASCII와 한글이 섞인 세그먼트는 한글 부분을 해시로 남긴다', () => {
+  assert.notEqual(routeToId('/주문a'), routeToId('/a'));
+  assert.match(routeToId('/주문a'), /^a-s[0-9a-f]{8}$/);
+  assert.equal(routeToId('/주문'), routeToId('/주문'));
+  assert.match(routeToId('/주문'), /^s[0-9a-f]{8}$/);
+});
+
+test('레거시 페이지 확장자는 ID에서 뺀다', () => {
+  assert.equal(routeToId('/Orders/List.aspx'), 'orders-list');
+  assert.equal(routeToId('/board/view.jsp'), 'board-view');
+  assert.equal(routeToId('/member/login.do'), 'member-login');
+  assert.equal(routeToId('/index.php'), 'index');
+  assert.equal(routeToId('/docs/intro.html'), 'docs-intro');
 });

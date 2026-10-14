@@ -1,6 +1,7 @@
 // 화면 JSON·inventory·summary → 정적 HTML 사이트. 외부 URL을 쓰지 않는다. (설계 문서 3·10장)
 // 용도 프리셋(input.options.preset): delivery 납품 / handover 인수인계(기본) / portfolio 포트폴리오
 import { escapeComment, escapeHtml as h } from './escape.mjs';
+import { orderedMenuEntries } from './menu.mjs';
 
 const TYPE_LABELS = {
   text: '텍스트', textarea: '여러 줄 텍스트', number: '숫자', date: '날짜', select: '선택', checkbox: '체크박스',
@@ -66,13 +67,11 @@ function rolesOf(screens) {
 function menuTree(input, from) {
   const { inventory, screens } = input;
   const root = new Map();
-  for (const entry of inventory.screens) {
-    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
+  for (const { id, menu } of orderedMenuEntries(inventory, screens)) {
     let level = root;
     menu.forEach((name, i) => {
       if (!level.has(name)) level.set(name, { children: new Map(), id: undefined });
-      if (i === menu.length - 1) level.get(name).id = entry.id;
+      if (i === menu.length - 1) level.get(name).id = id;
       level = level.get(name).children;
     });
   }

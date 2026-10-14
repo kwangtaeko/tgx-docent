@@ -93,3 +93,20 @@ test('함수명 근거의 문구는 그 함수 위치 ±5줄 안에서만 찾는
   assert.equal((await checkEvidence(root, 'actions.ts:handleSave', { expectText: 'handleSave' })).ok, true);
   assert.equal((await checkEvidence(root, 'actions.ts:handleSave', { expectText: '저장' })).ok, false);
 });
+
+test('루트 안의 심볼릭 링크가 루트 밖을 가리키면 거부한다', async () => {
+  const { symlink } = await import('node:fs/promises');
+  const outside = await mkdtemp(join(tmpdir(), 'docent-out-'));
+  await writeFile(join(outside, 'secret.ts'), 'x\n');
+  const root = await mkdtemp(join(tmpdir(), 'docent-root-'));
+  await symlink(join(outside, 'secret.ts'), join(root, 'link.ts'));
+  const r = await checkEvidence(root, 'link.ts:1');
+  assert.equal(r.ok, false);
+  assert.match(r.reason, /root 밖/);
+});
+
+test('단독 \\r 줄바꿈도 줄로 센다', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'docent-cr-'));
+  await writeFile(join(root, 'mac.txt'), 'a\rb\rc');
+  assert.deepEqual(await checkEvidence(root, 'mac.txt:3', { expectText: 'c' }), { ok: true });
+});

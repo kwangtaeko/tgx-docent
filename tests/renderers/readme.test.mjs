@@ -44,3 +44,16 @@ test('README 프리셋: portfolio 미리보기 6개, delivery 근거 주석 없�
   assert.ok(!md.includes('<!-- screens:'));
   assert.equal((md.match(/html\/media\/gif\//g) ?? []).length, 3);
 });
+
+test('요약 값의 <!--·<태그>는 GitHub에서 숨지 않게 이스케이프한다', async () => {
+  const input = await loadGolden();
+  input.summary.oneLiner.value = '앞 <!-- 뒤 <b>굵게</b>';
+  const md = renderReadme(input);
+  assert.ok(md.includes('앞 &lt;!-- 뒤 &lt;b>굵게&lt;/b>'), md.split('\n')[2]);
+});
+
+test('README 메뉴 트리는 메뉴 근거(파일·줄) 순서를 따른다', async () => {
+  const md = renderReadme(await loadGolden());
+  const menu = md.split('## 메뉴 구조\n')[1].split('\n## ')[0].trim().split('\n').filter((l) => l.startsWith('- '));
+  assert.deepEqual(menu, ['- 대시보드', '- 주문관리', '- 관리자']);
+});

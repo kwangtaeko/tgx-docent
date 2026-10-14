@@ -37,3 +37,12 @@ test('개정 이력 검사', () => {
   const ok = { version: '1.0', date: '2026-10-14', author: '김', note: '최초' };
   assert.deepEqual(resolveOutputOptions(cfg({ revisions: [ok] }), {}).revisions, [ok]);
 });
+
+test('형식이 비면 오류', () => {
+  assert.throws(() => resolveOutputOptions(structuredClone(DEFAULT_CONFIG), { formats: [] }), /만들 형식이 없습니다/);
+  assert.throws(() => resolveOutputOptions(cfg({ formats: [] }), {}), /만들 형식이 없습니다/);
+});
+
+test('개정 이력 오류 문구', () => {
+  assert.throws(() => resolveOutputOptions(cfg({ revisions: [{ date: 'x', author: 'y', note: 'z' }] }), {}), /revisions\[0\]의 version 값이 없거나/);
+});

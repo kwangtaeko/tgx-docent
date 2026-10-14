@@ -59,3 +59,10 @@ test('Grep의 glob 인자로 비밀 파일을 겨냥하면 막는다', async () 
   assert.equal(hook(dir, 'Grep', { pattern: 'KEY', glob: '.env*' }).status, 2);
   assert.equal(hook(dir, 'Grep', { pattern: 'KEY', glob: '*.ts' }).status, 0);
 });
+
+test('./로 시작하는 경로도 디렉터리 패턴과 맞춘다', async () => {
+  const dir = await project({ session: new Date(), config: 'secrets:\n  paths:\n    - config/secret.yml\n' });
+  assert.equal(hook(dir, 'Read', { file_path: './config/secret.yml' }).status, 2);
+  assert.equal(hook(dir, 'Read', { file_path: 'config/./secret.yml' }).status, 2);
+  assert.equal(hook(dir, 'Read', { file_path: 'config/other.yml' }).status, 0);
+});

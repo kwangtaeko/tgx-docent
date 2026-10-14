@@ -14,7 +14,7 @@ export async function hashFiles(rootDir, relPaths) {
       throw new Error(`소스 해시 계산 실패: ${rel} (${err.code ?? err.message})`);
     }
     // 체크아웃 환경(autocrlf)에 따라 해시가 달라지지 않도록 줄바꿈을 LF로 맞춘다.
-    hash.update(rel).update('\0').update(content.replace(/\r\n/g, '\n')).update('\0');
+    hash.update(rel).update('\0').update(content.replace(/\r\n?/g, '\n')).update('\0');
   }
   return `sha256:${hash.digest('hex')}`;
 }

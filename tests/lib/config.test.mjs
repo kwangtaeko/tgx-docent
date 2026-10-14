@@ -43,3 +43,20 @@ test('기본값 객체는 호출 간에 공유되지 않는다', async () => {
   cfg.screens.exclude.push('/x');
   assert.deepEqual(DEFAULT_CONFIG.screens.exclude, []);
 });
+
+test('값을 비운 키는 기본값을 쓴다', async () => {
+  const c = await loadConfig(await project('detectors:\nscreens:\n  include:\n'));
+  assert.deepEqual(c.detectors, []);
+  assert.deepEqual(c.screens, DEFAULT_CONFIG.screens);
+});
+
+test('형식이 틀린 값은 키 경로를 담은 오류', async () => {
+  await assert.rejects(loadConfig(await project('detectors: nextjs\n')), /config\.yaml: detectors는 목록이어야 합니다/);
+  await assert.rejects(loadConfig(await project('analyze:\n  concurrency: 0\n')), /config\.yaml: analyze\.concurrency는 양의 정수여야 합니다/);
+  await assert.rejects(loadConfig(await project('screens:\n  idMap: [a]\n')), /config\.yaml: screens\.idMap는 객체여야 합니다/);
+  await assert.rejects(loadConfig(await project('output:\n  title: [a]\n')), /config\.yaml: output\.title는 문자열이어야 합니다/);
+});
+
+test('output.formats는 문자열 하나도 받는다', async () => {
+  assert.deepEqual((await loadConfig(await project('output:\n  formats: pdf\n'))).output.formats, ['pdf']);
+});

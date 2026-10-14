@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import PptxGenJS from 'pptxgenjs';
 import { presetOf, revisionRows, screenTitle } from './html.mjs';
+import { orderedMenuEntries } from './menu.mjs';
 
 const FONT = 'Malgun Gothic';
 const W = 13.333;
@@ -89,9 +90,7 @@ function bullets(slide, lines, box) {
 function menuLines(input) {
   const lines = [];
   const seen = new Set();
-  for (const entry of input.inventory.screens) {
-    const menu = input.screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
+  for (const { menu } of orderedMenuEntries(input.inventory, input.screens)) {
     menu.forEach((name, i) => {
       const key = menu.slice(0, i + 1).join('›');
       if (seen.has(key)) return;

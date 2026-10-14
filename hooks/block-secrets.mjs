@@ -1,7 +1,7 @@
 // docent PreToolUse 훅: 분석 세션(.docent/.session) 중에만 비밀 파일 읽기를 막는다. (설계 문서 12장)
 // 번들하지 않는 단일 파일이며 Node 표준 라이브러리만 쓴다.
 import { readFileSync, statSync } from 'node:fs';
-import { basename, isAbsolute, join, relative, sep } from 'node:path';
+import { basename, isAbsolute, join, posix, relative, sep } from 'node:path';
 
 const DEFAULT_PATTERNS = ['.env', '.env.*', 'appsettings*.json', 'web.config', '*.pem', '*.key', '*.pfx', 'id_rsa*'];
 // 값이 아니라 이름만 담는 예시 파일은 읽어도 된다(환경변수 이름 확인용).
@@ -53,6 +53,11 @@ function toRegExp(glob) {
   return new RegExp(`^${glob.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*')}$`);
 }
 
+// ./a, a/./b 같은 표기를 a, a/b로 맞춘다
+function normalize(rel) {
+  return posix.normalize(rel).replace(/^(\.\/)+/, '');
+}
+
 function isSecret(relPath, patterns) {
   const name = basename(relPath);
   if (ALLOWED.test(name)) return false;
@@ -61,7 +66,7 @@ function isSecret(relPath, patterns) {
 
 // Glob 패턴의 마지막 조각이 비밀 파일을 겨냥하는지(예: **/.env*)
 function globTargetsSecret(pattern, patterns) {
-  const last = pattern.split('/').pop() ?? '';
+  const last = normalize(pattern).split('/').pop() ?? '';
   const literal = last.replace(/\*/g, '');
   if (!literal) return false;
   return patterns.some((p) => toRegExp(p).test(literal) || toRegExp(last).test(p.replace(/\*/g, '')));
@@ -75,7 +80,7 @@ function main() {
   const target = toolInput.file_path ?? toolInput.path;
   let blocked;
   if (target) {
-    const rel = (isAbsolute(target) ? relative(input.cwd, target) : target).split(sep).join('/');
+    const rel = normalize((isAbsolute(target) ? relative(input.cwd, target) : target).split(sep).join('/'));
     if (isSecret(rel, patterns)) blocked = target;
   }
   if (!blocked && input.tool_name === 'Glob' && toolInput.pattern && globTargetsSecret(toolInput.pattern, patterns)) {

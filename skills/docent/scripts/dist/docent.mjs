@@ -27465,9 +27465,28 @@ function merge(base, override) {
   const out = structuredClone(base);
   if (!isObject(override)) return out;
   for (const [key, value] of Object.entries(override)) {
+    if (value === null) continue;
     out[key] = isObject(out[key]) && isObject(value) ? merge(out[key], value) : value;
   }
   return out;
+}
+var ARRAY_KEYS = ["detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
+var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
+var STRING_KEYS = ["language", "output.preset", "output.title", "output.organization"];
+var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
+function checkConfig(config) {
+  const fail = (path, kind) => {
+    const code = kind.charCodeAt(kind.length - 1) - 44032;
+    const copula = code >= 0 && code % 28 ? "\uC774\uC5B4\uC57C" : "\uC5EC\uC57C";
+    throw new Error(`config.yaml: ${path}\uB294 ${kind}${copula} \uD569\uB2C8\uB2E4`);
+  };
+  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, "\uAC1D\uCCB4");
+  if (typeof config.output.formats === "string") config.output.formats = [config.output.formats];
+  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, "\uBAA9\uB85D");
+  for (const path of STRING_KEYS) if (typeof get(config, path) !== "string") fail(path, "\uBB38\uC790\uC5F4");
+  const n = config.analyze.concurrency;
+  if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", "\uC591\uC758 \uC815\uC218");
+  return config;
 }
 async function loadConfig(projectDir) {
   const path = join(projectDir, ".docent", "config.yaml");
@@ -27484,7 +27503,7 @@ async function loadConfig(projectDir) {
   } catch (err) {
     throw new Error(`.docent/config.yaml \uD615\uC2DD \uC624\uB958: ${err.message}`);
   }
-  return merge(DEFAULT_CONFIG, data ?? {});
+  return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
 }
 
 // skills/docent/scripts/src/lib/playwright.mjs
@@ -28620,6 +28639,102 @@ function escapeComment(value) {
   return String(value).replace(/-(?=-)/g, "- ").replace(/-$/, "- ");
 }
 
+// skills/docent/scripts/src/lib/evidence.mjs
+import { readFile as readFile4, realpath } from "node:fs/promises";
+import { isAbsolute, resolve as resolve2, sep } from "node:path";
+var TEXT_WINDOW = 5;
+var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
+var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
+function parseEvidence(s) {
+  const i = s.lastIndexOf(":");
+  const file = i > 0 ? s.slice(0, i) : "";
+  const loc = i > 0 ? s.slice(i + 1) : "";
+  const range = LINE_RANGE.exec(loc);
+  if (file && range) {
+    const startLine = Number(range[1]);
+    return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
+  }
+  if (file && SYMBOL.test(loc)) return { file, symbol: loc };
+  throw new Error(`\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: ${s}`);
+}
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+async function checkEvidence(rootDir, evidence, opts = {}) {
+  let ev;
+  try {
+    ev = parseEvidence(evidence);
+  } catch (err) {
+    return { ok: false, reason: err.message };
+  }
+  const rootPath = resolve2(rootDir);
+  const target = resolve2(rootPath, ev.file);
+  if (ev.file.includes("\\") || isAbsolute(ev.file) || !target.startsWith(rootPath + sep)) {
+    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
+  }
+  try {
+    const [realRoot, realTarget] = await Promise.all([realpath(rootPath), realpath(target)]);
+    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
+  } catch {
+    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
+  }
+  let lines;
+  try {
+    lines = (await readFile4(target, "utf8")).split(/\r\n|\r|\n/);
+  } catch {
+    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
+  }
+  if (lines.at(-1) === "") lines.pop();
+  let window2;
+  if ("symbol" in ev) {
+    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
+    const hits = lines.flatMap((line2, i) => pattern.test(line2) ? [i] : []);
+    if (hits.length === 0) {
+      return { ok: false, reason: `${ev.file}\uC5D0 ${ev.symbol} \uC5C6\uC74C` };
+    }
+    window2 = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
+  } else {
+    const { startLine, endLine } = ev;
+    if (startLine < 1 || startLine > endLine || endLine > lines.length) {
+      return { ok: false, reason: `${ev.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
+    }
+    window2 = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
+  }
+  if (opts.expectText !== void 0 && !window2.some((line2) => line2.includes(opts.expectText))) {
+    return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
+  }
+  return { ok: true };
+}
+
+// skills/docent/scripts/src/renderers/menu.mjs
+function position(evidence) {
+  try {
+    const ev = parseEvidence(evidence);
+    return "startLine" in ev ? { file: ev.file, line: ev.startLine } : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function orderedMenuEntries(inventory, screens) {
+  const entries = [];
+  inventory.screens.forEach((entry, index) => {
+    const analyzed = screens.get(entry.id)?.menuPath;
+    const menu = analyzed?.value ?? entry.menuPath;
+    if (!menu?.length) return;
+    entries.push({ id: entry.id, menu, index, pos: analyzed ? position(analyzed.evidence) : void 0 });
+  });
+  entries.sort((a, b) => {
+    if (a.pos && b.pos) {
+      if (a.pos.file !== b.pos.file) return a.pos.file < b.pos.file ? -1 : 1;
+      if (a.pos.line !== b.pos.line) return a.pos.line - b.pos.line;
+    } else if (a.pos || b.pos) {
+      return a.pos ? -1 : 1;
+    }
+    return a.index - b.index;
+  });
+  return entries.map(({ id, menu }) => ({ id, menu }));
+}
+
 // skills/docent/scripts/src/renderers/html.mjs
 var TYPE_LABELS = {
   text: "\uD14D\uC2A4\uD2B8",
@@ -28679,13 +28794,11 @@ function rolesOf(screens) {
 function menuTree(input, from) {
   const { inventory, screens } = input;
   const root = /* @__PURE__ */ new Map();
-  for (const entry of inventory.screens) {
-    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
+  for (const { id, menu } of orderedMenuEntries(inventory, screens)) {
     let level = root;
     menu.forEach((name2, i) => {
       if (!level.has(name2)) level.set(name2, { children: /* @__PURE__ */ new Map(), id: void 0 });
-      if (i === menu.length - 1) level.get(name2).id = entry.id;
+      if (i === menu.length - 1) level.get(name2).id = id;
       level = level.get(name2).children;
     });
   }
@@ -28963,11 +29076,10 @@ function renderSite(input) {
 }
 
 // skills/docent/scripts/src/renderers/readme.mjs
+var md = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 function menuLines(inventory, screens) {
   const root = /* @__PURE__ */ new Map();
-  for (const entry of inventory.screens) {
-    const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
+  for (const { menu } of orderedMenuEntries(inventory, screens)) {
     let level = root;
     for (const name2 of menu) {
       if (!level.has(name2)) level.set(name2, /* @__PURE__ */ new Map());
@@ -28977,7 +29089,7 @@ function menuLines(inventory, screens) {
   const lines = [];
   const walk2 = (level, depth) => {
     for (const [name2, children] of level) {
-      lines.push(`${"  ".repeat(depth)}- ${name2}`);
+      lines.push(`${"  ".repeat(depth)}- ${md(name2)}`);
       walk2(children, depth + 1);
     }
   };
@@ -28987,21 +29099,21 @@ function menuLines(inventory, screens) {
 function previewLines(inventory, screens, media, limit) {
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
-  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${screens.get(e.id).title.value}](html/media/gif/${e.id}.gif)`), ""];
+  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${md(screens.get(e.id).title.value)}](html/media/gif/${e.id}.gif)`), ""];
 }
 function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() }, options = {} }) {
   const preset = options.preset ?? "handover";
   const note = (ids) => preset === "handover" ? ` <!-- screens: ${ids.join(", ")} -->` : "";
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
   const lines = [
-    `# ${projectName2}`,
+    `# ${md(projectName2)}`,
     "",
-    `${summary.oneLiner.value}${note(summary.oneLiner.screens)}`,
+    `${md(summary.oneLiner.value)}${note(summary.oneLiner.screens)}`,
     "",
     ...media.images.size || media.gifs.size ? [] : ["> \uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.", ""],
     "## \uC8FC\uC694 \uAE30\uB2A5",
     "",
-    ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value}${note(f.screens)}`),
+    ...summary.features.map((f) => `- **${md(f.menu)}** \u2014 ${md(f.value)}${note(f.screens)}`),
     "",
     ...previewLines(inventory, screens, media, preset === "portfolio" ? 6 : 3),
     "## \uBA54\uB274 \uAD6C\uC870",
@@ -29010,7 +29122,7 @@ function renderReadme({ inventory, screens, summary, date, projectName: projectN
     "",
     "## \uC0AC\uC6A9\uC790 \uC5ED\uD560",
     "",
-    ...roles.length ? roles.map((r) => `- ${r}`) : ["- \uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9"],
+    ...roles.length ? roles.map((r) => `- ${md(r)}`) : ["- \uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9"],
     "",
     "## \uB354 \uBCF4\uAE30",
     "",
@@ -29077,7 +29189,7 @@ async function renderPdf(printHtmlPath, outPath, { title: title2, date, browser 
 }
 
 // skills/docent/scripts/src/renderers/pptx.mjs
-import { readFile as readFile4 } from "node:fs/promises";
+import { readFile as readFile5 } from "node:fs/promises";
 import { join as join7 } from "node:path";
 
 // node_modules/pptxgenjs/dist/pptxgen.es.js
@@ -34428,7 +34540,7 @@ function fit(buf, box) {
 var dataUri = (buf, type) => `${type};base64,${buf.toString("base64")}`;
 async function readMaybe(path) {
   try {
-    return await readFile4(path);
+    return await readFile5(path);
   } catch {
     return void 0;
   }
@@ -34472,9 +34584,7 @@ function bullets(slide, lines, box) {
 function menuLines2(input) {
   const lines = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const entry of input.inventory.screens) {
-    const menu = input.screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
-    if (!menu?.length) continue;
+  for (const { menu } of orderedMenuEntries(input.inventory, input.screens)) {
     menu.forEach((name2, i) => {
       const key = menu.slice(0, i + 1).join("\u203A");
       if (seen.has(key)) return;
@@ -34625,11 +34735,12 @@ function resolveOutputOptions(config, cli = {}) {
     if (!FORMATS.includes(f)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "${f}" \u2014 ${FORMATS.join(", ")} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694`);
   }
   const formats = FORMATS.filter((f) => requested.includes(f));
+  if (!formats.length) throw new Error(`\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 ${FORMATS.join(", ")} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694`);
   const revisions = output.revisions ?? [];
   if (!Array.isArray(revisions)) throw new Error("config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4");
   revisions.forEach((r, i) => {
     for (const field of REVISION_FIELDS) {
-      if (typeof r?.[field] !== "string") throw new Error(`config.yaml: output.revisions[${i}]\uC758 ${field}\uAC00 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4`);
+      if (typeof r?.[field] !== "string") throw new Error(`config.yaml: output.revisions[${i}]\uC758 ${field} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4`);
     }
   });
   return {
@@ -34645,67 +34756,6 @@ function resolveOutputOptions(config, cli = {}) {
 import { readdir } from "node:fs/promises";
 import { join as join9 } from "node:path";
 
-// skills/docent/scripts/src/lib/evidence.mjs
-import { readFile as readFile5 } from "node:fs/promises";
-import { isAbsolute, resolve as resolve2, sep } from "node:path";
-var TEXT_WINDOW = 5;
-var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
-var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
-function parseEvidence(s) {
-  const i = s.lastIndexOf(":");
-  const file = i > 0 ? s.slice(0, i) : "";
-  const loc = i > 0 ? s.slice(i + 1) : "";
-  const range = LINE_RANGE.exec(loc);
-  if (file && range) {
-    const startLine = Number(range[1]);
-    return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
-  }
-  if (file && SYMBOL.test(loc)) return { file, symbol: loc };
-  throw new Error(`\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: ${s}`);
-}
-function escapeRegExp(text) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-async function checkEvidence(rootDir, evidence, opts = {}) {
-  let ev;
-  try {
-    ev = parseEvidence(evidence);
-  } catch (err) {
-    return { ok: false, reason: err.message };
-  }
-  const rootPath = resolve2(rootDir);
-  const target = resolve2(rootPath, ev.file);
-  if (ev.file.includes("\\") || isAbsolute(ev.file) || !target.startsWith(rootPath + sep)) {
-    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
-  }
-  let lines;
-  try {
-    lines = (await readFile5(target, "utf8")).split(/\r?\n/);
-  } catch {
-    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
-  }
-  if (lines.at(-1) === "") lines.pop();
-  let window2;
-  if ("symbol" in ev) {
-    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
-    const hits = lines.flatMap((line2, i) => pattern.test(line2) ? [i] : []);
-    if (hits.length === 0) {
-      return { ok: false, reason: `${ev.file}\uC5D0 ${ev.symbol} \uC5C6\uC74C` };
-    }
-    window2 = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
-  } else {
-    const { startLine, endLine } = ev;
-    if (startLine < 1 || startLine > endLine || endLine > lines.length) {
-      return { ok: false, reason: `${ev.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
-    }
-    window2 = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
-  }
-  if (opts.expectText !== void 0 && !window2.some((line2) => line2.includes(opts.expectText))) {
-    return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
-  }
-  return { ok: true };
-}
-
 // skills/docent/scripts/src/lib/source-hash.mjs
 import { createHash as createHash2 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
@@ -34719,7 +34769,7 @@ async function hashFiles(rootDir, relPaths) {
     } catch (err) {
       throw new Error(`\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: ${rel} (${err.code ?? err.message})`);
     }
-    hash.update(rel).update("\0").update(content.replace(/\r\n/g, "\n")).update("\0");
+    hash.update(rel).update("\0").update(content.replace(/\r\n?/g, "\n")).update("\0");
   }
   return `sha256:${hash.digest("hex")}`;
 }
@@ -35729,15 +35779,19 @@ import { join as join18 } from "node:path";
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash3 } from "node:crypto";
 var INTERCEPT_PREFIX = /^(\(\.{1,3}\))+/;
+var NON_ASCII_WORD = /[^\x00-\x7F]/u;
+var LEGACY_PAGE_EXT = /\.(aspx|jsp|do|php|html?)$/i;
 function slug(text) {
   const s = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  if (s) return s;
-  return "s" + createHash3("sha1").update(text, "utf8").digest("hex").slice(0, 8);
+  const hasNonAscii = [...text].some((c) => NON_ASCII_WORD.test(c) && /[\p{L}\p{N}]/u.test(c));
+  if (s && !hasNonAscii) return s;
+  const h = "s" + createHash3("sha1").update(text, "utf8").digest("hex").slice(0, 8);
+  return s ? `${s}-${h}` : h;
 }
 function segmentName(segment) {
   if (/^\(.*\)$/.test(segment) && !INTERCEPT_PREFIX.test(segment)) return null;
   if (segment.startsWith("@")) return null;
-  const name2 = segment.replace(INTERCEPT_PREFIX, "").replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, "");
+  const name2 = segment.replace(INTERCEPT_PREFIX, "").replace(LEGACY_PAGE_EXT, "").replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, "");
   return name2 || null;
 }
 function routeToId(route) {

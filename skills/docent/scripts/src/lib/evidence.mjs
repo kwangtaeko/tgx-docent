@@ -1,5 +1,5 @@
 // 근거(evidence)가 실제 소스 위치를 가리키는지 검사한다. (설계 문서 11장)
-import { readFile } from 'node:fs/promises';
+import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve, sep } from 'node:path';
 
 export const TEXT_WINDOW = 5;
@@ -38,9 +38,17 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
     return { ok: false, reason: `project root 밖의 경로: ${ev.file}` };
   }
 
+  // 루트 안의 심볼릭 링크가 루트 밖 파일을 가리키는 경우도 막는다
+  try {
+    const [realRoot, realTarget] = await Promise.all([realpath(rootPath), realpath(target)]);
+    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: `project root 밖의 경로: ${ev.file}` };
+  } catch {
+    return { ok: false, reason: `파일 없음: ${ev.file}` };
+  }
+
   let lines;
   try {
-    lines = (await readFile(target, 'utf8')).split(/\r?\n/);
+    lines = (await readFile(target, 'utf8')).split(/\r\n|\r|\n/);
   } catch {
     return { ok: false, reason: `파일 없음: ${ev.file}` };
   }

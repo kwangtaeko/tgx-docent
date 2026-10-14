@@ -3,17 +3,26 @@ import { createHash } from 'node:crypto';
 
 const INTERCEPT_PREFIX = /^(\(\.{1,3}\))+/;
 
+const NON_ASCII_WORD = /[^\x00-\x7F]/u;
+// 서버 렌더링 레거시 페이지 확장자(/Orders/List.aspx → orders-list)
+const LEGACY_PAGE_EXT = /\.(aspx|jsp|do|php|html?)$/i;
+
 function slug(text) {
   const s = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  if (s) return s;
-  // ASCII가 아닌 이름은 slug가 비므로 원문 해시로 결정적인 이름을 만든다.
-  return 's' + createHash('sha1').update(text, 'utf8').digest('hex').slice(0, 8);
+  // ASCII가 아닌 글자는 slug에서 빠지므로, 그런 글자가 있으면 원문 해시를 붙여 구별한다(/주문a ≠ /a).
+  const hasNonAscii = [...text].some((c) => NON_ASCII_WORD.test(c) && /[\p{L}\p{N}]/u.test(c));
+  if (s && !hasNonAscii) return s;
+  const h = 's' + createHash('sha1').update(text, 'utf8').digest('hex').slice(0, 8);
+  return s ? `${s}-${h}` : h;
 }
 
 function segmentName(segment) {
   if (/^\(.*\)$/.test(segment) && !INTERCEPT_PREFIX.test(segment)) return null; // route group
   if (segment.startsWith('@')) return null; // 병렬 슬롯
-  const name = segment.replace(INTERCEPT_PREFIX, '').replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, '');
+  const name = segment
+    .replace(INTERCEPT_PREFIX, '')
+    .replace(LEGACY_PAGE_EXT, '')
+    .replace(/^\[{1,2}(\.\.\.)?|\]{1,2}$/g, '');
   return name || null;
 }
 

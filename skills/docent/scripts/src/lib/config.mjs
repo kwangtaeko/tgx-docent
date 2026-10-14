@@ -18,13 +18,37 @@ function isObject(v) {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
+// 값을 비운 키(YAML의 null)는 기본값을 둔다
 function merge(base, override) {
   const out = structuredClone(base);
   if (!isObject(override)) return out;
   for (const [key, value] of Object.entries(override)) {
+    if (value === null) continue;
     out[key] = isObject(out[key]) && isObject(value) ? merge(out[key], value) : value;
   }
   return out;
+}
+
+const ARRAY_KEYS = ['detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
+const OBJECT_KEYS = ['screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
+const STRING_KEYS = ['language', 'output.preset', 'output.title', 'output.organization'];
+
+const get = (obj, path) => path.split('.').reduce((o, k) => (isObject(o) ? o[k] : undefined), obj);
+
+function checkConfig(config) {
+  const fail = (path, kind) => {
+    const code = kind.charCodeAt(kind.length - 1) - 0xac00;
+    const copula = code >= 0 && code % 28 ? '이어야' : '여야'; // 받침이 있으면 '이어야'
+    throw new Error(`config.yaml: ${path}는 ${kind}${copula} 합니다`);
+  };
+  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, '객체');
+  // 형식 하나만 적은 경우(formats: pdf)는 목록으로 받는다
+  if (typeof config.output.formats === 'string') config.output.formats = [config.output.formats];
+  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, '목록');
+  for (const path of STRING_KEYS) if (typeof get(config, path) !== 'string') fail(path, '문자열');
+  const n = config.analyze.concurrency;
+  if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', '양의 정수');
+  return config;
 }
 
 export async function loadConfig(projectDir) {
@@ -42,5 +66,5 @@ export async function loadConfig(projectDir) {
   } catch (err) {
     throw new Error(`.docent/config.yaml 형식 오류: ${err.message}`);
   }
-  return merge(DEFAULT_CONFIG, data ?? {});
+  return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
 }

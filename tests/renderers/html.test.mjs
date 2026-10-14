@@ -145,3 +145,12 @@ test('Mermaid 예약어와 겹치는 화면 ID', async () => {
   input.summary.workflows.push({ name: '끝', description: '끝', steps: ['end', 'orders'] });
   assert.ok(renderSite(input).get('workflows.html').includes('s_end --> s_orders'));
 });
+
+test('HTML 메뉴 트리는 메뉴 근거(파일·줄) 순서를 따른다', async () => {
+  const { renderSite } = await import('../../skills/docent/scripts/src/renderers/html.mjs');
+  const { loadGolden } = await import('../helpers/golden.mjs');
+  const index = renderSite(await loadGolden()).get('index.html').split('<h2>메뉴 구조</h2>')[1];
+  const order = ['>대시보드<', '<li>주문관리<', '<li>관리자<'].map((t) => index.indexOf(t));
+  assert.ok(order.every((x) => x > 0), String(order));
+  assert.deepEqual([...order].sort((a, b) => a - b), order);
+});

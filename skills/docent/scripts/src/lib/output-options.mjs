@@ -12,11 +12,12 @@ export function resolveOutputOptions(config, cli = {}) {
     if (!FORMATS.includes(f)) throw new Error(`알 수 없는 형식 "${f}" — ${FORMATS.join(', ')} 중에서 고르세요`);
   }
   const formats = FORMATS.filter((f) => requested.includes(f));
+  if (!formats.length) throw new Error(`만들 형식이 없습니다 — ${FORMATS.join(', ')} 중에서 고르세요`);
   const revisions = output.revisions ?? [];
   if (!Array.isArray(revisions)) throw new Error('config.yaml: output.revisions는 목록이어야 합니다');
   revisions.forEach((r, i) => {
     for (const field of REVISION_FIELDS) {
-      if (typeof r?.[field] !== 'string') throw new Error(`config.yaml: output.revisions[${i}]의 ${field}가 없거나 문자열이 아닙니다`);
+      if (typeof r?.[field] !== 'string') throw new Error(`config.yaml: output.revisions[${i}]의 ${field} 값이 없거나 문자열이 아닙니다`);
     }
   });
   return {

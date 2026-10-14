@@ -53,3 +53,9 @@ test('루트 밖 경로는 읽지 않고 에러', async () => {
   const dir = await dirWith({});
   await assert.rejects(hashFiles(dir, ['../a.ts']));
 });
+
+test('CR·CRLF·LF 줄바꿈의 해시가 같다', async () => {
+  const lf = await hashFiles(await dirWith({ 'a.ts': 'a\nb\n' }), ['a.ts']);
+  assert.equal(await hashFiles(await dirWith({ 'a.ts': 'a\r\nb\r\n' }), ['a.ts']), lf);
+  assert.equal(await hashFiles(await dirWith({ 'a.ts': 'a\rb\r' }), ['a.ts']), lf);
+});
