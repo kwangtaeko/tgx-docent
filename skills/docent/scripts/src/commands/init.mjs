@@ -34,6 +34,14 @@ analyze:
 # 캡처·녹화 전에 흐리게 처리할 요소(CSS 선택자):
 # mask:
 #   selectors: [".phone", "td.ssn"]
+# 산출물(preset: delivery 납품 | handover 인수인계 | portfolio 포트폴리오, formats: html readme pdf pptx):
+# output:
+#   preset: handover
+#   formats: [html, readme]
+#   title: 사용자 매뉴얼
+#   organization: ""
+#   revisions:
+#     - { version: "1.0", date: "2026-10-14", author: "", note: "최초 작성" }
 # GIF를 만들 화면(기본: 버튼 동작이 있는 화면):
 # gif:
 #   screens:

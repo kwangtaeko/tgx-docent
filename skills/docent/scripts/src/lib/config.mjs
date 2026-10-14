@@ -11,6 +11,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   analyze: { concurrency: 4 },
   mask: { selectors: [] },
   gif: { screens: { include: [], exclude: [] } },
+  output: { preset: 'handover', formats: ['html', 'readme'], title: '사용자 매뉴얼', organization: '', revisions: [] },
 });
 
 function isObject(v) {
