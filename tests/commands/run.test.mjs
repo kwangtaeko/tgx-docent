@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runApprove, runStart, runStatus, runStop } from '../../skills/docent/scripts/src/commands/run.mjs';
+import { procStartTime, runApprove, runStart, runStatus, runStop } from '../../skills/docent/scripts/src/commands/run.mjs';
 import { httpCheck } from '../../skills/docent/scripts/src/lib/http.mjs';
 import { validateRun } from '../../skills/docent/scripts/src/lib/schema.mjs';
 
@@ -140,7 +140,7 @@ test('시작 중인 앱이 있으면 두 번째 start를 거부한다', async ()
   const { run } = await autoRun();
   const dir = await project(run);
   // 이 테스트 프로세스를 '시작 중인 앱'으로 둔다(살아 있고, /proc가 없으면 명령 비교 없이)
-  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: process.argv0 }));
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: run.start, startTime: procStartTime(process.pid) }));
   await assert.rejects(runStart(dir), /이미 시작 중/);
 });
 
@@ -155,7 +155,7 @@ test('죽은 pid 파일은 지우고 신호를 보내지 않는다', async () =>
 test('다른 프로그램이 쓰는 pid(재사용된 pid)는 우리 앱으로 보지 않는다', { skip: process.platform !== 'linux' }, async () => {
   const { run } = await autoRun();
   const dir = await project(run);
-  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: 'node server.mjs --not-this' }));
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: process.pid, start: run.start, startTime: 'other-process' }));
   assert.deepEqual(await runStop(dir), { stopped: false });
 });
 
@@ -195,4 +195,16 @@ test('실패 로그의 비밀 값은 가린다', async () => {
   } finally {
     delete process.env.DOCENT_T_SECRET;
   }
+});
+
+test('셸이 exec해 명령줄이 달라져도(bash) 시작 시각이 같으면 우리 앱으로 멈춘다', { skip: process.platform !== 'linux' }, async () => {
+  const { spawn } = await import('node:child_process');
+  const { run } = await autoRun({ start: './mvnw spring-boot:run' });
+  const dir = await project(run);
+  const child = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
+  await new Promise((r) => setTimeout(r, 200));
+  await writeFile(join(dir, '.docent', '.run-pid'), JSON.stringify({ pid: child.pid, start: run.start, startTime: procStartTime(child.pid) }));
+  assert.deepEqual(await runStop(dir), { stopped: true });
+  await new Promise((r) => setTimeout(r, 300));
+  assert.throws(() => process.kill(child.pid, 0));
 });

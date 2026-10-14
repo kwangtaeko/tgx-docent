@@ -81,3 +81,21 @@ test('findImport', () => {
   assert.equal(findImport("const Orders = defineAsyncComponent(() => import('./o.vue'))", 'Orders'), './o.vue');
   assert.equal(findImport("import Other from './z';", 'Orders'), undefined);
 });
+
+test('JSX 글자 속 아포스트로피가 줄 번호와 뒤 라우트를 망가뜨리지 않는다', () => {
+  const src = "<h1>Page doesn't exist</h1>\n<p>You haven't any</p>\n<Routes>\n<Route path=\"*\" element={<p>There's nothing here!</p>} />\n<Route path=\"/about\" element={<About />} />\n</Routes>";
+  assert.deepEqual(flattenRoutes(parseJsxRoutes(src)).map((r) => [r.path, r.node.line]), [['/*', 4], ['/about', 5]]);
+  const cr = src.replace(/\n/g, '\r');
+  assert.deepEqual(flattenRoutes(parseJsxRoutes(cr)).map((r) => [r.path, r.node.line]), [['/*', 4], ['/about', 5]]);
+});
+
+test('감싸는 요소(인증·Suspense) 안의 실제 화면 컴포넌트를 고른다', () => {
+  const src = "[{ path: '/a', element: <RequireAuth><Orders /></RequireAuth> }, { path: '/b', element: <Suspense fallback={<Spinner />}><Lazy /></Suspense> }]";
+  assert.deepEqual(flattenRoutes(parseRouteObjects(src)).map((r) => r.node.component), [{ name: 'Orders' }, { name: 'Lazy' }]);
+});
+
+test('정규식이 (.*)·(.+)인 단독 파라미터도 Not-found catch-all', () => {
+  assert.equal(toDocentPath('/:catchAll(.*)'), undefined);
+  assert.equal(toDocentPath('/:all(.+)'), undefined);
+  assert.equal(toDocentPath('/docs/:rest(.*)'), '/docs/[...rest]');
+});

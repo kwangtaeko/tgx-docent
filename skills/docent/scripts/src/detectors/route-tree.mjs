@@ -31,11 +31,16 @@ export function tokenize(source) {
       }
       i += 2;
     } else if (c === '"' || c === "'") {
-      const start = line;
       let j = i + 1;
-      while (j < source.length && source[j] !== c && source[j] !== '\n') j += source[j] === '\\' ? 2 : 1;
-      tokens.push({ t: 'str', v: source.slice(i + 1, j), line: start });
-      i = j + 1;
+      while (j < source.length && source[j] !== c && source[j] !== '\n' && source[j] !== '\r') j += source[j] === '\\' ? 2 : 1;
+      if (source[j] === c) {
+        tokens.push({ t: 'str', v: source.slice(i + 1, j), line });
+        i = j + 1;
+      } else {
+        // 줄 끝까지 닫히지 않은 따옴표는 JSX 글자 속 아포스트로피(doesn't 등)다. 문자열로 보지 않는다
+        tokens.push({ t: 'p', v: c, line });
+        i++;
+      }
     } else if (c === '`') {
       const start = line;
       let j = i + 1;
@@ -108,10 +113,37 @@ function dynamicImport(value) {
   return undefined;
 }
 
-// JSX 요소 값(<Name …)의 컴포넌트
+// 화면을 감싸기만 하는 요소(인증 가드·Suspense 등)
+const WRAPPER = /^(Suspense|ErrorBoundary|Fragment|StrictMode|Require\w*|Protected\w*|Private\w*|Auth\w*|\w*Guard|\w*Boundary|\w*Provider|\w*Layout)$/;
+
+// JSX 요소 이름들(속성 값 {…} 안의 요소, 예: fallback={<Spinner />}는 빼고 바깥→안쪽 순)
+function elementNames(value) {
+  const names = [];
+  for (let k = 0; k < value.length; k++) {
+    if (!(isP(value[k], '<') && value[k + 1]?.t === 'id')) continue;
+    let name = value[k + 1].v;
+    let j = k + 2;
+    while (isP(value[j], '.') && value[j + 1]?.t === 'id') {
+      name += '.' + value[j + 1].v;
+      j += 2;
+    }
+    names.push(name);
+    // 속성 건너뛰기: 깊이 0의 '>'까지, {…}는 통째로
+    while (j < value.length && !isP(value[j], '>')) {
+      if (isP(value[j], '{')) j = matching(value, j);
+      j++;
+    }
+    k = j;
+  }
+  return names;
+}
+
+// JSX 요소 값의 화면 컴포넌트: 감싸는 요소를 지나 처음 나오는 요소
 function jsxComponent(value) {
-  if (isP(value[0], '<') && value[1]?.t === 'id') return REDIRECTS.has(value[1].v) ? undefined : { name: value[1].v };
-  return undefined;
+  const names = elementNames(value).map((n) => n.replace(/^React\./, ''));
+  if (!names.length || REDIRECTS.has(names[0])) return undefined;
+  const name = names.find((n) => !WRAPPER.test(n) && !REDIRECTS.has(n)) ?? names.at(-1);
+  return { name };
 }
 
 function newNode(line) {
@@ -352,9 +384,9 @@ export function toDocentPath(path) {
       if (seg === '*') return '[...splat]';
       const m = /^:([A-Za-z_$][\w$]*)(\(.*\))?([?*+])?$/.exec(seg);
       if (!m) return seg.replace(/\?$/, '');
-      const [, name, , mod] = m;
+      const [, name, regex, mod] = m;
       if (mod === '*' || mod === '?') return `[[...${name}]]`;
-      if (mod === '+') return `[...${name}]`;
+      if (mod === '+' || regex === '(.*)' || regex === '(.+)') return `[...${name}]`;
       return `[${name}]`;
     });
   if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) return undefined;

@@ -60,3 +60,9 @@ test('형식이 틀린 값은 키 경로를 담은 오류', async () => {
 test('output.formats는 문자열 하나도 받는다', async () => {
   assert.deepEqual((await loadConfig(await project('output:\n  formats: pdf\n'))).output.formats, ['pdf']);
 });
+
+test('문자열 항목에 숫자를 적어도 문자열로 받는다', async () => {
+  const c = await loadConfig(await project('output:\n  title: 2026\n  organization: 1234\n'));
+  assert.equal(c.output.title, '2026');
+  assert.equal(c.output.organization, '1234');
+});

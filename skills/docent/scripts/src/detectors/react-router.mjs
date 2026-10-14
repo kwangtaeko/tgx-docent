@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath } from './route-tree.mjs';
-import { byRoute, hasDependency, isDir, isFile, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
+import { byRoute, hasDependency, isDir, isFile, isTestFile, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
 export const name = 'react-router';
 
@@ -41,7 +41,7 @@ async function componentFile(projectDir, file, source, component, aliases) {
 
 async function fromCodeRouters(projectDir, aliases, screens) {
   const root = (await isDir(join(projectDir, 'src'))) ? 'src' : '';
-  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f)).sort()) {
+  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile(join(projectDir, file), 'utf8');
     if (!ROUTER_HINT.test(source)) continue;
     const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];

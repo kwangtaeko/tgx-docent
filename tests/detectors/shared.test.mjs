@@ -29,3 +29,16 @@ test('screenFiles는 .vue·.svelte import와 추가 별칭을 푼다', async () 
   const aliases = await loadAliases(dir, [{ prefix: '$lib/', wildcard: true, targets: ['src/lib/*'] }]);
   assert.deepEqual(await screenFiles(dir, 'src/routes/+page.svelte', aliases), ['src/routes/+page.svelte', 'src/lib/Nav.svelte', 'src/routes/Card.svelte']);
 });
+
+test('빌드 산출물 이름의 폴더도 루트가 아니면 걷는다', async () => {
+  const dir = await project({ 'build/x.tsx': '', 'app/build/page.tsx': '', 'app/build/[id]/page.tsx': '', 'app/node_modules/y.js': '' });
+  assert.deepEqual(await walk(dir, 'app'), ['app/build/[id]/page.tsx', 'app/build/page.tsx']);
+  assert.deepEqual((await walk(dir, '')).sort(), ['app/build/[id]/page.tsx', 'app/build/page.tsx']);
+});
+
+test('폴더 import는 index.vue·index.svelte도 푼다', async () => {
+  const dir = await project({ 'src/router.js': '', 'src/views/user/index.vue': '', 'src/lib/nav/index.svelte': '' });
+  const { resolveImport } = await import('../../skills/docent/scripts/src/detectors/shared.mjs');
+  assert.equal(await resolveImport(dir, 'src/router.js', './views/user', []), 'src/views/user/index.vue');
+  assert.equal(await resolveImport(dir, 'src/router.js', './lib/nav', []), 'src/lib/nav/index.svelte');
+});

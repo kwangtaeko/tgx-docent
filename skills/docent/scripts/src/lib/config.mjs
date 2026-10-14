@@ -45,7 +45,15 @@ function checkConfig(config) {
   // 형식 하나만 적은 경우(formats: pdf)는 목록으로 받는다
   if (typeof config.output.formats === 'string') config.output.formats = [config.output.formats];
   for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, '목록');
-  for (const path of STRING_KEYS) if (typeof get(config, path) !== 'string') fail(path, '문자열');
+  for (const path of STRING_KEYS) {
+    const value = get(config, path);
+    // title: 2026처럼 YAML이 숫자로 읽은 값은 문자열로 받는다
+    if (typeof value === 'number') {
+      const [head, key] = path.includes('.') ? path.split('.') : [undefined, path];
+      if (head) config[head][key] = String(value);
+      else config[key] = String(value);
+    } else if (typeof value !== 'string') fail(path, '문자열');
+  }
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', '양의 정수');
   return config;

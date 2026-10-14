@@ -27483,7 +27483,14 @@ function checkConfig(config) {
   for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, "\uAC1D\uCCB4");
   if (typeof config.output.formats === "string") config.output.formats = [config.output.formats];
   for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, "\uBAA9\uB85D");
-  for (const path of STRING_KEYS) if (typeof get(config, path) !== "string") fail(path, "\uBB38\uC790\uC5F4");
+  for (const path of STRING_KEYS) {
+    const value = get(config, path);
+    if (typeof value === "number") {
+      const [head, key] = path.includes(".") ? path.split(".") : [void 0, path];
+      if (head) config[head][key] = String(value);
+      else config[key] = String(value);
+    } else if (typeof value !== "string") fail(path, "\uBB38\uC790\uC5F4");
+  }
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", "\uC591\uC758 \uC815\uC218");
   return config;
@@ -28480,14 +28487,20 @@ function killGroup(pid, signal) {
   } catch {
   }
 }
-function sameCommand(pid, start) {
-  const path = `/proc/${pid}/cmdline`;
-  if (!start || !existsSync2(path)) return true;
+function procStartTime(pid) {
+  const path = `/proc/${pid}/stat`;
+  if (!existsSync2(path)) return void 0;
   try {
-    return readFileSync2(path, "utf8").split("\0").join(" ").includes(start);
+    const stat3 = readFileSync2(path, "utf8");
+    return stat3.slice(stat3.lastIndexOf(")") + 2).split(" ")[19];
   } catch {
-    return true;
+    return void 0;
   }
+}
+function sameProcess(pid, startTime) {
+  if (!startTime) return true;
+  const now = procStartTime(pid);
+  return now === void 0 || now === startTime;
 }
 async function readPid(projectDir) {
   let text;
@@ -28497,14 +28510,14 @@ async function readPid(projectDir) {
     return void 0;
   }
   let pid;
-  let start;
+  let startTime;
   try {
     const data = JSON.parse(text);
     if (typeof data === "number") pid = data;
-    else ({ pid, start } = data ?? {});
+    else ({ pid, startTime } = data ?? {});
   } catch {
   }
-  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameCommand(pid, start)) return pid;
+  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameProcess(pid, startTime)) return pid;
   await rm(pidFile(projectDir), { force: true });
   return void 0;
 }
@@ -28555,7 +28568,7 @@ ${describeCommands(run2)}`
     exited = true;
   });
   child.unref();
-  await writeFile2(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run2.start }) + "\n");
+  await writeFile2(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run2.start, startTime: procStartTime(child.pid) }) + "\n");
   const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
   while (Date.now() < deadline) {
     if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
@@ -28618,7 +28631,7 @@ var under = (path, base) => {
   return path === b || path.startsWith(b === "/" ? "/" : `${b}/`);
 };
 function loggedInPath(path, loginPath, successPath) {
-  if (under(path, loginPath)) return false;
+  if (loginPath === "/" ? path === "/" : under(path, loginPath)) return false;
   return successPath ? under(path, successPath) : true;
 }
 async function authLogin(projectDir) {
@@ -35672,8 +35685,9 @@ import { join as join18 } from "node:path";
 // skills/docent/scripts/src/detectors/shared.mjs
 import { readFile as readFile8, readdir as readdir3, stat as stat2 } from "node:fs/promises";
 import { join as join17, posix as posix2 } from "node:path";
-var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit", "dist", "build", "coverage"]);
-var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", ".vue", ".svelte", "/index.tsx", "/index.ts", "/index.jsx", "/index.js"];
+var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit"]);
+var ROOT_SKIP_DIRS = /* @__PURE__ */ new Set(["dist", "build", "coverage"]);
+var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", ".vue", ".svelte", "/index.tsx", "/index.ts", "/index.jsx", "/index.js", "/index.vue", "/index.svelte"];
 var IMPORT_PATTERNS = [
   /^\s*import\s[^'"]*?['"]([^'"]+)['"]/gm,
   /^\s*import\s*['"]([^'"]+)['"]/gm,
@@ -35725,13 +35739,15 @@ async function isDir(path) {
 async function walk(projectDir, rel) {
   const out = [];
   for (const entry of await readdir3(join17(projectDir, rel), { withFileTypes: true })) {
-    if (SKIP_DIRS.has(entry.name)) continue;
+    if (SKIP_DIRS.has(entry.name) || !rel && ROOT_SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
     else if (entry.isFile()) out.push(child);
   }
   return out;
 }
+var TEST_FILE = /(^|\/)(__tests__|__mocks__|tests?|e2e|cypress|playwright|\.storybook)\/|\.(test|spec|stories|story)\.[cm]?[jt]sx?$/;
+var isTestFile = (rel) => TEST_FILE.test(rel);
 async function hasDependency(projectDir, names) {
   const pkg = await readJsonc(join17(projectDir, "package.json"));
   return names.some((n) => Boolean(pkg?.dependencies?.[n] || pkg?.devDependencies?.[n]));
@@ -35879,11 +35895,15 @@ function tokenize(source) {
       }
       i += 2;
     } else if (c === '"' || c === "'") {
-      const start = line2;
       let j = i + 1;
-      while (j < source.length && source[j] !== c && source[j] !== "\n") j += source[j] === "\\" ? 2 : 1;
-      tokens.push({ t: "str", v: source.slice(i + 1, j), line: start });
-      i = j + 1;
+      while (j < source.length && source[j] !== c && source[j] !== "\n" && source[j] !== "\r") j += source[j] === "\\" ? 2 : 1;
+      if (source[j] === c) {
+        tokens.push({ t: "str", v: source.slice(i + 1, j), line: line2 });
+        i = j + 1;
+      } else {
+        tokens.push({ t: "p", v: c, line: line2 });
+        i++;
+      }
     } else if (c === "`") {
       const start = line2;
       let j = i + 1;
@@ -35948,9 +35968,31 @@ function dynamicImport(value) {
   }
   return void 0;
 }
+var WRAPPER = /^(Suspense|ErrorBoundary|Fragment|StrictMode|Require\w*|Protected\w*|Private\w*|Auth\w*|\w*Guard|\w*Boundary|\w*Provider|\w*Layout)$/;
+function elementNames(value) {
+  const names = [];
+  for (let k = 0; k < value.length; k++) {
+    if (!(isP(value[k], "<") && value[k + 1]?.t === "id")) continue;
+    let name5 = value[k + 1].v;
+    let j = k + 2;
+    while (isP(value[j], ".") && value[j + 1]?.t === "id") {
+      name5 += "." + value[j + 1].v;
+      j += 2;
+    }
+    names.push(name5);
+    while (j < value.length && !isP(value[j], ">")) {
+      if (isP(value[j], "{")) j = matching(value, j);
+      j++;
+    }
+    k = j;
+  }
+  return names;
+}
 function jsxComponent(value) {
-  if (isP(value[0], "<") && value[1]?.t === "id") return REDIRECTS.has(value[1].v) ? void 0 : { name: value[1].v };
-  return void 0;
+  const names = elementNames(value).map((n) => n.replace(/^React\./, ""));
+  if (!names.length || REDIRECTS.has(names[0])) return void 0;
+  const name5 = names.find((n) => !WRAPPER.test(n) && !REDIRECTS.has(n)) ?? names.at(-1);
+  return { name: name5 };
 }
 function newNode(line2) {
   return { index: false, line: line2, children: [] };
@@ -36169,9 +36211,9 @@ function toDocentPath(path) {
     if (seg === "*") return "[...splat]";
     const m = /^:([A-Za-z_$][\w$]*)(\(.*\))?([?*+])?$/.exec(seg);
     if (!m) return seg.replace(/\?$/, "");
-    const [, name5, , mod] = m;
+    const [, name5, regex, mod] = m;
     if (mod === "*" || mod === "?") return `[[...${name5}]]`;
-    if (mod === "+") return `[...${name5}]`;
+    if (mod === "+" || regex === "(.*)" || regex === "(.+)") return `[...${name5}]`;
     return `[${name5}]`;
   });
   if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) return void 0;
@@ -36220,7 +36262,7 @@ async function componentFile(projectDir, file, source, component, aliases) {
 }
 async function fromCodeRouters(projectDir, aliases, screens) {
   const root = await isDir(join19(projectDir, "src")) ? "src" : "";
-  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f)).sort()) {
+  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile10(join19(projectDir, file), "utf8");
     if (!ROUTER_HINT.test(source)) continue;
     const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];
@@ -36268,7 +36310,10 @@ async function listScreens3(projectDir) {
   const aliases = await loadAliases(projectDir, LIB_ALIASES);
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
-    if (posix4.basename(file) !== "+page.svelte") continue;
+    if (!/^\+page(@[^/]*)?\.svelte$/.test(posix4.basename(file))) continue;
+    const route = routeOf(file);
+    const segs = route.split("/").filter((s) => s && !/^\(.*\)$/.test(s));
+    if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) continue;
     const [page2, ...imports] = await screenFiles(projectDir, file, aliases);
     const dir = posix4.dirname(file);
     for (const loader of LOADERS) {
@@ -36276,7 +36321,7 @@ async function listScreens3(projectDir) {
       if (await isFile(join20(projectDir, path)) && !imports.includes(path)) imports.push(path);
     }
     const source = await readFile11(join20(projectDir, file), "utf8");
-    screens.push({ route: routeOf(file), files: [page2, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
+    screens.push({ route, files: [page2, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
   }
   return screens.sort(byRoute);
 }
@@ -36332,7 +36377,7 @@ async function routerScreens(projectDir) {
   const aliases = await loadAliases(projectDir, VUE_ALIASES);
   const root = await isDir(join21(projectDir, "src")) ? "src" : "";
   const screens = /* @__PURE__ */ new Map();
-  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT2.test(f)).sort()) {
+  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT2.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile12(join21(projectDir, file), "utf8");
     if (!/createRouter\s*\(|RouteRecordRaw/.test(source) && !/(^|\/)router\//.test(file)) continue;
     for (const { path, node } of flattenRoutes(parseRouteObjects(source))) {

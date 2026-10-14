@@ -77,18 +77,26 @@ function killGroup(pid, signal) {
   }
 }
 
-// Linux에서는 pid가 다른 프로그램에 재사용됐는지 명령줄로 확인한다
-function sameCommand(pid, start) {
-  const path = `/proc/${pid}/cmdline`;
-  if (!start || !existsSync(path)) return true;
+// Linux에서 프로세스 시작 시각(/proc/<pid>/stat 22번째 값). 셸이 명령을 exec해 명령줄이 바뀌어도 같다
+export function procStartTime(pid) {
+  const path = `/proc/${pid}/stat`;
+  if (!existsSync(path)) return undefined;
   try {
-    return readFileSync(path, 'utf8').split('\0').join(' ').includes(start);
+    const stat = readFileSync(path, 'utf8');
+    return stat.slice(stat.lastIndexOf(')') + 2).split(' ')[19];
   } catch {
-    return true;
+    return undefined;
   }
 }
 
-// .run-pid: { pid, start } (옛 형식은 숫자만). 죽었거나 다른 프로그램의 pid면 파일을 지우고 undefined
+// pid가 다른 프로그램에 재사용됐는지: 기록한 시작 시각과 비교(기록이 없거나 /proc가 없으면 살아 있는지만 본다)
+function sameProcess(pid, startTime) {
+  if (!startTime) return true;
+  const now = procStartTime(pid);
+  return now === undefined || now === startTime;
+}
+
+// .run-pid: { pid, start, startTime } (옛 형식은 숫자만). 죽었거나 다른 프로그램의 pid면 파일을 지우고 undefined
 async function readPid(projectDir) {
   let text;
   try {
@@ -97,15 +105,15 @@ async function readPid(projectDir) {
     return undefined;
   }
   let pid;
-  let start;
+  let startTime;
   try {
     const data = JSON.parse(text);
     if (typeof data === 'number') pid = data;
-    else ({ pid, start } = data ?? {});
+    else ({ pid, startTime } = data ?? {});
   } catch {
     // 깨진 파일
   }
-  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameCommand(pid, start)) return pid;
+  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameProcess(pid, startTime)) return pid;
   await rm(pidFile(projectDir), { force: true });
   return undefined;
 }
@@ -163,7 +171,7 @@ export async function runStart(projectDir, { install = false } = {}) {
     exited = true;
   });
   child.unref();
-  await writeFile(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run.start }) + '\n');
+  await writeFile(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run.start, startTime: procStartTime(child.pid) }) + '\n');
 
   const deadline = Date.now() + (run.healthcheck?.timeoutSec ?? 120) * 1000;
   while (Date.now() < deadline) {

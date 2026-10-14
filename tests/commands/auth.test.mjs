@@ -111,3 +111,20 @@ test('기본 successPath에서도 로그인 경로 아래에 머물면 실패', 
     await bad.close();
   }
 });
+
+test('로그인 화면이 / 이면 / 를 벗어났을 때 성공', async () => {
+  const root = await startTestSite({
+    pages: {
+      '/': page('로그인', `<label>아이디 <input></label><label>비밀번호 <input type="password"></label>
+        <button onclick="location.href='/dashboard'">로그인</button>`),
+      '/dashboard': page('대시보드'),
+    },
+  });
+  try {
+    const config = AUTH.replace('loginPath: /login', 'loginPath: /').replace('successPath: /', 'successPath: /dashboard');
+    const dir = await siteProject(root.url, config);
+    await withEnv({ DOCENT_T_USER: 'u', DOCENT_T_PASSWORD: 'p' }, () => authLogin(dir));
+  } finally {
+    await root.close();
+  }
+});

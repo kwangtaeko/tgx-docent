@@ -28,7 +28,11 @@ export async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir, LIB_ALIASES);
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
-    if (posix.basename(file) !== '+page.svelte') continue;
+    // +page@.svelte·+page@(group).svelte는 레이아웃을 재설정한 화면
+    if (!/^\+page(@[^/]*)?\.svelte$/.test(posix.basename(file))) continue;
+    const route = routeOf(file);
+    const segs = route.split('/').filter((s) => s && !/^\(.*\)$/.test(s));
+    if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) continue; // 최상위 catch-all은 Not-found
     const [page, ...imports] = await screenFiles(projectDir, file, aliases);
     const dir = posix.dirname(file);
     for (const loader of LOADERS) {
@@ -36,7 +40,7 @@ export async function listScreens(projectDir) {
       if ((await isFile(join(projectDir, path))) && !imports.includes(path)) imports.push(path);
     }
     const source = await readFile(join(projectDir, file), 'utf8');
-    screens.push({ route: routeOf(file), files: [page, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
+    screens.push({ route, files: [page, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
   }
   return screens.sort(byRoute);
 }

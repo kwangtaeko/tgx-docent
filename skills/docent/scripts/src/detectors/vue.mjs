@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { findImport, flattenRoutes, parseRouteObjects, toDocentPath } from './route-tree.mjs';
-import { byRoute, hasDependency, isDir, isFile, lineOf, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
+import { byRoute, hasDependency, isDir, isFile, isTestFile, lineOf, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
 export const name = 'vue';
 
@@ -56,7 +56,7 @@ async function routerScreens(projectDir) {
   const aliases = await loadAliases(projectDir, VUE_ALIASES);
   const root = (await isDir(join(projectDir, 'src'))) ? 'src' : '';
   const screens = new Map();
-  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f)).sort()) {
+  for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile(join(projectDir, file), 'utf8');
     if (!/createRouter\s*\(|RouteRecordRaw/.test(source) && !/(^|\/)router\//.test(file)) continue;
     for (const { path, node } of flattenRoutes(parseRouteObjects(source))) {

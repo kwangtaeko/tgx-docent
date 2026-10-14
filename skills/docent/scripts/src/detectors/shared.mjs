@@ -3,9 +3,10 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 import { normalizeRel } from '../lib/paths.mjs';
 
-// 의존성·빌드 산출물·작업 폴더는 화면 소스가 아니다
-export const SKIP_DIRS = new Set(['node_modules', '.git', '.docent', '.next', '.nuxt', '.output', '.svelte-kit', 'dist', 'build', 'coverage']);
-const RESOLVE_SUFFIXES = ['', '.tsx', '.ts', '.jsx', '.js', '.vue', '.svelte', '/index.tsx', '/index.ts', '/index.jsx', '/index.js'];
+// 의존성·작업 폴더는 어디서든, 빌드 산출물 폴더는 프로젝트 루트에서만 건너뛴다(app/build 같은 실제 화면 폴더가 있음)
+export const SKIP_DIRS = new Set(['node_modules', '.git', '.docent', '.next', '.nuxt', '.output', '.svelte-kit']);
+const ROOT_SKIP_DIRS = new Set(['dist', 'build', 'coverage']);
+const RESOLVE_SUFFIXES = ['', '.tsx', '.ts', '.jsx', '.js', '.vue', '.svelte', '/index.tsx', '/index.ts', '/index.jsx', '/index.js', '/index.vue', '/index.svelte'];
 const IMPORT_PATTERNS = [
   /^\s*import\s[^'"]*?['"]([^'"]+)['"]/gm,
   /^\s*import\s*['"]([^'"]+)['"]/gm,
@@ -64,13 +65,17 @@ export async function isDir(path) {
 export async function walk(projectDir, rel) {
   const out = [];
   for (const entry of await readdir(join(projectDir, rel), { withFileTypes: true })) {
-    if (SKIP_DIRS.has(entry.name)) continue;
+    if (SKIP_DIRS.has(entry.name) || (!rel && ROOT_SKIP_DIRS.has(entry.name))) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...(await walk(projectDir, child)));
     else if (entry.isFile()) out.push(child);
   }
   return out;
 }
+
+// 테스트·스토리·E2E 파일은 화면 소스가 아니다(테스트용 라우터가 들어 있음)
+const TEST_FILE = /(^|\/)(__tests__|__mocks__|tests?|e2e|cypress|playwright|\.storybook)\/|\.(test|spec|stories|story)\.[cm]?[jt]sx?$/;
+export const isTestFile = (rel) => TEST_FILE.test(rel);
 
 export async function hasDependency(projectDir, names) {
   const pkg = await readJsonc(join(projectDir, 'package.json'));

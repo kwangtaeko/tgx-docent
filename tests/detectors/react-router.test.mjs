@@ -38,3 +38,25 @@ test('컴포넌트를 찾지 못하면 라우터 파일을 files로', async () =
   });
   assert.deepEqual(await reactRouter.listScreens(dir), [{ route: '/in', files: ['src/App.tsx'], evidence: 'src/App.tsx:2' }]);
 });
+
+test('테스트·스토리 파일의 라우트는 화면이 아니다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router-dom":"6"}}',
+    'src/router.tsx': "import A from './A';\nexport const r = createBrowserRouter([{ path: '/a', element: <A /> }]);\n",
+    'src/A.tsx': '',
+    'src/__tests__/Orders.test.tsx': '<MemoryRouter><Routes><Route path="/login" element={<div />} /></Routes></MemoryRouter>',
+    'src/Orders.spec.tsx': '<Routes><Route path="/spec" element={<B />} /></Routes>',
+    'src/Orders.stories.tsx': '<Routes><Route path="/story" element={<B />} /></Routes>',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir)).map((s) => s.route), ['/a']);
+});
+
+test('감싸는 요소 안의 화면 파일을 files로', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router-dom":"6"}}',
+    'src/router.tsx': "import RequireAuth from './auth/RequireAuth';\nimport Orders from './Orders';\nexport const r = createBrowserRouter([{ path: '/o', element: <RequireAuth><Orders /></RequireAuth> }]);\n",
+    'src/auth/RequireAuth.tsx': '',
+    'src/Orders.tsx': '',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir))[0].files, ['src/Orders.tsx']);
+});

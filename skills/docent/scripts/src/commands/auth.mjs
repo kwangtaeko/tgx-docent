@@ -32,7 +32,8 @@ const under = (path, base) => {
 
 // 로그인 경로(/login, /login/error 등)에 머물렀으면 실패. successPath가 있으면 그 아래여야 성공
 function loggedInPath(path, loginPath, successPath) {
-  if (under(path, loginPath)) return false;
+  // 로그인 화면이 /이면 / 자체에 머문 경우만 실패
+  if (loginPath === '/' ? path === '/' : under(path, loginPath)) return false;
   return successPath ? under(path, successPath) : true;
 }
 

@@ -34,3 +34,13 @@ test('+page.ts·+page.server.ts와 $lib import가 files에 들어간다', async 
     { route: '/login', files: ['src/routes/login/+page.svelte', 'src/lib/Nav.svelte', 'src/routes/login/+page.server.ts'], evidence: 'src/routes/login/+page.svelte:1' },
   ]);
 });
+
+test('최상위 catch-all은 빼고, 레이아웃 재설정(+page@)도 화면이다', async () => {
+  const dir = await project({
+    'package.json': '{"devDependencies":{"@sveltejs/kit":"2"}}',
+    'src/routes/[...rest]/+page.svelte': '<h1>없음</h1>\n',
+    'src/routes/print/+page@.svelte': '<h1>인쇄</h1>\n',
+    'src/routes/docs/[...path]/+page.svelte': '<h1>문서</h1>\n',
+  });
+  assert.deepEqual((await sveltekit.listScreens(dir)).map((s) => s.route), ['/docs/[...path]', '/print']);
+});
