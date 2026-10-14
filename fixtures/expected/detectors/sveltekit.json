@@ -1,0 +1,33 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "src/routes/+page.svelte"
+    ],
+    "evidence": "src/routes/+page.svelte:1"
+  },
+  {
+    "route": "/(app)/orders",
+    "files": [
+      "src/routes/(app)/orders/+page.svelte",
+      "src/routes/(app)/orders/+page.ts"
+    ],
+    "evidence": "src/routes/(app)/orders/+page.svelte:1"
+  },
+  {
+    "route": "/(app)/orders/[id]",
+    "files": [
+      "src/routes/(app)/orders/[id=integer]/+page.svelte"
+    ],
+    "evidence": "src/routes/(app)/orders/[id=integer]/+page.svelte:1"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "src/routes/login/+page.svelte",
+      "src/lib/Nav.svelte",
+      "src/routes/login/+page.server.ts"
+    ],
+    "evidence": "src/routes/login/+page.svelte:1"
+  }
+]
