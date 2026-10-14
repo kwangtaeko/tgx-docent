@@ -147,6 +147,9 @@ test('골든 시나리오가 스키마를 통과하고 화면 해시와 같다',
     assert.ok(r.valid, `${f}: ${r.errors.join('; ')}`);
     assert.equal(`${sc.screenId}.json`, f);
     assert.equal(sc.sourceHash, screens.get(sc.screenId).sourceHash, f);
-    for (const step of [...sc.setup, ...sc.steps]) assert.notEqual(step.label, '삭제', `${f}: 되돌릴 수 없는 동작`);
+    for (const step of [...sc.setup, ...sc.steps]) {
+      assert.notEqual(step.label, '삭제', `${f}: 되돌릴 수 없는 동작`);
+      assert.ok(!String(step.value ?? '').includes('${'), `${f}: 환경변수 값이 캡처·GIF에 찍힘`);
+    }
   }
 });

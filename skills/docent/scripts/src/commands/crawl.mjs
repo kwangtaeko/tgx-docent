@@ -5,7 +5,8 @@ import { docentDir, readJson, writeJson } from '../lib/workspace.mjs';
 import { newContext } from './auth.mjs';
 import { loadRun } from './run.mjs';
 
-const SKIP_PATH = /(^|\/)(log-?out|sign-?out)(\/|$)/i;
+// 로그아웃 링크: /logout, /Logout.aspx, logout.php, /logoff, sign_out, ?action=logout 등
+const LOGOUT = /(log[-_]?(out|off)|sign[-_]?(out|off))/i;
 const FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
 
 function escapeRegExp(text) {
@@ -29,7 +30,7 @@ function normalizePath(pathname) {
   return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 }
 
-function followable(href, origin) {
+export function followable(href, origin) {
   let url;
   try {
     url = new URL(href);
@@ -38,7 +39,7 @@ function followable(href, origin) {
   }
   if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return undefined;
   const path = normalizePath(url.pathname);
-  if (SKIP_PATH.test(path) || FILE_EXT.test(path)) return undefined;
+  if (LOGOUT.test(path) || LOGOUT.test(url.search) || FILE_EXT.test(path)) return undefined;
   return path;
 }
 

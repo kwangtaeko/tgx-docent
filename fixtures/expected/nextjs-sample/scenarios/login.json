@@ -2,30 +2,6 @@
   "screenId": "login",
   "path": "/login",
   "setup": [],
-  "steps": [
-    {
-      "do": "fill",
-      "label": "아이디",
-      "value": "${DOCENT_USER}",
-      "evidence": "app/login/page.tsx:11"
-    },
-    {
-      "do": "fill",
-      "label": "비밀번호",
-      "value": "${DOCENT_PASSWORD}",
-      "evidence": "app/login/page.tsx:15"
-    },
-    {
-      "do": "click",
-      "role": "button",
-      "label": "로그인",
-      "evidence": "app/login/page.tsx:19"
-    },
-    {
-      "do": "expectText",
-      "text": "대시보드",
-      "evidence": "app/page.tsx:11"
-    }
-  ],
+  "steps": [],
   "sourceHash": "sha256:9b5b696744b5f3a09799dfef6109cc5099c5f642c0101d322560b1a84ce5f9ee"
 }

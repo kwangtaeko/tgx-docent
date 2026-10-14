@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runStart, runStatus, runStop } from '../../skills/docent/scripts/src/commands/run.mjs';
+import { runApprove, runStart, runStatus, runStop } from '../../skills/docent/scripts/src/commands/run.mjs';
 import { httpCheck } from '../../skills/docent/scripts/src/lib/http.mjs';
 import { validateRun } from '../../skills/docent/scripts/src/lib/schema.mjs';
 
@@ -29,6 +29,7 @@ async function project(run) {
   await mkdir(join(dir, '.docent'));
   await writeFile(join(dir, 'server.mjs'), SERVER);
   await writeFile(join(dir, '.docent', 'run.json'), JSON.stringify(run));
+  if (run.mode === 'auto') await runApprove(dir);
   return dir;
 }
 
@@ -107,4 +108,18 @@ test('스키마', () => {
   assert.equal(validateRun({ mode: 'url', baseUrl: 'http://x' }).valid, true);
   assert.equal(validateRun({ mode: 'auto', baseUrl: 'http://x', start: 'a', env: { A: 1 } }).valid, false);
   assert.equal(validateRun({ mode: 'auto', baseUrl: 'http://x' }).valid, false);
+});
+
+test('승인되지 않은(예: 레포에 이미 있던) run.json 명령은 실행하지 않는다', async () => {
+  const { run } = await autoRun();
+  const dir = await project(run);
+  await writeFile(join(dir, '.docent', 'run.json'), JSON.stringify({ ...run, start: 'node server.mjs # changed' }));
+  await assert.rejects(runStart(dir), (err) => {
+    assert.match(err.message, /승인/);
+    assert.match(err.message, /node server\.mjs # changed/);
+    return true;
+  });
+  await runApprove(dir);
+  assert.equal((await runStart(dir)).started, true);
+  await runStop(dir);
 });

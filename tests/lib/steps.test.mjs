@@ -102,3 +102,14 @@ test('시나리오 스키마', () => {
   assert.equal(validateScenario({ ...base, steps: [{ do: 'wait', ms: 5000, evidence: ev }] }).valid, false);
   assert.equal(validateScenario({ ...base, path: 'a' }).valid, false);
 });
+
+test('마스킹은 페이지를 이동해도 유지된다', async () => {
+  const { maskContext } = await import('../../skills/docent/scripts/src/lib/steps.mjs');
+  const context = await (await browser()).newContext();
+  await maskContext(context, ['.ssn']);
+  const p = await context.newPage();
+  await p.goto(`${site.url}/form`);
+  await p.goto(`${site.url}/form?again=1`);
+  assert.match(await p.locator('.ssn').evaluate((el) => getComputedStyle(el).filter), /blur/);
+  await context.close();
+});

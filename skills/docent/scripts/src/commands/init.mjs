@@ -5,7 +5,7 @@ import { DETECTORS } from '../detectors/index.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { docentDir } from '../lib/workspace.mjs';
 
-const IGNORE_LINES = ['auth/', 'out/', 'media/', '.session', 'run.log', '.run-pid'];
+const IGNORE_LINES = ['auth/', 'out/', 'media/', '.session', 'run.log', '.run-pid', '.run-approved'];
 const GITIGNORE_HEADER = '# docent: 로그인 세션·산출물·캡처(실데이터가 찍힐 수 있음)는 커밋하지 않습니다';
 
 function configYaml(detectors) {
@@ -21,6 +21,24 @@ screens:
   idMap: {}
 analyze:
   concurrency: 4
+# 로그인이 필요한 앱(값은 적지 말고 환경변수 이름만):
+# auth:
+#   loginPath: /login
+#   fields:
+#     - label: 아이디
+#       env: DOCENT_USER
+#     - label: 비밀번호
+#       env: DOCENT_PASSWORD
+#   submit: 로그인
+#   successPath: /
+# 캡처·녹화 전에 흐리게 처리할 요소(CSS 선택자):
+# mask:
+#   selectors: [".phone", "td.ssn"]
+# GIF를 만들 화면(기본: 버튼 동작이 있는 화면):
+# gif:
+#   screens:
+#     include: []
+#     exclude: []
 `.replace('detectors:\n  []', 'detectors: []');
 }
 

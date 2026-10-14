@@ -4,11 +4,11 @@ import { join } from 'node:path';
 import { loadConfig } from '../lib/config.mjs';
 import { clearFailure, ensureMediaDirs, mediaPaths, recordFailure } from '../lib/media.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
-import { applyMask, runSteps } from '../lib/steps.mjs';
+import { maskContext, runSteps, usesEnvValue } from '../lib/steps.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { encodeGif } from '../renderers/gif.mjs';
 import { newContext } from './auth.mjs';
-import { loadScenario, openScreen } from './capture.mjs';
+import { isLoginPath, loadScenario, openScreen } from './capture.mjs';
 import { loadRun } from './run.mjs';
 import { gifTargets } from './scenarios.mjs';
 
@@ -26,7 +26,7 @@ async function loadScreen(projectDir, id) {
 }
 
 // 단계를 실행하는 동안 1000/fps 간격으로 화면을 찍는다
-async function recordSteps(page, steps, maskSelectors) {
+async function recordSteps(page, steps) {
   const frames = [];
   let recording = true;
   const interval = 1000 / FPS;
@@ -43,10 +43,7 @@ async function recordSteps(page, steps, maskSelectors) {
     }
   })();
   const result = await runSteps(page, steps, {
-    onStep: async () => {
-      await applyMask(page, maskSelectors).catch(() => {});
-      await sleep(300);
-    },
+    onStep: () => sleep(300),
   });
   if (result.ok) await sleep(1000);
   recording = false;
@@ -76,6 +73,9 @@ export async function runRecord(projectDir, ids) {
   const browser = await launchBrowser();
   try {
     const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
+    await maskContext(context, config.mask.selectors);
+    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT });
+    await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
       if (!scenario) {
@@ -86,12 +86,17 @@ export async function runRecord(projectDir, ids) {
         result.skipped.push({ id, reason: '보여 줄 조작 단계가 없습니다' });
         continue;
       }
+      if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
+        result.skipped.push({ id, reason: '환경변수 값(계정 등)을 입력하는 단계가 있어 GIF로 만들지 않습니다' });
+        continue;
+      }
       const screen = await loadScreen(projectDir, id);
       if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
         result.skipped.push({ id, reason: '시나리오가 낡았습니다' });
         continue;
       }
-      const page = await context.newPage();
+      // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
+      const page = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
       try {
         const opened = await openScreen(page, { baseUrl: run.baseUrl, path: scenario.path, setup: scenario.setup, loginPath });
         if (opened) {
@@ -100,8 +105,7 @@ export async function runRecord(projectDir, ids) {
           result.failed.push({ id, reason: opened });
           continue;
         }
-        await applyMask(page, config.mask.selectors);
-        const { result: stepResult, frames } = await recordSteps(page, scenario.steps, config.mask.selectors);
+        const { result: stepResult, frames } = await recordSteps(page, scenario.steps);
         if (!stepResult.ok) {
           await page.screenshot({ path: paths.fail(id) }).catch(() => {});
           await recordFailure(projectDir, { id, kind: 'record', step: stepResult.index, reason: stepResult.reason });

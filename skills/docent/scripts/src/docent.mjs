@@ -12,7 +12,7 @@ import { runInventory } from './commands/inventory.mjs';
 import { runPending } from './commands/pending.mjs';
 import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
-import { runStart, runStatus, runStop } from './commands/run.mjs';
+import { runApprove, runStart, runStatus, runStop } from './commands/run.mjs';
 import { runtimeInstall, runtimeStatus } from './commands/runtime.mjs';
 import { runValidate } from './commands/validate.mjs';
 import { PlaywrightMissing } from './lib/playwright.mjs';
@@ -28,6 +28,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   review         확인 필요 항목(.docent/review.md)을 모읍니다
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
+  run approve    사용자가 동의한 run.json 명령을 이 컴퓨터에서 승인(.docent/.run-approved)
   run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
   crawl          실행 중인 앱을 링크로 돌며 화면 목록과 대조(.docent/crawl.json)
   scenarios      시나리오를 (다시) 써야 하는 화면(캡처 경로 필요·GIF 대상·낡음)
@@ -102,6 +103,11 @@ async function main() {
       return 0;
     }
     case 'run': {
+      if (sub === 'approve') {
+        const r = await runApprove(project);
+        console.log(`다음 명령을 승인했습니다:\n${r.commands}`);
+        return 0;
+      }
       if (sub === 'start') {
         const r = await runStart(project, { install: args.includes('--install') });
         console.log(r.reused ? `이미 응답 중인 앱을 씁니다: ${r.baseUrl}` : `앱을 띄웠습니다: ${r.baseUrl}`);

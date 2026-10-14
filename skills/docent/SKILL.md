@@ -32,6 +32,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 | `$DOCENT build` | `.docent/out/html/`(소개·화면 목록·화면별 매뉴얼·워크플로우)와 `.docent/out/README.md` 생성 |
 | `$DOCENT session start` / `end` | 분석 세션 표시(비밀 파일 차단 훅이 이때만 동작) |
 | `$DOCENT runtime status` / `install` | 캡처용 Playwright·Chromium 확인 / 설치(**사용자 동의 후**, `~/.cache/docent/runtime`) |
+| `$DOCENT run approve` | 사용자가 동의한 `run.json` 명령을 이 컴퓨터에서 승인(승인 전에는 실행하지 않음) |
 | `$DOCENT run start [--install]` / `stop` / `status` | `.docent/run.json`대로 대상 앱 실행·중지·확인 |
 | `$DOCENT auth login` / `save` | 로그인 상태 저장(login: `config.yaml`의 `auth` + 계정 환경변수, save: 사용자가 브라우저에서 직접 로그인) |
 | `$DOCENT crawl` | 실행 중인 앱을 링크로 돌며 화면 목록과 대조(`.docent/crawl.json`, review.md에 반영) |
@@ -76,9 +77,9 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 캡처·GIF는 앱이 실제로 떠야 만들 수 있습니다. 어느 단계든 끝내 안 되면 건너뛰고 7단계로 갑니다(산출물에 "캡처 없이 소스만으로 만들었습니다"가 표시됩니다).
 
 1. **준비**: `$DOCENT runtime status`. 없으면 "화면 캡처를 위해 Playwright와 Chromium(약 150MB)을 `~/.cache/docent/runtime`에 설치해도 될까요?"라고 묻고, 동의하면 `$DOCENT runtime install`
-2. **실행 계획**: `.docent/run.json`이 이미 있으면 `$DOCENT run start`. 없으면 `<SKILL_DIR>/references/run-guide.md`대로 실행 계획을 만들어 **사용자에게 보여 주고 동의를 받은 뒤** `run.json`을 쓰고 `$DOCENT run start --install`. 동의하지 않으면 사용자가 띄운 앱 주소를 받아 `{ "mode": "url", "baseUrl": … }`로 씁니다
+2. **실행 계획**: `.docent/run.json`이 없으면 `<SKILL_DIR>/references/run-guide.md`대로 실행 계획을 만들어 씁니다. 이미 있으면(레포에 커밋돼 있던 것 포함) 그 내용을 씁니다. 어느 쪽이든 `install`·`start`·`cwd`·`env`를 **사용자에게 그대로 보여 주고 동의를 받은 뒤** `$DOCENT run approve` → `$DOCENT run start --install`. 승인되지 않은 명령은 CLI가 실행하지 않습니다(명령이 바뀌면 다시 승인 필요). 동의하지 않으면 사용자가 띄운 앱 주소를 받아 `{ "mode": "url", "baseUrl": … }`로 씁니다(주소 모드는 승인 불필요)
 3. **실패하면**: 출력된 `run.log` 내용으로 무엇이 부족한지(환경변수 이름, DB, 포트) 구체적으로 알리고, 앱을 직접 띄운 주소를 받아 `mode: url`로 바꿔 다시 `$DOCENT run start`
-4. **로그인**: 로그인이 필요한 앱이면 `config.yaml`의 `auth`에 로그인 화면 라벨·버튼과 계정 환경변수 이름을 적고(값은 사용자가 셸에 설정), `$DOCENT auth login`. 화면이 있는 환경이면 `$DOCENT auth save`로 사용자가 직접 로그인해도 됩니다. 테스트 계정을 쓰도록 안내합니다
+4. **로그인**: 로그인이 필요한 앱이면 `config.yaml`의 `auth`(형식은 `run-guide.md`의 "config.yaml 항목")에 로그인 화면 라벨·버튼과 계정 환경변수 이름을 적고(값은 사용자가 셸에 설정), `$DOCENT auth login`. 화면이 있는 환경이면 `$DOCENT auth save`로 사용자가 직접 로그인해도 됩니다. 테스트 계정을 쓰도록 안내합니다
 5. **대조**: `$DOCENT crawl` — 화면 목록에 없는 경로·도달하지 못한 화면을 사용자에게 알립니다(review.md에도 들어감). 빠진 화면이 진짜 화면이면 2단계(화면 목록)로 돌아가 추가합니다
 6. **시나리오**: `$DOCENT scenarios`가 보여 주는 화면마다 `scenario-writer` 서브에이전트(또는 `<SKILL_DIR>/agents/scenario-writer.md` 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`·화면 ID·이유를 전달해 시나리오를 쓰게 합니다
 7. **캡처·녹화**: `$DOCENT capture` → `$DOCENT record`. 실패 항목은 review.md에 모입니다. 실패한 화면을 그럴듯하게 대신 만들지 않습니다

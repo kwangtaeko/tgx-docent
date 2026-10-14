@@ -116,3 +116,24 @@ export async function applyMask(page, selectors) {
   if (!selectors?.length) return;
   await page.addStyleTag({ content: `${selectors.join(', ')} { filter: blur(6px) !important; }` });
 }
+
+// 컨텍스트의 모든 문서에 마스킹 스타일을 넣는다(페이지 이동 뒤에도 유지)
+export async function maskContext(context, selectors) {
+  if (!selectors?.length) return;
+  const css = `${selectors.join(', ')} { filter: blur(6px) !important; }`;
+  await context.addInitScript((style) => {
+    const add = () => {
+      const el = document.createElement('style');
+      el.setAttribute('data-docent-mask', '');
+      el.textContent = style;
+      (document.head ?? document.documentElement).appendChild(el);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add);
+    else add();
+  }, css);
+}
+
+// 단계 값에 환경변수(${NAME})가 있는지 — 계정 같은 값이 캡처·GIF에 찍히지 않게 막는 데 쓴다
+export function usesEnvValue(steps) {
+  return steps.some((s) => typeof s.value === 'string' && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(s.value));
+}

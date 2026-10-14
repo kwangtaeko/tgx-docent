@@ -8,6 +8,7 @@ import { runReview } from '../../skills/docent/scripts/src/commands/review.mjs';
 import { readFailures } from '../../skills/docent/scripts/src/lib/media.mjs';
 import { writeJsonFile } from '../helpers/fixture.mjs';
 import { mediaProject, startMediaSite, withEnv } from '../helpers/media-site.mjs';
+import { siteProject, startTestSite } from '../helpers/web.mjs';
 
 const site = await startMediaSite();
 after(() => site.close());
@@ -81,4 +82,34 @@ test('다른 화면으로 튕기면(권한 없음) 그 화면을 캡처하지 �
   const r = await runCapture(dir, ['bounce']);
   assert.equal(r.failed.length, 1);
   assert.match(r.failed[0].reason, /다른 화면/);
+});
+
+test('로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 튕기는 앱)', async () => {
+  const bouncing = await startTestSite({
+    pages: {
+      '/signin': (req, res) => {
+        if (/s=1/.test(req.headers.cookie ?? '')) return res.writeHead(302, { Location: '/' }).end();
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end('<h1>로그인</h1>');
+      },
+      '/': '<h1>홈</h1>',
+    },
+  });
+  try {
+    const dir = await siteProject(bouncing.url, 'auth:\n  loginPath: /signin\n  fields: []\n  submit: x\n');
+    const { mkdir, writeFile } = await import('node:fs/promises');
+    await mkdir(join(dir, '.docent', 'auth'), { recursive: true });
+    const origin = new URL(bouncing.url);
+    await writeFile(
+      join(dir, '.docent', 'auth', 'state.json'),
+      JSON.stringify({ cookies: [{ name: 's', value: '1', domain: origin.hostname, path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' }], origins: [] }),
+    );
+    await writeJsonFile(join(dir, '.docent', 'inventory.json'), {
+      version: 1,
+      screens: [{ id: 'signin', route: '/signin', kind: 'page', files: ['x.ts'], evidence: 'x.ts:1', source: 'agent' }],
+    });
+    const r = await runCapture(dir, ['signin']);
+    assert.deepEqual(r.captured, ['signin'], JSON.stringify(r.failed));
+  } finally {
+    await bouncing.close();
+  }
 });

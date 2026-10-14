@@ -1,6 +1,7 @@
 // docent run start | stop | status — run.json에 적힌 방법으로 대상 앱을 띄운다. (설계 문서 8장)
 // run.json은 사용자 동의를 받은 실행 계획이다. 여기 적힌 명령만 실행한다.
 import { spawn, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { openSync, closeSync } from 'node:fs';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -22,6 +23,37 @@ export async function loadRun(projectDir) {
 const healthUrl = (run) => new URL(run.healthcheck?.path ?? '/', run.baseUrl).href;
 const pidFile = (projectDir) => join(docentDir(projectDir), '.run-pid');
 const logFile = (projectDir) => join(docentDir(projectDir), 'run.log');
+const approvalFile = (projectDir) => join(docentDir(projectDir), '.run-approved');
+
+// 이 컴퓨터에서 사용자가 승인한 명령인지: install·start·cwd·env의 해시를 .run-approved(gitignore)에 둔다.
+// run.json은 커밋되므로, 레포에 들어 있던 명령을 확인 없이 실행하지 않기 위해서다.
+function commandsHash(run) {
+  const { install = [], start = '', cwd = '.', env = {} } = run;
+  return createHash('sha256').update(JSON.stringify({ install, start, cwd, env })).digest('hex');
+}
+
+export function describeCommands(run) {
+  return [
+    ...(run.install ?? []).map((c) => `설치: ${c}`),
+    `실행: ${run.start}`,
+    `위치: ${run.cwd ?? '.'}`,
+    ...Object.entries(run.env ?? {}).map(([k, v]) => `환경: ${k}=${v}`),
+  ].join('\n');
+}
+
+export async function runApprove(projectDir) {
+  const run = await loadRun(projectDir);
+  await writeFile(approvalFile(projectDir), commandsHash(run) + '\n');
+  return { commands: describeCommands(run) };
+}
+
+async function approved(projectDir, run) {
+  try {
+    return (await readFile(approvalFile(projectDir), 'utf8')).trim() === commandsHash(run);
+  } catch {
+    return false;
+  }
+}
 
 function alive(pid) {
   try {
@@ -69,6 +101,11 @@ export async function runStart(projectDir, { install = false } = {}) {
 
   if ((await httpCheck(healthUrl(run), 2000)).ok) return { baseUrl: run.baseUrl, started: false, reused: true };
   if (run.mode === 'url') throw new Error(`${run.baseUrl}가 응답하지 않습니다. 앱을 띄운 뒤 다시 시도하세요`);
+  if (!(await approved(projectDir, run))) {
+    throw new Error(
+      `.docent/run.json의 명령이 이 컴퓨터에서 아직 승인되지 않았습니다. 아래 명령을 사용자에게 보여 주고 동의를 받은 뒤 \`docent run approve\`를 실행하세요:\n${describeCommands(run)}`,
+    );
+  }
 
   const cwd = resolve(projectDir, run.cwd && run.cwd !== '.' ? normalizeRel(run.cwd) : '.');
   if (install) {

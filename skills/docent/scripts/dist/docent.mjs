@@ -17838,6 +17838,7 @@ async function writeJson(path, data) {
 
 // skills/docent/scripts/src/commands/run.mjs
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { openSync, closeSync } from "node:fs";
 import { readFile as readFile3, rm, writeFile as writeFile2 } from "node:fs/promises";
 import { join as join4, resolve } from "node:path";
@@ -18665,6 +18666,31 @@ async function loadRun(projectDir) {
 var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
 var pidFile = (projectDir) => join4(docentDir(projectDir), ".run-pid");
 var logFile = (projectDir) => join4(docentDir(projectDir), "run.log");
+var approvalFile = (projectDir) => join4(docentDir(projectDir), ".run-approved");
+function commandsHash(run2) {
+  const { install = [], start = "", cwd = ".", env = {} } = run2;
+  return createHash("sha256").update(JSON.stringify({ install, start, cwd, env })).digest("hex");
+}
+function describeCommands(run2) {
+  return [
+    ...(run2.install ?? []).map((c) => `\uC124\uCE58: ${c}`),
+    `\uC2E4\uD589: ${run2.start}`,
+    `\uC704\uCE58: ${run2.cwd ?? "."}`,
+    ...Object.entries(run2.env ?? {}).map(([k, v]) => `\uD658\uACBD: ${k}=${v}`)
+  ].join("\n");
+}
+async function runApprove(projectDir) {
+  const run2 = await loadRun(projectDir);
+  await writeFile2(approvalFile(projectDir), commandsHash(run2) + "\n");
+  return { commands: describeCommands(run2) };
+}
+async function approved(projectDir, run2) {
+  try {
+    return (await readFile3(approvalFile(projectDir), "utf8")).trim() === commandsHash(run2);
+  } catch {
+    return false;
+  }
+}
 function alive(pid) {
   try {
     process.kill(pid, 0);
@@ -18704,6 +18730,12 @@ async function runStart(projectDir, { install = false } = {}) {
   if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
   if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
   if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
+  if (!await approved(projectDir, run2)) {
+    throw new Error(
+      `.docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 \`docent run approve\`\uB97C \uC2E4\uD589\uD558\uC138\uC694:
+${describeCommands(run2)}`
+    );
+  }
   const cwd = resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
   if (install) {
     for (const command of run2.install ?? []) {
@@ -19213,11 +19245,11 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
 }
 
 // skills/docent/scripts/src/lib/source-hash.mjs
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 import { readFile as readFile5 } from "node:fs/promises";
 import { join as join6 } from "node:path";
 async function hashFiles(rootDir, relPaths) {
-  const hash = createHash("sha256");
+  const hash = createHash2("sha256");
   for (const rel of [...new Set(relPaths.map(normalizeRel))].sort()) {
     let content;
     try {
@@ -19566,9 +19598,22 @@ async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onSt
   }
   return { ok: true };
 }
-async function applyMask(page2, selectors) {
+async function maskContext(context, selectors) {
   if (!selectors?.length) return;
-  await page2.addStyleTag({ content: `${selectors.join(", ")} { filter: blur(6px) !important; }` });
+  const css = `${selectors.join(", ")} { filter: blur(6px) !important; }`;
+  await context.addInitScript((style) => {
+    const add = () => {
+      const el = document.createElement("style");
+      el.setAttribute("data-docent-mask", "");
+      el.textContent = style;
+      (document.head ?? document.documentElement).appendChild(el);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add);
+    else add();
+  }, css);
+}
+function usesEnvValue(steps) {
+  return steps.some((s) => typeof s.value === "string" && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(s.value));
 }
 
 // skills/docent/scripts/src/commands/capture.mjs
@@ -19577,6 +19622,9 @@ function staticPath(route) {
   if (!route || route.includes("[")) return void 0;
   const parts = route.split("/").filter((seg) => seg && !/^\(.*\)$/.test(seg) && !seg.startsWith("@"));
   return "/" + parts.join("/");
+}
+function isLoginPath(path, loginPath) {
+  return path.split("?")[0].replace(/\/+$/, "") === loginPath.replace(/\/+$/, "");
 }
 async function loadScenario(projectDir, id) {
   try {
@@ -19617,6 +19665,9 @@ async function runCapture(projectDir, ids) {
   const browser = await launchBrowser();
   try {
     const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
+    await maskContext(context, config.mask.selectors);
+    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT });
+    await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
       const path = scenario?.path ?? staticPath(screen.route);
@@ -19624,7 +19675,11 @@ async function runCapture(projectDir, ids) {
         result.skipped.push({ id: screen.id, reason: "\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4" });
         continue;
       }
-      const page2 = await context.newPage();
+      if (scenario && usesEnvValue(scenario.setup)) {
+        result.skipped.push({ id: screen.id, reason: "\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4" });
+        continue;
+      }
+      const page2 = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
       try {
         const failure = await openScreen(page2, { baseUrl: run2.baseUrl, path, setup: scenario?.setup, loginPath });
         if (failure) {
@@ -19634,7 +19689,6 @@ async function runCapture(projectDir, ids) {
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
-        await applyMask(page2, config.mask.selectors);
         await page2.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, "capture");
         result.captured.push(screen.id);
@@ -19650,7 +19704,7 @@ async function runCapture(projectDir, ids) {
 
 // skills/docent/scripts/src/commands/crawl.mjs
 import { join as join11 } from "node:path";
-var SKIP_PATH = /(^|\/)(log-?out|sign-?out)(\/|$)/i;
+var LOGOUT = /(log[-_]?(out|off)|sign[-_]?(out|off))/i;
 var FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
 function escapeRegExp2(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -19678,7 +19732,7 @@ function followable(href, origin) {
   }
   if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return void 0;
   const path = normalizePath(url.pathname);
-  if (SKIP_PATH.test(path) || FILE_EXT.test(path)) return void 0;
+  if (LOGOUT.test(path) || LOGOUT.test(url.search) || FILE_EXT.test(path)) return void 0;
   return path;
 }
 async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
@@ -19804,7 +19858,7 @@ async function loadScreen(projectDir, id) {
     return void 0;
   }
 }
-async function recordSteps(page2, steps, maskSelectors) {
+async function recordSteps(page2, steps) {
   const frames = [];
   let recording = true;
   const interval = 1e3 / FPS;
@@ -19820,11 +19874,7 @@ async function recordSteps(page2, steps, maskSelectors) {
     }
   })();
   const result = await runSteps(page2, steps, {
-    onStep: async () => {
-      await applyMask(page2, maskSelectors).catch(() => {
-      });
-      await sleep2(300);
-    }
+    onStep: () => sleep2(300)
   });
   if (result.ok) await sleep2(1e3);
   recording = false;
@@ -19851,6 +19901,9 @@ async function runRecord(projectDir, ids) {
   const browser = await launchBrowser();
   try {
     const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
+    await maskContext(context, config.mask.selectors);
+    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT });
+    await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
       if (!scenario) {
@@ -19861,12 +19914,16 @@ async function runRecord(projectDir, ids) {
         result.skipped.push({ id, reason: "\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4" });
         continue;
       }
+      if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
+        result.skipped.push({ id, reason: "\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4" });
+        continue;
+      }
       const screen = await loadScreen(projectDir, id);
       if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
         result.skipped.push({ id, reason: "\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4" });
         continue;
       }
-      const page2 = await context.newPage();
+      const page2 = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
       try {
         const opened = await openScreen(page2, { baseUrl: run2.baseUrl, path: scenario.path, setup: scenario.setup, loginPath });
         if (opened) {
@@ -19876,8 +19933,7 @@ async function runRecord(projectDir, ids) {
           result.failed.push({ id, reason: opened });
           continue;
         }
-        await applyMask(page2, config.mask.selectors);
-        const { result: stepResult, frames } = await recordSteps(page2, scenario.steps, config.mask.selectors);
+        const { result: stepResult, frames } = await recordSteps(page2, scenario.steps);
         if (!stepResult.ok) {
           await page2.screenshot({ path: paths.fail(id) }).catch(() => {
           });
@@ -20078,7 +20134,7 @@ function detectorByName(name2) {
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid"];
+var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid", ".run-approved"];
 var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4";
 function configYaml(detectors) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
@@ -20093,6 +20149,24 @@ screens:
   idMap: {}
 analyze:
   concurrency: 4
+# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):
+# auth:
+#   loginPath: /login
+#   fields:
+#     - label: \uC544\uC774\uB514
+#       env: DOCENT_USER
+#     - label: \uBE44\uBC00\uBC88\uD638
+#       env: DOCENT_PASSWORD
+#   submit: \uB85C\uADF8\uC778
+#   successPath: /
+# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):
+# mask:
+#   selectors: [".phone", "td.ssn"]
+# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):
+# gif:
+#   screens:
+#     include: []
+#     exclude: []
 `.replace("detectors:\n  []", "detectors: []");
 }
 async function exists2(path) {
@@ -20132,12 +20206,12 @@ import { access as access3 } from "node:fs/promises";
 import { join as join16 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
-import { createHash as createHash2 } from "node:crypto";
+import { createHash as createHash3 } from "node:crypto";
 var INTERCEPT_PREFIX = /^(\(\.{1,3}\))+/;
 function slug(text) {
   const s = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   if (s) return s;
-  return "s" + createHash2("sha1").update(text, "utf8").digest("hex").slice(0, 8);
+  return "s" + createHash3("sha1").update(text, "utf8").digest("hex").slice(0, 8);
 }
 function segmentName(segment) {
   if (/^\(.*\)$/.test(segment) && !INTERCEPT_PREFIX.test(segment)) return null;
@@ -20500,6 +20574,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
+  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)
   run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778
   crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)
   scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)
@@ -20570,6 +20645,12 @@ async function main() {
       return 0;
     }
     case "run": {
+      if (sub === "approve") {
+        const r = await runApprove(project);
+        console.log(`\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:
+${r.commands}`);
+        return 0;
+      }
       if (sub === "start") {
         const r = await runStart(project, { install: args.includes("--install") });
         console.log(r.reused ? `\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: ${r.baseUrl}` : `\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: ${r.baseUrl}`);

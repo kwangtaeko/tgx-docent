@@ -36,6 +36,13 @@ test('예전 .gitignore에 빠진 줄만 덧붙인다', async () => {
   await writeFile(join(dir, '.docent', '.gitignore'), 'auth/\nout/\n.session\nmine/\n');
   await runInit(dir);
   const lines = (await readFile(join(dir, '.docent', '.gitignore'), 'utf8')).split('\n');
-  for (const l of ['auth/', 'out/', '.session', 'mine/', 'media/', 'run.log', '.run-pid']) assert.ok(lines.includes(l), l);
+  for (const l of ['auth/', 'out/', '.session', 'mine/', 'media/', 'run.log', '.run-pid', '.run-approved']) assert.ok(lines.includes(l), l);
   assert.equal(lines.filter((l) => l === 'auth/').length, 1);
+});
+
+test('설정 템플릿에 auth·mask·gif 예시가 주석으로 있다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'docent-init-'));
+  await runInit(dir);
+  const text = await readFile(join(dir, '.docent', 'config.yaml'), 'utf8');
+  for (const key of ['# auth:', '#   loginPath:', '#     - label:', '#       env:', '#   submit:', '# mask:', '# gif:']) assert.ok(text.includes(key), key);
 });

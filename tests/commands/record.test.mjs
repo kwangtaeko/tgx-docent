@@ -72,3 +72,17 @@ test('단계가 없는 시나리오는 GIF 대상이 아니다', async () => {
   const r = await runRecord(dir, ['home']);
   assert.deepEqual(r.skipped, [{ id: 'home', reason: '보여 줄 조작 단계가 없습니다' }]);
 });
+
+test('환경변수 값을 입력하는 시나리오는 GIF로 만들지 않는다(계정 노출)', async () => {
+  const withEnvValue = structuredClone(SAVE);
+  withEnvValue.steps[0].value = '${DOCENT_M_USER}';
+  const dir = await project(withEnvValue);
+  process.env.DOCENT_M_USER = 'real-account-id';
+  try {
+    const r = await runRecord(dir, ['home']);
+    assert.equal(r.recorded.length, 0);
+    assert.match(r.skipped[0].reason, /환경변수/);
+  } finally {
+    delete process.env.DOCENT_M_USER;
+  }
+});

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { loadConfig } from '../lib/config.mjs';
 import { clearFailure, ensureMediaDirs, mediaPaths, recordFailure } from '../lib/media.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
-import { applyMask, runSteps } from '../lib/steps.mjs';
+import { maskContext, runSteps, usesEnvValue } from '../lib/steps.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { newContext } from './auth.mjs';
 import { loadRun } from './run.mjs';
@@ -15,6 +15,10 @@ export function staticPath(route) {
   if (!route || route.includes('[')) return undefined;
   const parts = route.split('/').filter((seg) => seg && !/^\(.*\)$/.test(seg) && !seg.startsWith('@'));
   return '/' + parts.join('/');
+}
+
+export function isLoginPath(path, loginPath) {
+  return path.split('?')[0].replace(/\/+$/, '') === loginPath.replace(/\/+$/, '');
 }
 
 export async function loadScenario(projectDir, id) {
@@ -59,6 +63,10 @@ export async function runCapture(projectDir, ids) {
   const browser = await launchBrowser();
   try {
     const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
+    await maskContext(context, config.mask.selectors);
+    // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
+    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT });
+    await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
       const path = scenario?.path ?? staticPath(screen.route);
@@ -66,7 +74,11 @@ export async function runCapture(projectDir, ids) {
         result.skipped.push({ id: screen.id, reason: '시나리오에 실제 경로가 필요합니다' });
         continue;
       }
-      const page = await context.newPage();
+      if (scenario && usesEnvValue(scenario.setup)) {
+        result.skipped.push({ id: screen.id, reason: '준비 단계에 환경변수 값(계정 등)이 있어 캡처하지 않습니다' });
+        continue;
+      }
+      const page = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
       try {
         const failure = await openScreen(page, { baseUrl: run.baseUrl, path, setup: scenario?.setup, loginPath });
         if (failure) {
@@ -75,7 +87,6 @@ export async function runCapture(projectDir, ids) {
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
-        await applyMask(page, config.mask.selectors);
         await page.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, 'capture');
         result.captured.push(screen.id);

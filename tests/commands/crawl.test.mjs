@@ -53,3 +53,13 @@ test('routeMatcher', () => {
   assert.ok(routeMatcher('/').test('/'));
   assert.ok(!routeMatcher('/').test('/a'));
 });
+
+test('여러 형태의 로그아웃 링크를 따라가지 않는다', async () => {
+  const { followable } = await import('../../skills/docent/scripts/src/commands/crawl.mjs');
+  const o = 'http://h';
+  for (const href of ['/Logout.aspx', '/logout.php', '/account/logoff', '/users/sign_out', '/x?action=logout', '/auth/signout']) {
+    assert.equal(followable(o + href, o), undefined, href);
+  }
+  assert.equal(followable(o + '/logs', o), '/logs');
+  assert.equal(followable(o + '/catalog', o), '/catalog');
+});
