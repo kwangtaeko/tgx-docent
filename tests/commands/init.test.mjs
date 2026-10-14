@@ -28,3 +28,14 @@ test('package.json이 없어도 실패하지 않는다', async () => {
   assert.deepEqual(await runInit(dir), { created: true, detectors: [] });
   assert.deepEqual((await loadConfig(dir)).detectors, []);
 });
+
+test('예전 .gitignore에 빠진 줄만 덧붙인다', async () => {
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const dir = await mkdtemp(join(tmpdir(), 'docent-init-'));
+  await mkdir(join(dir, '.docent'));
+  await writeFile(join(dir, '.docent', '.gitignore'), 'auth/\nout/\n.session\nmine/\n');
+  await runInit(dir);
+  const lines = (await readFile(join(dir, '.docent', '.gitignore'), 'utf8')).split('\n');
+  for (const l of ['auth/', 'out/', '.session', 'mine/', 'media/', 'run.log', '.run-pid']) assert.ok(lines.includes(l), l);
+  assert.equal(lines.filter((l) => l === 'auth/').length, 1);
+});

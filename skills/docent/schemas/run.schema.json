@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwangtaeko/tgx-docent/schemas/run.schema.json",
+  "title": "docent run.json (앱 실행 방법)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "baseUrl"],
+  "properties": {
+    "mode": { "enum": ["auto", "url"] },
+    "baseUrl": { "type": "string", "pattern": "^https?://" },
+    "install": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "start": { "type": "string", "minLength": 1 },
+    "cwd": { "type": "string" },
+    "env": { "type": "object", "additionalProperties": { "type": "string" } },
+    "envNames": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" } },
+    "healthcheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "timeoutSec": { "type": "integer", "minimum": 1, "maximum": 1800 }
+      }
+    }
+  },
+  "if": { "properties": { "mode": { "const": "auto" } } },
+  "then": { "required": ["start"] }
+}

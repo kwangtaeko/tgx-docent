@@ -7,6 +7,7 @@ import { runInventory } from './commands/inventory.mjs';
 import { runPending } from './commands/pending.mjs';
 import { runReview } from './commands/review.mjs';
 import { endSession, startSession } from './commands/session.mjs';
+import { runStart, runStatus, runStop } from './commands/run.mjs';
 import { runtimeInstall, runtimeStatus } from './commands/runtime.mjs';
 import { runValidate } from './commands/validate.mjs';
 import { PlaywrightMissing } from './lib/playwright.mjs';
@@ -22,6 +23,7 @@ const USAGE = `사용법: docent <명령> [--project <디렉터리>]
   review         확인 필요 항목(.docent/review.md)을 모읍니다
   build          .docent/out/에 HTML 사이트와 소개 README를 만듭니다
   hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다
+  run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인
   runtime status|install  화면 캡처용 Playwright 확인·설치(사용자 동의 후)
   session start  분석 세션 시작(비밀 파일 읽기 차단)
   session end    분석 세션 종료`;
@@ -88,6 +90,24 @@ async function main() {
       if (!files.length) break;
       console.log(await hashFiles(project, files));
       return 0;
+    }
+    case 'run': {
+      if (sub === 'start') {
+        const r = await runStart(project, { install: args.includes('--install') });
+        console.log(r.reused ? `이미 응답 중인 앱을 씁니다: ${r.baseUrl}` : `앱을 띄웠습니다: ${r.baseUrl}`);
+        return 0;
+      }
+      if (sub === 'stop') {
+        const r = await runStop(project);
+        console.log(r.stopped ? '앱을 멈췄습니다.' : 'docent가 띄운 앱이 없습니다.');
+        return 0;
+      }
+      if (sub === 'status') {
+        const r = await runStatus(project);
+        console.log(r.configured ? `${r.baseUrl} — ${r.up ? '응답 중' : '응답 없음'}${r.pid ? ` (pid ${r.pid})` : ''}` : '.docent/run.json 없음');
+        return 0;
+      }
+      break;
     }
     case 'runtime': {
       if (sub !== 'status' && sub !== 'install') break;

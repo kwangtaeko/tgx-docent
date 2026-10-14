@@ -10322,7 +10322,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve3.call(this, root, ref);
+      let _sch = resolve4.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -10349,7 +10349,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve3(root, ref) {
+    function resolve4(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -10512,18 +10512,18 @@ var require_utils = __commonJS({
     function compressIPv6ZeroRun(hextets) {
       let bestStart = -1;
       let bestLength = 0;
-      let runStart = -1;
+      let runStart2 = -1;
       let runLength = 0;
       for (let i = 0; i < hextets.length; i++) {
         if (hextets[i] === "0") {
-          if (runStart === -1) runStart = i;
+          if (runStart2 === -1) runStart2 = i;
           runLength++;
           if (runLength > bestLength) {
             bestLength = runLength;
-            bestStart = runStart;
+            bestStart = runStart2;
           }
         } else {
-          runStart = -1;
+          runStart2 = -1;
           runLength = 0;
         }
       }
@@ -11070,7 +11070,7 @@ var require_schemes = __commonJS({
       urnComponent.nss = (uuidComponent.uuid || "").toLowerCase();
       return urnComponent;
     }
-    var http = (
+    var http2 = (
       /** @type {SchemeHandler} */
       {
         scheme: "http",
@@ -11079,11 +11079,11 @@ var require_schemes = __commonJS({
         serialize: httpSerialize
       }
     );
-    var https = (
+    var https2 = (
       /** @type {SchemeHandler} */
       {
         scheme: "https",
-        domainHost: http.domainHost,
+        domainHost: http2.domainHost,
         parse: httpParse,
         serialize: httpSerialize
       }
@@ -11127,8 +11127,8 @@ var require_schemes = __commonJS({
     var SCHEMES = (
       /** @type {Record<SchemeName, SchemeHandler>} */
       {
-        http,
-        https,
+        http: http2,
+        https: https2,
         ws,
         wss,
         urn,
@@ -11179,7 +11179,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve3(baseURI, relativeURI, options) {
+    function resolve4(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const {
         parsed: baseParsed,
@@ -11548,7 +11548,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve: resolve3,
+      resolve: resolve4,
       resolveComponent,
       equal,
       serialize,
@@ -14796,7 +14796,7 @@ var require__ = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join14, resolve as resolve2 } from "node:path";
+import { dirname as dirname4, join as join15, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/build.mjs
@@ -15380,6 +15380,35 @@ var inventory_schema_default = {
   }
 };
 
+// skills/docent/schemas/run.schema.json
+var run_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/run.schema.json",
+  title: "docent run.json (\uC571 \uC2E4\uD589 \uBC29\uBC95)",
+  type: "object",
+  additionalProperties: false,
+  required: ["mode", "baseUrl"],
+  properties: {
+    mode: { enum: ["auto", "url"] },
+    baseUrl: { type: "string", pattern: "^https?://" },
+    install: { type: "array", items: { type: "string", minLength: 1 } },
+    start: { type: "string", minLength: 1 },
+    cwd: { type: "string" },
+    env: { type: "object", additionalProperties: { type: "string" } },
+    envNames: { type: "array", items: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$" } },
+    healthcheck: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        path: { type: "string", pattern: "^/" },
+        timeoutSec: { type: "integer", minimum: 1, maximum: 1800 }
+      }
+    }
+  },
+  if: { properties: { mode: { const: "auto" } } },
+  then: { required: ["start"] }
+};
+
 // skills/docent/schemas/screen.schema.json
 var screen_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -15750,6 +15779,7 @@ var validateInventory = compile(inventory_schema_default);
 var validateScreen = compile(screen_schema_default);
 var validateInventoryAgent = compile(inventory_agent_schema_default);
 var validateSummary = compile(summary_schema_default);
+var validateRun = compile(run_schema_default);
 
 // skills/docent/scripts/src/lib/source-hash.mjs
 import { createHash } from "node:crypto";
@@ -15936,7 +15966,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-import { access, mkdir as mkdir3, writeFile as writeFile3 } from "node:fs/promises";
+import { access, mkdir as mkdir3, readFile as readFile7, writeFile as writeFile3 } from "node:fs/promises";
 import { join as join7 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
@@ -16107,7 +16137,8 @@ function detectorByName(name2) {
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-var GITIGNORE = ["# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uC740 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4", "auth/", "out/", ".session", ""].join("\n");
+var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid"];
+var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4";
 function configYaml(detectors) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
   return `# docent \uC124\uC815 \u2014 \uD56D\uBAA9 \uC124\uBA85\uC740 docent \uC124\uACC4 \uBB38\uC11C\uB97C \uCC38\uACE0\uD558\uC138\uC694
@@ -16135,7 +16166,14 @@ async function runInit(projectDir) {
   const dir = docentDir(projectDir);
   await mkdir3(dir, { recursive: true });
   const ignorePath = join7(dir, ".gitignore");
-  if (!await exists(ignorePath)) await writeFile3(ignorePath, GITIGNORE);
+  if (!await exists(ignorePath)) {
+    await writeFile3(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
+  } else {
+    const current = await readFile7(ignorePath, "utf8");
+    const have = new Set(current.split(/\r?\n/));
+    const missing = IGNORE_LINES.filter((l) => !have.has(l));
+    if (missing.length) await writeFile3(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
+  }
   const configPath = join7(dir, "config.yaml");
   if (await exists(configPath)) {
     return { created: false, detectors: (await loadConfig(projectDir)).detectors };
@@ -16335,11 +16373,11 @@ async function runInventory(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
-import { readFile as readFile8 } from "node:fs/promises";
+import { readFile as readFile9 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
-import { readFile as readFile7, writeFile as writeFile4 } from "node:fs/promises";
+import { readFile as readFile8, writeFile as writeFile4 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
@@ -16401,7 +16439,7 @@ async function runReview(projectDir) {
   const path = join9(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
-    previous = parseReview(await readFile7(path, "utf8"));
+    previous = parseReview(await readFile8(path, "utf8"));
   } catch {
   }
   const text = renderReview(screens, previous);
@@ -16415,7 +16453,7 @@ async function runPending(projectDir) {
   const inventory = await readJson(join10(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile8(join10(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile9(join10(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
@@ -16461,17 +16499,139 @@ async function endSession(projectDir) {
   await rm2(join11(docentDir(projectDir), ".session"), { force: true });
 }
 
+// skills/docent/scripts/src/commands/run.mjs
+import { spawn, spawnSync } from "node:child_process";
+import { openSync, closeSync } from "node:fs";
+import { readFile as readFile10, rm as rm3, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join12, resolve as resolve2 } from "node:path";
+
+// skills/docent/scripts/src/lib/http.mjs
+import http from "node:http";
+import https from "node:https";
+function httpCheck(url, timeoutMs) {
+  return new Promise((resolve4) => {
+    const lib = url.startsWith("https:") ? https : http;
+    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
+      res.resume();
+      resolve4({ ok: res.statusCode < 500, status: res.statusCode });
+    });
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", () => resolve4({ ok: false }));
+  });
+}
+
+// skills/docent/scripts/src/commands/run.mjs
+var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function loadRun(projectDir) {
+  const run2 = await readJsonIfExists(join12(docentDir(projectDir), "run.json"));
+  if (!run2) throw new Error(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694");
+  const { valid, errors } = validateRun(run2);
+  if (!valid) throw new Error(`.docent/run.json \uD615\uC2DD \uC624\uB958: ${errors.join("; ")}`);
+  return run2;
+}
+var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
+var pidFile = (projectDir) => join12(docentDir(projectDir), ".run-pid");
+var logFile = (projectDir) => join12(docentDir(projectDir), "run.log");
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function killGroup(pid, signal) {
+  try {
+    if (process.platform === "win32") spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)]);
+    else process.kill(-pid, signal);
+  } catch {
+  }
+}
+async function readPid(projectDir) {
+  try {
+    const pid = Number((await readFile10(pidFile(projectDir), "utf8")).trim());
+    return Number.isInteger(pid) && pid > 0 ? pid : void 0;
+  } catch {
+    return void 0;
+  }
+}
+async function logTail(projectDir, lines = 20) {
+  try {
+    return (await readFile10(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n");
+  } catch {
+    return "";
+  }
+}
+function childEnv(run2) {
+  return { ...process.env, ...run2.env ?? {} };
+}
+async function runStart(projectDir, { install = false } = {}) {
+  const run2 = await loadRun(projectDir);
+  const missing = (run2.envNames ?? []).filter((name2) => !process.env[name2]);
+  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
+  if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
+  const cwd = resolve2(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
+  if (install) {
+    for (const command of run2.install ?? []) {
+      const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
+      if (r.status !== 0) throw new Error(`\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: ${command} (exit ${r.status})`);
+    }
+  }
+  const fd = openSync(logFile(projectDir), "w");
+  const child = spawn(run2.start, { cwd, shell: true, detached: true, stdio: ["ignore", fd, fd], env: childEnv(run2) });
+  closeSync(fd);
+  let exited = false;
+  child.on("exit", () => {
+    exited = true;
+  });
+  child.unref();
+  await writeFile6(pidFile(projectDir), `${child.pid}
+`);
+  const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
+  while (Date.now() < deadline) {
+    if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
+    if (exited) break;
+    await sleep(1e3);
+  }
+  const reason = exited ? "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : `\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC(${run2.healthcheck?.timeoutSec ?? 120}\uCD08)`;
+  killGroup(child.pid, "SIGKILL");
+  await rm3(pidFile(projectDir), { force: true });
+  throw new Error(`${reason}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:
+${await logTail(projectDir)}`);
+}
+async function runStop(projectDir) {
+  const pid = await readPid(projectDir);
+  if (!pid) return { stopped: false };
+  killGroup(pid, "SIGTERM");
+  for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
+  if (alive(pid)) killGroup(pid, "SIGKILL");
+  await rm3(pidFile(projectDir), { force: true });
+  return { stopped: true };
+}
+async function runStatus(projectDir) {
+  let run2;
+  try {
+    run2 = await loadRun(projectDir);
+  } catch {
+    return { configured: false, up: false };
+  }
+  const pid = await readPid(projectDir);
+  const up = (await httpCheck(healthUrl(run2), 2e3)).ok;
+  return { configured: true, baseUrl: run2.baseUrl, up, ...pid && alive(pid) ? { pid } : {} };
+}
+
 // skills/docent/scripts/src/commands/runtime.mjs
-import { spawnSync } from "node:child_process";
+import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join13 } from "node:path";
+import { join as join14 } from "node:path";
 
 // skills/docent/scripts/src/lib/playwright.mjs
 import { execFileSync as execFileSync2 } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
-import { dirname as dirname3, join as join12 } from "node:path";
+import { dirname as dirname3, join as join13 } from "node:path";
 var PLAYWRIGHT_VERSION = "1.56.1";
 var PlaywrightMissing = class extends Error {
   constructor(message) {
@@ -16480,11 +16640,11 @@ var PlaywrightMissing = class extends Error {
   }
 };
 function runtimeDir() {
-  return process.env.DOCENT_RUNTIME_DIR || join12(homedir(), ".cache", "docent", "runtime");
+  return process.env.DOCENT_RUNTIME_DIR || join13(homedir(), ".cache", "docent", "runtime");
 }
 var require2 = createRequire(import.meta.url);
 function loadFromDir(pkgDir) {
-  const pkgJson = join12(pkgDir, "package.json");
+  const pkgJson = join13(pkgDir, "package.json");
   if (!existsSync(pkgJson)) return void 0;
   const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
   return { module: require2(pkgDir), version };
@@ -16499,13 +16659,13 @@ function globalRoot() {
 async function findPlaywright() {
   const candidates = [];
   if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
-  candidates.push(["runtime", join12(runtimeDir(), "node_modules", "playwright")]);
+  candidates.push(["runtime", join13(runtimeDir(), "node_modules", "playwright")]);
   try {
     candidates.push(["local", dirname3(require2.resolve("playwright/package.json"))]);
   } catch {
   }
   const root = globalRoot();
-  if (root) candidates.push(["global", join12(root, "playwright")]);
+  if (root) candidates.push(["global", join13(root, "playwright")]);
   for (const [from, dir] of candidates) {
     const found = loadFromDir(dir);
     if (found) return { ...found, from, dir };
@@ -16519,14 +16679,14 @@ async function runtimeStatus() {
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
 }
 function run(command, args) {
-  const r = spawnSync(command, args, { stdio: "inherit", shell: process.platform === "win32" });
+  const r = spawnSync2(command, args, { stdio: "inherit", shell: process.platform === "win32" });
   if (r.status !== 0) throw new Error(`${command} ${args.join(" ")} \uC2E4\uD328 (exit ${r.status})`);
 }
 async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join13(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join14(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
@@ -16541,15 +16701,16 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build          .docent/out/\uC5D0 HTML \uC0AC\uC774\uD2B8\uC640 \uC18C\uAC1C README\uB97C \uB9CC\uB4ED\uB2C8\uB2E4
   hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
+  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join14(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join15(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--project") project = resolve2(argv[++i]);
+    if (argv[i] === "--project") project = resolve3(argv[++i]);
     else args.push(argv[i]);
   }
   return { args, project };
@@ -16603,6 +16764,24 @@ async function main() {
       if (!files.length) break;
       console.log(await hashFiles(project, files));
       return 0;
+    }
+    case "run": {
+      if (sub === "start") {
+        const r = await runStart(project, { install: args.includes("--install") });
+        console.log(r.reused ? `\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: ${r.baseUrl}` : `\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: ${r.baseUrl}`);
+        return 0;
+      }
+      if (sub === "stop") {
+        const r = await runStop(project);
+        console.log(r.stopped ? "\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4." : "docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        return 0;
+      }
+      if (sub === "status") {
+        const r = await runStatus(project);
+        console.log(r.configured ? `${r.baseUrl} \u2014 ${r.up ? "\uC751\uB2F5 \uC911" : "\uC751\uB2F5 \uC5C6\uC74C"}${r.pid ? ` (pid ${r.pid})` : ""}` : ".docent/run.json \uC5C6\uC74C");
+        return 0;
+      }
+      break;
     }
     case "runtime": {
       if (sub !== "status" && sub !== "install") break;
