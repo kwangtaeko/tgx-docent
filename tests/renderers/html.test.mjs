@@ -24,7 +24,7 @@ test('화면별 매뉴얼', async () => {
 
 test('워크플로우 페이지', async () => {
   const html = renderSite(await loadGolden()).get('workflows.html');
-  assert.ok(html.includes('orders --> orders_new'));
+  assert.ok(html.includes('s_orders --> s_orders_new'));
   assert.ok(html.includes('src="assets/mermaid.min.js"'));
 });
 
@@ -84,4 +84,64 @@ test('캡처와 GIF를 화면 페이지와 소개에 넣는다', async () => {
   const index = site.get('index.html');
   assert.ok(!index.includes('화면 캡처 없이'));
   assert.equal((index.match(/media\/gif\//g) ?? []).length, 3);
+});
+
+const withPreset = async (preset, extra = {}) => {
+  const input = await loadGolden();
+  input.options = { preset, formats: ['html'], title: '사용자 매뉴얼', organization: '샘플㈜', revisions: [], ...extra };
+  return input;
+};
+const allText = (site) => [...site.values()].join('\n');
+
+test('delivery: 표지·목차·개정 이력, 근거 주석 제거', async () => {
+  const site = renderSite(await withPreset('delivery'));
+  const index = site.get('index.html');
+  for (const t of ['class="cover"', 'class="toc"', 'id="revisions"', '초안', '샘플㈜', '사용자 매뉴얼']) assert.ok(index.includes(t), t);
+  assert.ok(!/<!-- (evidence|screens):/.test(allText(site)));
+  assert.ok(allText(site).includes('<mark>[확인 필요]</mark>'));
+});
+
+test('delivery: 본문에 든 <!--는 지우지 않는다', async () => {
+  const input = await withPreset('delivery');
+  input.screens.get('login').fields[0].label = '<!--x-->';
+  const html = renderSite(input).get('screens/login.html');
+  assert.ok(html.includes('&lt;!--x--&gt;'));
+});
+
+test('delivery: 개정 이력 지정', async () => {
+  const site = renderSite(await withPreset('delivery', { revisions: [{ version: '1.0', date: '2026-10-14', author: '김영업', note: '최초 납품' }] }));
+  const index = site.get('index.html');
+  assert.ok(index.includes('최초 납품') && index.includes('김영업'));
+  assert.ok(!index.includes('초안</td>'));
+});
+
+test('handover: 화면별 소스 파일 목록', async () => {
+  const html = renderSite(await withPreset('handover')).get('screens/orders-new.html');
+  assert.ok(html.includes('<h2>소스 파일</h2>'));
+  assert.ok(html.includes('<code>app/orders/new/page.tsx</code>'));
+});
+
+test('portfolio: 상세 페이지 없이 카드, 미리보기 6개, 링크는 카드로', async () => {
+  const input = await withPreset('portfolio');
+  const ids = input.inventory.screens.map((s) => s.id);
+  input.media = { images: new Set(ids), gifs: new Set(ids.slice(0, 7)) };
+  const site = renderSite(input);
+  assert.ok(![...site.keys()].some((k) => k.startsWith('screens/')));
+  const list = site.get('screens.html');
+  assert.equal((list.match(/<article class="card"/g) ?? []).length, 8);
+  assert.ok(list.includes('id="orders-new"'));
+  const index = site.get('index.html');
+  assert.equal((index.match(/media\/gif\//g) ?? []).length, 6);
+  assert.ok(index.includes('href="screens.html#orders-new"') || site.get('workflows.html').includes('href="screens.html#orders-new"'));
+  assert.ok(!allText(site).includes('href="screens/'));
+  assert.ok(!/<!-- (evidence|screens):/.test(allText(site)));
+});
+
+test('Mermaid 예약어와 겹치는 화면 ID', async () => {
+  const input = await loadGolden();
+  const end = { ...input.screens.get('home'), id: 'end' };
+  input.screens.set('end', end);
+  input.inventory.screens.push({ ...input.inventory.screens.find((s) => s.id === 'home'), id: 'end', route: '/end' });
+  input.summary.workflows.push({ name: '끝', description: '끝', steps: ['end', 'orders'] });
+  assert.ok(renderSite(input).get('workflows.html').includes('s_end --> s_orders'));
 });

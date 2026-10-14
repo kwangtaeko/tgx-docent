@@ -30,3 +30,17 @@ test('README 화면 미리보기', async () => {
   assert.equal((md.match(/!\[[^\]]+\]\(html\/media\/gif\/[^)]+\.gif\)/g) ?? []).length, 3);
   assert.ok(md.includes('![로그인](html/media/gif/login.gif)'));
 });
+
+test('README 프리셋: portfolio 미리보기 6개, delivery 근거 주석 없음', async () => {
+  const input = await loadGolden();
+  const ids = input.inventory.screens.map((s) => s.id);
+  input.media = { images: new Set(ids), gifs: new Set(ids) };
+  input.options = { preset: 'portfolio' };
+  let md = renderReadme(input);
+  assert.equal((md.match(/html\/media\/gif\//g) ?? []).length, 6);
+  assert.ok(!md.includes('<!-- screens:'));
+  input.options = { preset: 'delivery' };
+  md = renderReadme(input);
+  assert.ok(!md.includes('<!-- screens:'));
+  assert.equal((md.match(/html\/media\/gif\//g) ?? []).length, 3);
+});

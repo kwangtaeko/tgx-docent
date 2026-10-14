@@ -17715,7 +17715,8 @@ var DEFAULT_CONFIG = Object.freeze({
   secrets: { paths: [".env", ".env.*", "appsettings*.json", "web.config", "*.pem", "*.key", "*.pfx", "id_rsa*"] },
   analyze: { concurrency: 4 },
   mask: { selectors: [] },
-  gif: { screens: { include: [], exclude: [] } }
+  gif: { screens: { include: [], exclude: [] } },
+  output: { preset: "handover", formats: ["html", "readme"], title: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", organization: "", revisions: [] }
 });
 function isObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -18893,11 +18894,18 @@ var TYPE_LABELS = {
   email: "\uC774\uBA54\uC77C",
   other: "\uAE30\uD0C0"
 };
-var ev = (evidence) => `<!-- evidence: ${escapeComment(evidence)} -->`;
-var flag = (item) => item.confidence === "low" ? "<mark>[\uD655\uC778 \uD544\uC694]</mark> " : "";
-var nodeId = (id) => id.replace(/-/g, "_");
 var NO_CAPTURE = "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.";
+var flag = (item) => item.confidence === "low" ? "<mark>[\uD655\uC778 \uD544\uC694]</mark> " : "";
+var nodeId = (id) => `s_${id.replace(/-/g, "_")}`;
 var mediaOf = (input) => input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
+var presetOf = (input) => input.options?.preset ?? "handover";
+var keepEvidence = (input) => presetOf(input) === "handover";
+var evOf = (input, space = " ") => (evidence) => keepEvidence(input) ? `${space}<!-- evidence: ${escapeComment(evidence)} -->` : "";
+var screensNote = (input, ids) => keepEvidence(input) ? ` <!-- screens: ${escapeComment(ids.join(", "))} -->` : "";
+function screenHref(input, id, from = "root") {
+  if (presetOf(input) === "portfolio") return `${from === "screens" ? "../" : ""}screens.html#${id}`;
+  return from === "screens" ? `${id}.html` : `screens/${id}.html`;
+}
 function page({ title, body, root, projectName: projectName2, date, scripts = "" }) {
   return `<!doctype html>
 <html lang="ko">
@@ -18928,7 +18936,8 @@ function rolesOf(screens) {
   for (const s of screens.values()) for (const r of s.roles) roles.add(r.value);
   return [...roles];
 }
-function menuTree(inventory, screens) {
+function menuTree(input, from) {
+  const { inventory, screens } = input;
   const root = /* @__PURE__ */ new Map();
   for (const entry of inventory.screens) {
     const menu = screens.get(entry.id)?.menuPath?.value ?? entry.menuPath;
@@ -18940,24 +18949,64 @@ function menuTree(inventory, screens) {
       level = level.get(name2).children;
     });
   }
-  const render = (level) => level.size ? `<ul>${[...level].map(([name2, node]) => `<li>${node.id ? `<a href="screens/${escapeHtml(node.id)}.html">${escapeHtml(name2)}</a>` : escapeHtml(name2)}${render(node.children)}</li>`).join("")}</ul>` : "";
+  const render = (level) => level.size ? `<ul>${[...level].map(([name2, node]) => `<li>${node.id ? `<a href="${screenHref(input, node.id, from)}">${escapeHtml(name2)}</a>` : escapeHtml(name2)}${render(node.children)}</li>`).join("")}</ul>` : "";
   return render(root);
 }
-function renderIndex(input) {
+function revisionRows(input) {
+  const list = input.options?.revisions ?? [];
+  return list.length ? list : [{ version: "0.1", date: input.date, author: "", note: "\uCD08\uC548" }];
+}
+function coverBody(input) {
+  const o = input.options ?? {};
+  return `<section class="cover">
+<h1>${escapeHtml(input.projectName)}</h1>
+<p class="doc-title">${escapeHtml(o.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC")}</p>
+<dl>${o.organization ? `<dt>\uC791\uC131</dt><dd>${escapeHtml(o.organization)}</dd>` : ""}<dt>\uAE30\uC900\uC77C</dt><dd>${escapeHtml(input.date)}</dd><dt>\uBC84\uC804</dt><dd>${escapeHtml(revisionRows(input).at(-1).version)}</dd></dl>
+</section>`;
+}
+function tocBody(input, { anchors = false } = {}) {
+  const at = (file, anchor) => anchors ? `#${anchor}` : file;
+  const screens = input.inventory.screens.map((e) => `<li><a href="${anchors ? `#screen-${escapeHtml(e.id)}` : screenHref(input, e.id)}">${escapeHtml(screenTitle(input.screens, e.id))}</a></li>`).join("");
+  return `<nav class="toc">
+<h2>\uBAA9\uCC28</h2>
+<ol>
+<li><a href="${at("index.html", "intro")}">\uC18C\uAC1C</a></li>
+<li><a href="${at("screens.html", "screen-list")}">\uD654\uBA74 \uBAA9\uB85D</a></li>
+<li><a href="${at("workflows.html", "workflows")}">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a></li>
+<li>\uD654\uBA74\uBCC4 \uC124\uBA85<ol>${screens}</ol></li>
+<li><a href="${at("index.html#revisions", "revisions")}">\uAC1C\uC815 \uC774\uB825</a></li>
+</ol>
+</nav>`;
+}
+function revisionsBody(input) {
+  const rows = revisionRows(input).map((r) => `<tr><td>${escapeHtml(r.version)}</td><td>${escapeHtml(r.date)}</td><td>${escapeHtml(r.author)}</td><td>${escapeHtml(r.note)}</td></tr>`).join("\n");
+  return `<section id="revisions">
+<h2>\uAC1C\uC815 \uC774\uB825</h2>
+<table>
+<thead><tr><th>\uBC84\uC804</th><th>\uB0A0\uC9DC</th><th>\uC791\uC131\uC790</th><th>\uB0B4\uC6A9</th></tr></thead>
+<tbody>
+${rows}
+</tbody>
+</table>
+</section>`;
+}
+function introBody(input, { from = "root", heading = true } = {}) {
   const { inventory, screens, summary } = input;
-  const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)} <!-- screens: ${escapeComment(f.screens.join(", "))} --></li>`).join("\n");
+  const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)}${screensNote(input, f.screens)}</li>`).join("\n");
   const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
   const media = mediaOf(input);
-  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+  const limit = presetOf(input) === "portfolio" ? 6 : 3;
+  const prefix = from === "screens" ? "../" : "";
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   const preview = gifs.length ? `<h2>\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30</h2>
 <div class="preview">${gifs.map((e) => {
-    const title = escapeHtml(screens.get(e.id).title.value);
-    return `<figure><img src="media/gif/${escapeHtml(e.id)}.gif" alt="${title} \uC870\uC791 \uC608\uC2DC"><figcaption><a href="screens/${escapeHtml(e.id)}.html">${title}</a></figcaption></figure>`;
+    const title = escapeHtml(screenTitle(screens, e.id));
+    return `<figure><img src="${prefix}media/gif/${escapeHtml(e.id)}.gif" alt="${title} \uC870\uC791 \uC608\uC2DC"><figcaption><a href="${screenHref(input, e.id, from)}">${title}</a></figcaption></figure>`;
   }).join("")}</div>` : "";
   const notice = media.images.size || media.gifs.size ? "" : `<p class="notice">${NO_CAPTURE}</p>
 `;
-  const body = `<h1>${escapeHtml(input.projectName)}</h1>
-${notice}<p class="lead">${escapeHtml(summary.oneLiner.value)} <!-- screens: ${escapeComment(summary.oneLiner.screens.join(", "))} --></p>
+  return `${heading ? `<h1>${escapeHtml(input.projectName)}</h1>
+` : ""}${notice}<p class="lead">${escapeHtml(summary.oneLiner.value)}${screensNote(input, summary.oneLiner.screens)}</p>
 <h2>\uC8FC\uC694 \uAE30\uB2A5</h2>
 <ul>
 ${features}
@@ -18966,19 +19015,26 @@ ${preview}
 <h2>\uC0AC\uC6A9\uC790 \uC5ED\uD560</h2>
 <ul>${roles}</ul>
 <h2>\uBA54\uB274 \uAD6C\uC870</h2>
-${menuTree(inventory, screens)}
-<p>\uC804\uCCB4 \uD654\uBA74\uC740 <a href="screens.html">\uD654\uBA74 \uBAA9\uB85D</a>, \uC5C5\uBB34 \uD750\uB984\uC740 <a href="workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a>\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.</p>`;
+${menuTree(input, from)}`;
+}
+function renderIndex(input) {
+  const delivery = presetOf(input) === "delivery";
+  const body = `${delivery ? `${coverBody(input)}
+${tocBody(input)}
+` : ""}${introBody(input)}
+<p>\uC804\uCCB4 \uD654\uBA74\uC740 <a href="screens.html">\uD654\uBA74 \uBAA9\uB85D</a>, \uC5C5\uBB34 \uD750\uB984\uC740 <a href="workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a>\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.</p>${delivery ? `
+${revisionsBody(input)}` : ""}`;
   return page({ ...input, title: "\uC18C\uAC1C", body, root: "" });
 }
-function renderList(input) {
+function listBody(input) {
   const { inventory, screens } = input;
   const rows = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
     const menu = s.menuPath?.value.join(" \u203A ") ?? "";
     const where = entry.route ?? `${screenTitle(screens, entry.parentId)}\uC758 \uD558\uC704 \uD654\uBA74`;
-    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="screens/${escapeHtml(entry.id)}.html">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</td></tr>`;
+    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</td></tr>`;
   }).join("\n");
-  const body = `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
+  return `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
 <p>\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
 <table>
 <thead><tr><th>ID</th><th>\uD654\uBA74</th><th>\uACBD\uB85C</th><th>\uBA54\uB274</th><th>\uC5ED\uD560</th><th>\uBAA9\uC801</th></tr></thead>
@@ -18986,6 +19042,28 @@ function renderList(input) {
 ${rows}
 </tbody>
 </table>`;
+}
+function cardsBody(input, { prefix = "" } = {}) {
+  const { inventory, screens } = input;
+  const media = mediaOf(input);
+  const cards = inventory.screens.map((entry) => {
+    const s = screens.get(entry.id);
+    const shot = media.images.has(entry.id) ? `<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74">` : '<p class="no-shot">\uCEA1\uCC98 \uC5C6\uC74C</p>';
+    const gif = media.gifs.has(entry.id) ? `<p><a href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">\uC870\uC791 \uC608\uC2DC \uBCF4\uAE30</a></p>` : "";
+    return `<article class="card" id="${escapeHtml(entry.id)}">
+<h2>${escapeHtml(s.title.value)}</h2>
+${shot}
+<p>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</p>
+${gif}</article>`;
+  }).join("\n");
+  return `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
+<p>\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
+<div class="cards">
+${cards}
+</div>`;
+}
+function renderList(input) {
+  const body = presetOf(input) === "portfolio" ? cardsBody(input) : listBody(input);
   return page({ ...input, title: "\uD654\uBA74 \uBAA9\uB85D", body, root: "" });
 }
 function table(headers, rows) {
@@ -18997,45 +19075,43 @@ ${rows.join("\n")}
 </tbody>
 </table>`;
 }
-function link(screens, id) {
-  return `<a href="${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a>`;
-}
-function renderScreen(input, entry) {
+function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) {
   const { inventory, screens } = input;
+  const ev = evOf(input);
   const s = screens.get(entry.id);
+  const link = (id) => `<a href="${from === "root" && input.printAnchors ? `#screen-${escapeHtml(id)}` : screenHref(input, id, from)}">${escapeHtml(screenTitle(screens, id))}</a>`;
+  const prefix = from === "screens" ? "../" : "";
   const meta = [];
-  if (s.menuPath) meta.push(`<dt>\uBA54\uB274 \uC704\uCE58</dt><dd>${escapeHtml(s.menuPath.value.join(" \u203A "))} ${ev(s.menuPath.evidence)}</dd>`);
-  meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(screens, s.parentId)}</dd>`);
-  meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)} ${ev(s.purpose.evidence)}</dd>`);
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${ev(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
+  if (s.menuPath) meta.push(`<dt>\uBA54\uB274 \uC704\uCE58</dt><dd>${escapeHtml(s.menuPath.value.join(" \u203A "))}${ev(s.menuPath.evidence)}</dd>`);
+  meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(s.parentId)}</dd>`);
+  meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</dd>`);
+  const evTight = evOf(input, "");
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
   meta.push(`<dt>\uC0AC\uC6A9 \uC5ED\uD560</dt><dd>${roles}</dd>`);
-  const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)} ${ev(x.evidence)}</li>`).join("")}</ul>` : "";
+  const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)}${ev(x.evidence)}</li>`).join("")}</ul>` : "";
   const fields = table(
     ["\uD56D\uBAA9", "\uD615\uC2DD", "\uD544\uC218"],
-    s.fields.map((f) => `<tr><td>${flag(f)}${escapeHtml(f.label)} ${ev(f.evidence)}</td><td>${escapeHtml(TYPE_LABELS[f.type])}</td><td>${f.required ? "\uD544\uC218" : ""}</td></tr>`)
+    s.fields.map((f) => `<tr><td>${flag(f)}${escapeHtml(f.label)}${ev(f.evidence)}</td><td>${escapeHtml(TYPE_LABELS[f.type])}</td><td>${f.required ? "\uD544\uC218" : ""}</td></tr>`)
   );
   const actions = table(
     ["\uBC84\uD2BC", "\uB3D9\uC791", "\uC774\uC5B4\uC9C0\uB294 \uD654\uBA74"],
     s.actions.map((a) => {
-      const next = [a.navigatesTo && `\uC774\uB3D9: ${link(screens, a.navigatesTo)}`, a.opens && `\uC5F4\uAE30: ${link(screens, a.opens)}`].filter(Boolean).join(", ");
-      return `<tr><td>${escapeHtml(a.label)}</td><td>${flag(a)}${escapeHtml(a.effect)} ${ev(a.evidence)}</td><td>${next}</td></tr>`;
+      const next = [a.navigatesTo && `\uC774\uB3D9: ${link(a.navigatesTo)}`, a.opens && `\uC5F4\uAE30: ${link(a.opens)}`].filter(Boolean).join(", ");
+      return `<tr><td>${escapeHtml(a.label)}</td><td>${flag(a)}${escapeHtml(a.effect)}${ev(a.evidence)}</td><td>${next}</td></tr>`;
     })
   );
-  const messages = table(
-    ["\uBA54\uC2DC\uC9C0", "\uB098\uC624\uB294 \uB54C"],
-    s.messages.map((m) => `<tr><td>${escapeHtml(m.text)} ${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`)
-  );
+  const messages = table(["\uBA54\uC2DC\uC9C0", "\uB098\uC624\uB294 \uB54C"], s.messages.map((m) => `<tr><td>${escapeHtml(m.text)}${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`));
   const children = inventory.screens.filter((x) => x.parentId === s.id);
-  const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul>${children.map((c) => `<li>${link(screens, c.id)}</li>`).join("")}</ul>` : "";
+  const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul>${children.map((c) => `<li>${link(c.id)}</li>`).join("")}</ul>` : "";
   const unknowns = s.unknowns.length ? `<h2>\uD655\uC778 \uD544\uC694</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[\uD655\uC778 \uD544\uC694]</mark> ${escapeHtml(u)}</li>`).join("")}</ul>` : "";
+  const sources = presetOf(input) === "handover" ? `<h2>\uC18C\uC2A4 \uD30C\uC77C</h2><ul>${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
   const media = mediaOf(input);
-  const shot = media.images.has(s.id) ? `<figure class="shot"><img src="../media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74"></figure>
+  const shot = media.images.has(s.id) ? `<figure class="shot"><img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74"></figure>
+` : input.printAnchors ? '<p class="no-shot">\uCEA1\uCC98 \uC5C6\uC74C</p>\n' : "";
+  const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>\uC870\uC791 \uC608\uC2DC</h2>
+<figure><img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(s.title.value)} \uC870\uC791 \uC608\uC2DC"></figure>
 ` : "";
-  const gif = media.gifs.has(s.id) ? `<h2>\uC870\uC791 \uC608\uC2DC</h2>
-<figure><img src="../media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(s.title.value)} \uC870\uC791 \uC608\uC2DC"></figure>
-` : "";
-  const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(s.id)}</code></p>
-<h1>${escapeHtml(s.title.value)} ${ev(s.title.evidence)}</h1>
+  return `<${headingTag}>${escapeHtml(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 ${shot}
 <dl class="meta">
 ${meta.join("\n")}
@@ -19048,33 +19124,44 @@ ${actions}
 <h2>\uC548\uB0B4 \uBA54\uC2DC\uC9C0</h2>
 ${messages}
 ${childList}
-${unknowns}`;
-  return page({ ...input, title: s.title.value, body, root: "../" });
+${unknowns}
+${sources}`;
 }
-function renderWorkflows(input) {
+function renderScreen(input, entry) {
+  const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(entry.id)}</code></p>
+${screenBody(input, entry)}`;
+  return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: "../" });
+}
+function workflowMermaid(input, wf) {
+  const { screens } = input;
+  const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${escapeHtml(screenTitle(screens, id)).replace(/&quot;/g, "#quot;")}"]`);
+  const edges = [];
+  for (let i = 0; i + 1 < wf.steps.length; i++) {
+    const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
+    if (!edges.includes(edge)) edges.push(edge);
+  }
+  return ["flowchart LR", ...nodes, ...edges].join("\n");
+}
+function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
   const blocks = summary.workflows.map((wf) => {
-    const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${escapeHtml(screenTitle(screens, id)).replace(/&quot;/g, "#quot;")}"]`);
-    const edges = [];
-    for (let i = 0; i + 1 < wf.steps.length; i++) {
-      const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
-      if (!edges.includes(edge)) edges.push(edge);
-    }
-    const steps = wf.steps.map((id) => `<li><a href="screens/${escapeHtml(id)}.html">${escapeHtml(screenTitle(screens, id))}</a></li>`).join("");
+    const steps = wf.steps.map((id) => `<li><a href="${linkToScreen(id)}">${escapeHtml(screenTitle(screens, id))}</a></li>`).join("");
     return `<section class="workflow">
 <h2>${escapeHtml(wf.name)}</h2>
 <p>${escapeHtml(wf.description)}</p>
 <pre class="mermaid">
-${["flowchart LR", ...nodes, ...edges].join("\n")}
+${workflowMermaid(input, wf)}
 </pre>
 <ol>${steps}</ol>
 </section>`;
   }).join("\n");
-  const body = `<h1>\uC6CC\uD06C\uD50C\uB85C\uC6B0</h1>
+  return `<h1>\uC6CC\uD06C\uD50C\uB85C\uC6B0</h1>
 <p>\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.</p>
 ${blocks}`;
+}
+function renderWorkflows(input) {
   const scripts = '<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n';
-  return page({ ...input, title: "\uC6CC\uD06C\uD50C\uB85C\uC6B0", body, root: "", scripts });
+  return page({ ...input, title: "\uC6CC\uD06C\uD50C\uB85C\uC6B0", body: workflowsBody(input), root: "", scripts });
 }
 var STYLE = `:root { --fg: #1f2328; --muted: #59636e; --line: #d1d9e0; --bg: #ffffff; --accent: #0969da; --mark: #fff8c5; }
 * { box-sizing: border-box; }
@@ -19101,6 +19188,16 @@ figure { margin: 1rem 0; }
 figure img { max-width: 100%; border: 1px solid var(--line); }
 .preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
 .notice { background: #f6f8fa; border-left: 4px solid var(--line); padding: 0.5rem 0.75rem; color: var(--muted); }
+.cover { padding: 4rem 0 3rem; border-bottom: 2px solid var(--fg); margin-bottom: 2rem; }
+.cover h1 { font-size: 2.2rem; margin: 0 0 0.5rem; }
+.cover .doc-title { font-size: 1.4rem; margin: 0 0 2rem; }
+.cover dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; color: var(--muted); }
+.toc ol { padding-left: 1.2rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.card { border: 1px solid var(--line); padding: 0.75rem; }
+.card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
+.card img { width: 100%; border: 1px solid var(--line); }
+.no-shot { border: 1px dashed var(--line); color: var(--muted); padding: 2rem; text-align: center; }
 @media print {
   header.site nav, .crumb { display: none; }
   main { max-width: none; padding: 0; }
@@ -19115,7 +19212,9 @@ function renderSite(input) {
   site.set("index.html", renderIndex(input));
   site.set("screens.html", renderList(input));
   site.set("workflows.html", renderWorkflows(input));
-  for (const entry of input.inventory.screens) site.set(`screens/${entry.id}.html`, renderScreen(input, entry));
+  if (presetOf(input) !== "portfolio") {
+    for (const entry of input.inventory.screens) site.set(`screens/${entry.id}.html`, renderScreen(input, entry));
+  }
   return site;
 }
 
@@ -19141,24 +19240,26 @@ function menuLines(inventory, screens) {
   walk2(root, 0);
   return lines;
 }
-function previewLines(inventory, screens, media) {
-  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, 3);
+function previewLines(inventory, screens, media, limit) {
+  const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
   return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${screens.get(e.id).title.value}](html/media/gif/${e.id}.gif)`), ""];
 }
-function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() } }) {
+function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() }, options = {} }) {
+  const preset = options.preset ?? "handover";
+  const note = (ids) => preset === "handover" ? ` <!-- screens: ${ids.join(", ")} -->` : "";
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
   const lines = [
     `# ${projectName2}`,
     "",
-    `${summary.oneLiner.value} <!-- screens: ${summary.oneLiner.screens.join(", ")} -->`,
+    `${summary.oneLiner.value}${note(summary.oneLiner.screens)}`,
     "",
     ...media.images.size || media.gifs.size ? [] : ["> \uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.", ""],
     "## \uC8FC\uC694 \uAE30\uB2A5",
     "",
-    ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value} <!-- screens: ${f.screens.join(", ")} -->`),
+    ...summary.features.map((f) => `- **${f.menu}** \u2014 ${f.value}${note(f.screens)}`),
     "",
-    ...previewLines(inventory, screens, media),
+    ...previewLines(inventory, screens, media, preset === "portfolio" ? 6 : 3),
     "## \uBA54\uB274 \uAD6C\uC870",
     "",
     ...menuLines(inventory, screens),
@@ -19205,36 +19306,36 @@ function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 async function checkEvidence(rootDir, evidence, opts = {}) {
-  let ev2;
+  let ev;
   try {
-    ev2 = parseEvidence(evidence);
+    ev = parseEvidence(evidence);
   } catch (err) {
     return { ok: false, reason: err.message };
   }
   const rootPath = resolve2(rootDir);
-  const target = resolve2(rootPath, ev2.file);
-  if (ev2.file.includes("\\") || isAbsolute(ev2.file) || !target.startsWith(rootPath + sep)) {
-    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev2.file}` };
+  const target = resolve2(rootPath, ev.file);
+  if (ev.file.includes("\\") || isAbsolute(ev.file) || !target.startsWith(rootPath + sep)) {
+    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
   }
   let lines;
   try {
     lines = (await readFile4(target, "utf8")).split(/\r?\n/);
   } catch {
-    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev2.file}` };
+    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
   }
   if (lines.at(-1) === "") lines.pop();
   let window;
-  if ("symbol" in ev2) {
-    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev2.symbol)}($|[^\\w$])`);
+  if ("symbol" in ev) {
+    const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
     const hits = lines.flatMap((line2, i) => pattern.test(line2) ? [i] : []);
     if (hits.length === 0) {
-      return { ok: false, reason: `${ev2.file}\uC5D0 ${ev2.symbol} \uC5C6\uC74C` };
+      return { ok: false, reason: `${ev.file}\uC5D0 ${ev.symbol} \uC5C6\uC74C` };
     }
     window = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
   } else {
-    const { startLine, endLine } = ev2;
+    const { startLine, endLine } = ev;
     if (startLine < 1 || startLine > endLine || endLine > lines.length) {
-      return { ok: false, reason: `${ev2.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
+      return { ok: false, reason: `${ev.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
     }
     window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
@@ -19281,8 +19382,8 @@ function evidenceChecks(s) {
   return checks;
 }
 async function checkScreen(projectDir, s, ids, problems) {
-  for (const [ev2, text] of evidenceChecks(s)) {
-    const r = await checkEvidence(projectDir, ev2, text === void 0 ? {} : { expectText: text });
+  for (const [ev, text] of evidenceChecks(s)) {
+    const r = await checkEvidence(projectDir, ev, text === void 0 ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: \uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 ${s.parentId}`);
@@ -20162,6 +20263,14 @@ analyze:
 # \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):
 # mask:
 #   selectors: [".phone", "td.ssn"]
+# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):
+# output:
+#   preset: handover
+#   formats: [html, readme]
+#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC
+#   organization: ""
+#   revisions:
+#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }
 # GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):
 # gif:
 #   screens:
@@ -20294,9 +20403,9 @@ async function checkEntry(projectDir, label, entry, problems) {
       return void 0;
     }
   }
-  const ev2 = await checkEvidence(projectDir, entry.evidence);
-  if (!ev2.ok) {
-    problems.push(`${label}: ${ev2.reason}`);
+  const ev = await checkEvidence(projectDir, entry.evidence);
+  if (!ev.ok) {
+    problems.push(`${label}: ${ev.reason}`);
     return void 0;
   }
   return files;
