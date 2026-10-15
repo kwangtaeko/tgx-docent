@@ -71,7 +71,10 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
     window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
 
-  if (opts.expectText !== undefined && !window.some((line) => line.includes(opts.expectText))) {
+  // 문구가 여러 줄로 나뉘어 있을 수 있으므로 공백을 하나로 모은 창 전체에서도 찾는다
+  const squash = (t) => t.replace(/\s+/g, ' ').trim();
+  const found = (text) => window.some((line) => line.includes(text)) || squash(window.join(' ')).includes(squash(text));
+  if (opts.expectText !== undefined && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} 근처(±${TEXT_WINDOW}줄)에 "${opts.expectText}" 없음` };
   }
   return { ok: true };

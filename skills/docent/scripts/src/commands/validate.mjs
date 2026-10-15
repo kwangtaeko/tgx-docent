@@ -106,7 +106,8 @@ async function checkScenarios(projectDir, dir, ids, problems) {
   }
 }
 
-export async function runValidate(projectDir) {
+// only: 화면 ID 목록이면 그 화면에 관한 문제만 돌려준다(화면 분석 에이전트가 자기 화면만 확인할 때)
+export async function runValidate(projectDir, { only = [] } = {}) {
   const dir = docentDir(projectDir);
   const problems = [];
 
@@ -150,5 +151,7 @@ export async function runValidate(projectDir) {
     if (!r.valid) problems.push(`summary.json: ${r.errors.join('; ')}`);
     else checkSummary(summary, screens, allIds, problems);
   }
-  return { ok: problems.length === 0, problems };
+  const mine = (p) => only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
+  const result = only.length ? problems.filter(mine) : problems;
+  return { ok: result.length === 0, problems: result };
 }

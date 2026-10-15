@@ -28786,7 +28786,9 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
     }
     window2 = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
-  if (opts.expectText !== void 0 && !window2.some((line2) => line2.includes(opts.expectText))) {
+  const squash = (t) => t.replace(/\s+/g, " ").trim();
+  const found = (text) => window2.some((line2) => line2.includes(text)) || squash(window2.join(" ")).includes(squash(text));
+  if (opts.expectText !== void 0 && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
   }
   return { ok: true };
@@ -34969,7 +34971,7 @@ async function checkScenarios(projectDir, dir, ids, problems) {
     }
   }
 }
-async function runValidate(projectDir) {
+async function runValidate(projectDir, { only = [] } = {}) {
   const dir = docentDir(projectDir);
   const problems = [];
   const inventory = await load(join10(dir, "inventory.json"), "inventory.json", problems);
@@ -35008,7 +35010,9 @@ async function runValidate(projectDir) {
     if (!r.valid) problems.push(`summary.json: ${r.errors.join("; ")}`);
     else checkSummary(summary, screens, allIds, problems);
   }
-  return { ok: problems.length === 0, problems };
+  const mine = (p) => only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
+  const result = only.length ? problems.filter(mine) : problems;
+  return { ok: result.length === 0, problems: result };
 }
 
 // skills/docent/scripts/src/commands/build.mjs
@@ -36940,7 +36944,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
   update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)
   pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4
-  validate       \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4
+  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)
   review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
   build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]
                  .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
@@ -37005,8 +37009,9 @@ async function main() {
       return 0;
     }
     case "validate": {
-      const { ok, problems } = await runValidate(project);
-      if (ok) console.log("\uAC80\uC99D \uD1B5\uACFC");
+      const only = args.slice(1).filter((a) => !a.startsWith("--"));
+      const { ok, problems } = await runValidate(project, { only });
+      if (ok) console.log(only.length ? `\uAC80\uC99D \uD1B5\uACFC: ${only.join(", ")}` : "\uAC80\uC99D \uD1B5\uACFC");
       else listProblems(`\uBB38\uC81C ${problems.length}\uAC74:`, problems);
       return ok ? 0 : 1;
     }

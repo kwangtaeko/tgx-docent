@@ -110,3 +110,10 @@ test('단독 \\r 줄바꿈도 줄로 센다', async () => {
   await writeFile(join(root, 'mac.txt'), 'a\rb\rc');
   assert.deepEqual(await checkEvidence(root, 'mac.txt:3', { expectText: 'c' }), { ok: true });
 });
+
+test('여러 줄로 나뉜 문구도 근거 근처에 있으면 찾는다', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'docent-ml-'));
+  await writeFile(join(root, 'p.tsx'), '<p>\n  방문 기록은 남기지만\n  개인을 식별하지 않습니다.\n</p>\n');
+  assert.deepEqual(await checkEvidence(root, 'p.tsx:2', { expectText: '방문 기록은 남기지만 개인을 식별하지 않습니다.' }), { ok: true });
+  assert.equal((await checkEvidence(root, 'p.tsx:2', { expectText: '방문 기록은 남기지 않습니다.' })).ok, false);
+});

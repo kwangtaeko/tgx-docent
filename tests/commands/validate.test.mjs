@@ -101,3 +101,15 @@ test('null 같은 객체가 아닌 JSON도 문제로 보고한다', async () => 
   assert.ok(problems.some((p) => p.startsWith('summary.json')), problems.join('\n'));
   assert.ok(problems.some((p) => p.startsWith('screens/login.json')), problems.join('\n'));
 });
+
+test('화면 ID를 주면 그 화면의 문제만 본다', async () => {
+  const { dir, docent } = await golden();
+  const { rm } = await import('node:fs/promises');
+  await rm(join(docent, 'screens', 'orders.json'));
+  await rm(join(docent, 'summary.json'));
+  assert.equal((await runValidate(dir)).ok, false);
+  assert.deepEqual(await runValidate(dir, { only: ['login'] }), { ok: true, problems: [] });
+  const r = await runValidate(dir, { only: ['orders'] });
+  assert.equal(r.ok, false);
+  assert.ok(r.problems.every((p) => p.startsWith('orders:') || p.includes('screens/orders.json')), r.problems.join('\n'));
+});

@@ -51,3 +51,8 @@ test('SKILL은 감지기 네 가지를 안내한다', async () => {
   const md = await readFile('skills/docent/SKILL.md', 'utf8');
   for (const name of ['nextjs', 'react-router', 'vue', 'sveltekit']) assert.ok(md.includes(name), name);
 });
+
+test('screen-analyzer가 실전에서 걸린 경우를 안내한다', async () => {
+  const md = await readFile('skills/docent/agents/screen-analyzer.md', 'utf8');
+  for (const phrase of ['공통 레이아웃', 'aria-label', '데이터 파일', '$DOCENT validate <화면ID>', '기능 플래그', '참고로만']) assert.ok(md.includes(phrase), phrase);
+});
