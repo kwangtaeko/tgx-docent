@@ -70,3 +70,8 @@ test('scenario-writer가 보이는 글자 찾기와 열 수 없는 동적 화면
   const md = await readFile('skills/docent/agents/scenario-writer.md', 'utf8');
   for (const phrase of ['보이는 글자', '열 수 있는 주소가 없는']) assert.ok(md.includes(phrase), phrase);
 });
+
+test('run-guide가 packageManager 필드와 pnpm 프로덕션 실행을 안내한다', async () => {
+  const md = await readFile('skills/docent/references/run-guide.md', 'utf8');
+  for (const s of ['packageManager', 'pnpm install --frozen-lockfile', 'pnpm build && pnpm start', 'corepack']) assert.ok(md.includes(s), s);
+});
