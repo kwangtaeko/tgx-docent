@@ -29186,7 +29186,7 @@ function menuLines(inventory, screens) {
 function previewLines(inventory, screens, media, limit) {
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
-  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${md(screens.get(e.id).title.value)}](html/media/gif/${e.id}.gif)`), ""];
+  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, "\\$&")}](html/media/gif/${e.id}.gif)`), ""];
 }
 function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() }, options = {} }) {
   const preset = options.preset ?? "handover";
@@ -35053,9 +35053,9 @@ async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory
 ${problems.map((p) => `- ${p}`).join("\n")}`);
   const config = await loadConfig(projectDir);
   const options = resolveOutputOptions(config, { preset, formats });
-  const warnings = [];
+  const warnings2 = [];
   const skipped = [];
-  if (config.language !== "ko") warnings.push(`language "${config.language}"\uB294 \uC544\uC9C1 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544 \uD55C\uAD6D\uC5B4\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4`);
+  if (config.language !== "ko") warnings2.push(`language "${config.language}"\uB294 \uC544\uC9C1 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544 \uD55C\uAD6D\uC5B4\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4`);
   const dir = docentDir(projectDir);
   const inventory = await readJson(join11(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
@@ -35072,7 +35072,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   };
   if (options.preset === "delivery") {
     const n = uncertainCount(screens);
-    if (n) warnings.push(`\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 ${n}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694`);
+    if (n) warnings2.push(`\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 ${n}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694`);
   }
   const outDir = join11(dir, "out");
   await rm2(outDir, { recursive: true, force: true });
@@ -35110,7 +35110,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
         else {
           await put(outDir, "html/print.html", renderPrint(input), files);
           const { diagramsReady } = await renderPdf(join11(outDir, "html", "print.html"), join11(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
-          if (!diagramsReady && input.summary.workflows.length) warnings.push("PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4");
+          if (!diagramsReady && input.summary.workflows.length) warnings2.push("PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4");
           files.push(`${base}.pdf`);
         }
       }
@@ -35119,8 +35119,8 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
         if (browser) {
           diagrams = await renderDiagrams(browser, input, { assetsDir });
           const failed = diagrams.filter((d) => !d).length;
-          if (failed) warnings.push(`\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 ${failed}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4`);
-        } else if (input.summary.workflows.length) warnings.push("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4");
+          if (failed) warnings2.push(`\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 ${failed}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4`);
+        } else if (input.summary.workflows.length) warnings2.push("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4");
         const buf = await renderPptx(input, { diagrams, mediaDir: join11(dir, "media") });
         await writeFile3(join11(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);
@@ -35129,14 +35129,14 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
       if (browser) await browser.close();
     }
   }
-  return { files: files.sort(), warnings, skipped };
+  return { files: files.sort(), warnings: warnings2, skipped };
 }
 
 // skills/docent/scripts/src/commands/capture.mjs
 import { join as join13 } from "node:path";
 
 // skills/docent/scripts/src/lib/media.mjs
-import { mkdir as mkdir4, rm as rm3, stat } from "node:fs/promises";
+import { mkdir as mkdir4, rename, rm as rm3, stat } from "node:fs/promises";
 import { join as join12 } from "node:path";
 function mediaPaths(projectDir) {
   const root = join12(docentDir(projectDir), "media");
@@ -35164,7 +35164,7 @@ var sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
 async function withLock(path, fn) {
   const lock = `${path}.lock`;
   await mkdir4(join12(lock, ".."), { recursive: true });
-  const deadline = Date.now() + 1e4;
+  const deadline = Date.now() + 15e3;
   for (; ; ) {
     try {
       await mkdir4(lock);
@@ -35172,7 +35172,11 @@ async function withLock(path, fn) {
     } catch (err) {
       if (err.code !== "EEXIST") throw err;
       try {
-        if (Date.now() - (await stat(lock)).mtimeMs > 3e4) await rm3(lock, { recursive: true, force: true });
+        if (Date.now() - (await stat(lock)).mtimeMs > 5e3) {
+          const stale = `${lock}.stale-${process.pid}-${Date.now()}`;
+          await rename(lock, stale);
+          await rm3(stale, { recursive: true, force: true });
+        }
       } catch {
       }
       if (Date.now() > deadline) throw new Error(`${path} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4`);
@@ -35424,7 +35428,7 @@ function routeMatcher(route) {
 function normalizePath(pathname) {
   return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 }
-function followable(href, origin) {
+function followable(href, origin, matchers = []) {
   let url;
   try {
     url = new URL(href);
@@ -35434,6 +35438,7 @@ function followable(href, origin) {
   if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return void 0;
   const path = normalizePath(url.pathname);
   if (LOGOUT.test(path) || LOGOUT.test(url.search) || FILE_EXT.test(path)) return void 0;
+  if (/\.html?$/i.test(path) && !matchers.some((re) => re.test(path))) return void 0;
   return path;
 }
 async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
@@ -35441,6 +35446,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const inventory = await readJson(join14(docentDir(projectDir), "inventory.json"));
   const pages = inventory.screens.filter((s) => s.kind === "page" && s.route);
   const origin = new URL(run2.baseUrl).origin;
+  const routeRes = pages.map((s) => routeMatcher(s.route));
   const browser = await launchBrowser();
   const visited = [];
   try {
@@ -35462,7 +35468,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
       if (depth >= maxDepth) continue;
       const hrefs = await page2.$$eval("a[href]", (as) => as.map((a) => a.href));
       for (const href of hrefs) {
-        const next = followable(href, origin);
+        const next = followable(href, origin, routeRes);
         if (next && !seen.has(next)) {
           seen.add(next);
           queue.push({ path: next, depth: depth + 1 });
@@ -35477,12 +35483,12 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
   const result = { baseUrl: run2.baseUrl, visited: [...visited].sort(), unmatched, unreached };
   await writeJson(join14(docentDir(projectDir), "crawl.json"), result);
-  const warnings = [];
+  const warnings2 = [];
   const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
   if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
-    warnings.push("\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694");
+    warnings2.push("\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694");
   }
-  return { visited, unmatched, unreached, warnings };
+  return { visited, unmatched, unreached, warnings: warnings2 };
 }
 
 // skills/docent/scripts/src/commands/record.mjs
@@ -35861,7 +35867,8 @@ var react_router_exports = {};
 __export(react_router_exports, {
   detect: () => detect2,
   listScreens: () => listScreens2,
-  name: () => name2
+  name: () => name2,
+  warnings: () => warnings
 });
 import { readFile as readFile10 } from "node:fs/promises";
 import { join as join19, posix as posix3 } from "node:path";
@@ -36273,6 +36280,13 @@ async function fromCodeRouters(projectDir, aliases, screens) {
     }
   }
 }
+async function warnings(projectDir) {
+  const config = await routeConfigFile(projectDir);
+  if (!config) return [];
+  const source = await readFile10(join19(projectDir, config), "utf8");
+  if (!/\bflatRoutes\s*\(/.test(source) || (await listScreens2(projectDir)).length) return [];
+  return [`${config}\uC758 flatRoutes()\uB294 \uD30C\uC77C \uC774\uB984\uC73C\uB85C \uB77C\uC6B0\uD2B8\uB97C \uB9CC\uB4E4\uC5B4 \uAC10\uC9C0\uAE30\uAC00 \uC77D\uC9C0 \uBABB\uD569\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
+}
 async function listScreens2(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = /* @__PURE__ */ new Map();
@@ -36595,6 +36609,7 @@ async function runInventory(projectDir) {
       problems.push(`config.yaml: \uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 ${name5}`);
       continue;
     }
+    for (const w of await detector.warnings?.(projectDir) ?? []) problems.push(`${name5}: ${w}`);
     for (const s of await detector.listScreens(projectDir)) {
       if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: "page", source: `detector:${name5}` });
     }

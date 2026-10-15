@@ -1,5 +1,5 @@
 // .docent/media/ — 캡처·GIF·실패 기록. build가 지우는 out/ 밖에 둔다.
-import { mkdir, rm, stat } from 'node:fs/promises';
+import { mkdir, rename, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { docentDir, readJsonIfExists, writeJson } from './workspace.mjs';
 
@@ -35,7 +35,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function withLock(path, fn) {
   const lock = `${path}.lock`;
   await mkdir(join(lock, '..'), { recursive: true });
-  const deadline = Date.now() + 10_000;
+  const deadline = Date.now() + 15_000;
   for (;;) {
     try {
       await mkdir(lock);
@@ -43,9 +43,14 @@ async function withLock(path, fn) {
     } catch (err) {
       if (err.code !== 'EEXIST') throw err;
       try {
-        if (Date.now() - (await stat(lock)).mtimeMs > 30_000) await rm(lock, { recursive: true, force: true }); // 낡은 잠금
+        // 낡은 잠금(녹화가 비정상 종료): 이름을 바꿔 치워야 두 대기자가 남의 새 잠금을 지우지 않는다
+        if (Date.now() - (await stat(lock)).mtimeMs > 5_000) {
+          const stale = `${lock}.stale-${process.pid}-${Date.now()}`;
+          await rename(lock, stale);
+          await rm(stale, { recursive: true, force: true });
+        }
       } catch {
-        // 그 사이 풀림
+        // 그 사이 풀렸거나 다른 대기자가 치움
       }
       if (Date.now() > deadline) throw new Error(`${path} 잠금을 얻지 못했습니다`);
       await sleep(50);

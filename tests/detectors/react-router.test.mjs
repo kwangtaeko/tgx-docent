@@ -60,3 +60,28 @@ test('감싸는 요소 안의 화면 파일을 files로', async () => {
   });
   assert.deepEqual((await reactRouter.listScreens(dir))[0].files, ['src/Orders.tsx']);
 });
+
+test('flatRoutes()만 쓰는 v7 프로젝트는 경고한다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router":"7"}}',
+    'app/routes.ts': "import { flatRoutes } from '@react-router/fs-routes';\nexport default flatRoutes() satisfies RouteConfig;\n",
+    'app/routes/_index.tsx': '',
+  });
+  assert.deepEqual(await reactRouter.listScreens(dir), []);
+  assert.ok((await reactRouter.warnings(dir)).some((w) => /flatRoutes/.test(w)));
+  assert.deepEqual(await reactRouter.warnings('fixtures/detectors/react-router-v7'), []);
+});
+
+test('감지기 경고는 inventory 문제 목록에 들어간다', async () => {
+  const { runInventory } = await import('../../skills/docent/scripts/src/commands/inventory.mjs');
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router":"7"}}',
+    'app/routes.ts': 'export default flatRoutes();\n',
+  });
+  await mkdir(join(dir, '.docent'));
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'detectors: [react-router]\n');
+  const { problems } = await runInventory(dir);
+  assert.ok(problems.some((p) => /^react-router: .*flatRoutes/.test(p)), problems.join());
+});

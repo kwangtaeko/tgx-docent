@@ -85,6 +85,7 @@ export async function runInventory(projectDir) {
       problems.push(`config.yaml: 알 수 없는 감지기 ${name}`);
       continue;
     }
+    for (const w of (await detector.warnings?.(projectDir)) ?? []) problems.push(`${name}: ${w}`);
     for (const s of await detector.listScreens(projectDir)) {
       if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: 'page', source: `detector:${name}` });
     }

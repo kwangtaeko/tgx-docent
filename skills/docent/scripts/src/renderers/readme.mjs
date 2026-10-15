@@ -27,7 +27,7 @@ function menuLines(inventory, screens) {
 function previewLines(inventory, screens, media, limit) {
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
-  return ['## 화면 미리보기', '', ...gifs.map((e) => `![${md(screens.get(e.id).title.value)}](html/media/gif/${e.id}.gif)`), ''];
+  return ['## 화면 미리보기', '', ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, '\\$&')}](html/media/gif/${e.id}.gif)`), ''];
 }
 
 export function renderReadme({ inventory, screens, summary, date, projectName, media = { images: new Set(), gifs: new Set() }, options = {} }) {

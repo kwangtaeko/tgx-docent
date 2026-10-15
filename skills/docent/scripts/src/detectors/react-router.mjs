@@ -54,6 +54,15 @@ async function fromCodeRouters(projectDir, aliases, screens) {
   }
 }
 
+// 파일 이름으로 라우트를 만드는 flatRoutes()는 읽지 못하므로 알린다
+export async function warnings(projectDir) {
+  const config = await routeConfigFile(projectDir);
+  if (!config) return [];
+  const source = await readFile(join(projectDir, config), 'utf8');
+  if (!/\bflatRoutes\s*\(/.test(source) || (await listScreens(projectDir)).length) return [];
+  return [`${config}의 flatRoutes()는 파일 이름으로 라우트를 만들어 감지기가 읽지 못합니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)`];
+}
+
 export async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = new Map();

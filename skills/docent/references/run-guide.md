@@ -17,6 +17,7 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 }
 ```
 
+- Maven·Gradle(Spring) 첫 실행은 의존성 내려받기로 오래 걸리므로 `"healthcheck": { "path": "/login", "timeoutSec": 600 }`처럼 씁니다
 - 이 명령들은 사용자에게 보여 주고 동의를 받은 뒤 `docent run approve`로 승인해야 실행됩니다. 레포에 이미 있던 `run.json`도 마찬가지입니다
 - `env`: 비밀이 아닌 고정값만(포트, `NODE_ENV` 등)
 - `stop`(선택): `docent run stop`이 앱을 멈춘 뒤 실행하는 정리 명령(예: `docker compose down`). 승인 대상에 들어갑니다

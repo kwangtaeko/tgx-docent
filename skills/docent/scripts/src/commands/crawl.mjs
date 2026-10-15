@@ -31,7 +31,8 @@ function normalizePath(pathname) {
   return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 }
 
-export function followable(href, origin) {
+// matchers: inventory 라우트 정규식. .html 링크는 화면 라우트에 맞을 때만 따라간다(정적 문서 제외)
+export function followable(href, origin, matchers = []) {
   let url;
   try {
     url = new URL(href);
@@ -41,6 +42,7 @@ export function followable(href, origin) {
   if (url.origin !== origin || !/^https?:$/.test(url.protocol)) return undefined;
   const path = normalizePath(url.pathname);
   if (LOGOUT.test(path) || LOGOUT.test(url.search) || FILE_EXT.test(path)) return undefined;
+  if (/\.html?$/i.test(path) && !matchers.some((re) => re.test(path))) return undefined;
   return path;
 }
 
@@ -50,6 +52,7 @@ export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}
   const pages = inventory.screens.filter((s) => s.kind === 'page' && s.route);
   const origin = new URL(run.baseUrl).origin;
 
+  const routeRes = pages.map((s) => routeMatcher(s.route));
   const browser = await launchBrowser();
   const visited = [];
   try {
@@ -71,7 +74,7 @@ export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}
       if (depth >= maxDepth) continue;
       const hrefs = await page.$$eval('a[href]', (as) => as.map((a) => a.href));
       for (const href of hrefs) {
-        const next = followable(href, origin);
+        const next = followable(href, origin, routeRes);
         if (next && !seen.has(next)) {
           seen.add(next);
           queue.push({ path: next, depth: depth + 1 });

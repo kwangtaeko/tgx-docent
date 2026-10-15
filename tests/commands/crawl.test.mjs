@@ -79,3 +79,10 @@ test('로그인 화면만 방문했으면 세션 만료 경고', async () => {
     await locked.close();
   }
 });
+
+test('정적 HTML 파일 링크는 화면 후보가 아니다', async () => {
+  const { followable } = await import('../../skills/docent/scripts/src/commands/crawl.mjs');
+  assert.equal(followable('http://h/talks/a.html', 'http://h'), undefined);
+  assert.equal(followable('http://h/board/list.html', 'http://h', [routeMatcher('/board/list.html')]), '/board/list.html');
+  assert.equal(followable('http://h/a', 'http://h'), '/a');
+});

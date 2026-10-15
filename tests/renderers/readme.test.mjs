@@ -57,3 +57,10 @@ test('README 메뉴 트리는 메뉴 근거(파일·줄) 순서를 따른다', a
   const menu = md.split('## 메뉴 구조\n')[1].split('\n## ')[0].trim().split('\n').filter((l) => l.startsWith('- '));
   assert.deepEqual(menu, ['- 대시보드', '- 주문관리', '- 관리자']);
 });
+
+test('README 이미지 대체 글자의 대괄호를 이스케이프한다', async () => {
+  const input = await loadGolden();
+  input.screens.get('login').title.value = '목록 [관리]';
+  input.media = { images: new Set(), gifs: new Set(['login']) };
+  assert.ok(renderReadme(input).includes('![목록 \\[관리\\]](html/media/gif/login.gif)'));
+});
