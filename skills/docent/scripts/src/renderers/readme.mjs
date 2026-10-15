@@ -52,7 +52,7 @@ export function renderReadme({ inventory, screens, summary, date, projectName, m
     '',
     '## 사용자 역할',
     '',
-    ...(roles.length ? roles.map((r) => `- ${md(r)}`) : ['- 로그인 없이 사용']),
+    ...(roles.length ? roles.map((r) => `- ${md(r)}`) : ['- 확인된 역할 없음']),
     '',
     '## 더 보기',
     '',

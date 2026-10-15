@@ -52,15 +52,19 @@ async function byLabel(page, label, timeoutMs) {
   return page.locator(`[data-docent-label="${mark}"]`);
 }
 
-// role+접근성 이름으로 찾고, 없으면 보이는 글자로 찾는다(<b>02</b>Company → "02Company", aria-label이 따로 있는 버튼)
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// role+접근성 이름으로 찾고, 없으면 보이는 글자가 라벨과 같은 요소를 찾는다.
+// 보이는 글자에서는 앞 번호(<b>02</b>Company)와 장식 기호(↗ → ✕)만 무시한다 — "임시 저장"은 "저장"이 아니다
 async function byRole(page, role, label, timeoutMs) {
   const exact = page.getByRole(role, { name: label, exact: true });
+  const visible = page.getByRole(role).filter({ hasText: new RegExp(`^\\s*\\d*\\s*${escapeRe(label)}\\s*[↗→←✕×›»]*\\s*$`) });
   try {
-    await exact.first().waitFor({ state: 'attached', timeout: Math.min(timeoutMs, 1500) });
-    return exact;
+    await exact.or(visible).first().waitFor({ state: 'attached', timeout: timeoutMs });
   } catch {
-    return page.getByRole(role).filter({ hasText: label });
+    return exact; // 둘 다 없으면 찾지 못했다는 오류로
   }
+  return (await exact.count()) > 0 ? exact : visible;
 }
 
 // nth가 있으면 그 번째 요소, 없으면 하나뿐인 요소

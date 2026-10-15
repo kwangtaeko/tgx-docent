@@ -113,3 +113,12 @@ test('화면 ID를 주면 그 화면의 문제만 본다', async () => {
   assert.equal(r.ok, false);
   assert.ok(r.problems.every((p) => p.startsWith('orders:') || p.includes('screens/orders.json')), r.problems.join('\n'));
 });
+
+test('없는 화면 ID나 깨진 inventory는 화면 하나만 검사해도 문제로 보인다', async () => {
+  const { dir, docent } = await golden();
+  const r = await runValidate(dir, { only: ['no-such-screen'] });
+  assert.equal(r.ok, false);
+  assert.match(r.problems[0], /no-such-screen/);
+  await writeFile(join(docent, 'inventory.json'), '{');
+  assert.equal((await runValidate(dir, { only: ['login'] })).ok, false);
+});

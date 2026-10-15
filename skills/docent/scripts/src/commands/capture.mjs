@@ -15,19 +15,23 @@ export function captureContextOptions() {
   return { viewport: CAPTURE_VIEWPORT, reducedMotion: 'reduce' };
 }
 
-// 스크롤할 때 나타나는 내용(IntersectionObserver)을 띄운 뒤 맨 위로 돌아간다
+// 스크롤할 때 나타나는 내용(IntersectionObserver)을 띄운 뒤 맨 위로 돌아간다.
+// 처음 문서 높이까지만 내려가 무한 스크롤 목록이 끝없이 늘어나지 않게 한다
 export async function prepareForFullPage(page) {
-  await page.evaluate(async () => {
-    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-    for (let i = 0; i < 40; i++) {
-      const before = window.scrollY;
-      window.scrollBy(0, window.innerHeight);
-      await pause(120);
-      if (window.scrollY === before) break;
-    }
-    window.scrollTo(0, 0);
-    await pause(300);
-  });
+  await page
+    .evaluate(async () => {
+      const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+      const limit = document.documentElement.scrollHeight;
+      for (let i = 0; i < 40 && window.scrollY + window.innerHeight < limit; i++) {
+        const before = window.scrollY;
+        window.scrollTo({ top: Math.min(before + window.innerHeight, limit - window.innerHeight), behavior: 'instant' });
+        await pause(120);
+        if (window.scrollY === before) break;
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      await pause(300);
+    })
+    .catch(() => {}); // 스크롤이 페이지 이동을 일으켜도 캡처는 계속한다
 }
 
 // 라우트를 그대로 열 수 있으면 그 경로(route group·병렬 슬롯 제거), 동적이면 undefined

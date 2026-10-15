@@ -151,7 +151,12 @@ export async function runValidate(projectDir, { only = [] } = {}) {
     if (!r.valid) problems.push(`summary.json: ${r.errors.join('; ')}`);
     else checkSummary(summary, screens, allIds, problems);
   }
-  const mine = (p) => only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
+  // inventory·screens 폴더 자체의 문제는 어떤 화면을 검사하든 보인다
+  const shared = (p) => p.startsWith('inventory.json:') || p.startsWith('screens/:');
+  const mine = (p) => shared(p) || only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
   const result = only.length ? problems.filter(mine) : problems;
+  for (const id of only) {
+    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: inventory와 분석 결과 어디에도 없는 화면 ID입니다`);
+  }
   return { ok: result.length === 0, problems: result };
 }

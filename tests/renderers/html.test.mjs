@@ -162,9 +162,14 @@ test('portfolio 카드의 캡처는 위쪽만 일정 비율로 보여 준다', a
   assert.match(css, /\.card img \{[^}]*aspect-ratio: 16 \/ 10;[^}]*object-fit: cover;[^}]*object-position: top/);
 });
 
-test('역할이 없으면 로그인 없이 사용한다고 쓴다', async () => {
+test('역할이 없으면 근거 없이 로그인 여부를 단정하지 않고 확인된 역할이 없다고 쓴다', async () => {
   const input = await loadGolden();
   for (const s of input.screens.values()) s.roles = [];
-  const index = renderSite(input).get('index.html');
-  assert.match(index, /<h2>사용자 역할<\/h2>\n<ul><li>로그인 없이 사용합니다<\/li><\/ul>/);
+  const site = renderSite(input);
+  assert.match(site.get('index.html'), /<h2>사용자 역할<\/h2>\n<ul><li>확인된 역할 없음<\/li><\/ul>/);
+  assert.ok(site.get('screens/orders.html').includes('확인된 역할 없음'));
+  for (const html of site.values()) assert.ok(!html.includes('로그인 없이 사용'));
+  const { renderReadme } = await import('../../skills/docent/scripts/src/renderers/readme.mjs');
+  const md = renderReadme(input);
+  assert.ok(md.includes('- 확인된 역할 없음') && !md.includes('로그인 없이 사용'));
 });

@@ -128,7 +128,7 @@ ${rows}
 export function introBody(input, { from = 'root', heading = true } = {}) {
   const { inventory, screens, summary } = input;
   const features = summary.features.map((f) => `<li><strong>${h(f.menu)}</strong> — ${h(f.value)}${screensNote(input, f.screens)}</li>`).join('\n');
-  const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('') || '<li>로그인 없이 사용합니다</li>';
+  const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('') || '<li>확인된 역할 없음</li>';
   const media = mediaOf(input);
   const limit = presetOf(input) === 'portfolio' ? 6 : 3;
   const prefix = from === 'screens' ? '../' : '';
@@ -235,7 +235,7 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
   meta.push(s.route ? `<dt>경로</dt><dd><code>${h(s.route)}</code></dd>` : `<dt>상위 화면</dt><dd>${link(s.parentId)}</dd>`);
   meta.push(`<dt>목적</dt><dd>${flag(s.purpose)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</dd>`);
   const evTight = evOf(input, '');
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : '로그인 없이 사용';
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : '확인된 역할 없음';
   meta.push(`<dt>사용 역할</dt><dd>${roles}</dd>`);
 
   const sections = s.sections.length ? `<h2>구성</h2><ul>${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';

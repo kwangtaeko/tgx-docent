@@ -167,3 +167,22 @@ test('보이는 글자와 접근성 이름이 달라도 보이는 글자로 누�
     await s.close();
   }
 });
+
+test('정확한 이름의 요소가 늦게 나타나도 비슷한 이름의 다른 요소를 누르지 않는다', async () => {
+  const s = await startTestSite({
+    pages: {
+      '/late': html('늦게', `<button onclick="document.getElementById('m').textContent='임시'">임시 저장</button><p id="m"></p>
+        <script>setTimeout(() => { const b = document.createElement('button'); b.textContent = '저장';
+          b.onclick = () => { document.getElementById('m').textContent = '정식'; }; document.body.appendChild(b); }, 2500);</script>`),
+    },
+  });
+  try {
+    const p = await (await browser()).newPage();
+    await p.goto(`${s.url}/late`);
+    const r = await runSteps(p, [{ do: 'click', role: 'button', label: '저장', evidence: ev }, { do: 'expectText', text: '정식', evidence: ev }], { timeoutMs: 5000 });
+    assert.deepEqual(r, { ok: true });
+    await p.close();
+  } finally {
+    await s.close();
+  }
+});

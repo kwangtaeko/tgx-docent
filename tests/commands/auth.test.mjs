@@ -137,3 +137,8 @@ test('캡처·녹화 컨텍스트는 클립보드 쓰기를 허용한다', async
   assert.equal(await p.evaluate(() => navigator.clipboard.writeText('x').then(() => 'ok', (e) => String(e))), 'ok');
   await context.close();
 });
+
+test('캡처 컨텍스트에는 클립보드 읽기 권한을 주지 않는다', async () => {
+  const { CONTEXT_PERMISSIONS } = await import('../../skills/docent/scripts/src/commands/auth.mjs');
+  assert.deepEqual(CONTEXT_PERMISSIONS, ['clipboard-write']);
+});

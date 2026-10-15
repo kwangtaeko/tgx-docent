@@ -139,3 +139,30 @@ test('전체 페이지 캡처 전에 스크롤해 나중에 나타나는 내용�
     await closeBrowser();
   }
 });
+
+test('무한 스크롤 화면은 처음 문서 높이까지만 스크롤한다', async () => {
+  const { prepareForFullPage, captureContextOptions } = await import('../../skills/docent/scripts/src/commands/capture.mjs');
+  const { browser, closeBrowser } = await import('../helpers/browser.mjs');
+  const { page } = await import('../helpers/web.mjs');
+  const feed = await startTestSite({
+    pages: {
+      '/feed': page('피드', `<div id="list"><div style="height:2400px"></div></div>
+        <script>addEventListener('scroll', () => { if (innerHeight + scrollY >= document.documentElement.scrollHeight - 50) {
+          const d = document.createElement('div'); d.style.height = '2400px'; document.getElementById('list').appendChild(d); } });</script>`),
+    },
+  });
+  try {
+    const context = await (await browser()).newContext(captureContextOptions());
+    const p = await context.newPage();
+    await p.goto(`${feed.url}/feed`);
+    const before = await p.evaluate(() => document.documentElement.scrollHeight);
+    await prepareForFullPage(p);
+    const after = await p.evaluate(() => document.documentElement.scrollHeight);
+    assert.ok(after <= before + 2400 * 2, `${before} → ${after}`);
+    assert.equal(await p.evaluate(() => window.scrollY), 0);
+    await context.close();
+  } finally {
+    await feed.close();
+    await closeBrowser();
+  }
+});

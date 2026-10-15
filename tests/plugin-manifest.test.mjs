@@ -98,3 +98,7 @@ test('CHANGELOG 맨 위 항목이 현재 버전', async () => {
   const changelog = await readFile('CHANGELOG.md', 'utf8');
   assert.equal(/^## (\S+)/m.exec(changelog)?.[1], plugin.version);
 });
+
+test('에이전트 지시에 실전 대상 사이트의 문구를 쓰지 않는다', async () => {
+  assert.ok(!(await readFile('skills/docent/agents/screen-analyzer.md', 'utf8')).includes('같이 만들어요'));
+});

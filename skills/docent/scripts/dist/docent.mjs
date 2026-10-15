@@ -28622,7 +28622,7 @@ async function exists(path) {
     return false;
   }
 }
-var CONTEXT_PERMISSIONS = ["clipboard-read", "clipboard-write"];
+var CONTEXT_PERMISSIONS = ["clipboard-write"];
 async function newContext(browser, projectDir, options = {}) {
   const state = statePath(projectDir);
   return browser.newContext({ permissions: CONTEXT_PERMISSIONS, ...options, ...await exists(state) ? { storageState: state } : {} });
@@ -28935,7 +28935,7 @@ ${rows}
 function introBody(input, { from = "root", heading = true } = {}) {
   const { inventory, screens, summary } = input;
   const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)}${screensNote(input, f.screens)}</li>`).join("\n");
-  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("") || "<li>\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9\uD569\uB2C8\uB2E4</li>";
+  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("") || "<li>\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C</li>";
   const media = mediaOf(input);
   const limit = presetOf(input) === "portfolio" ? 6 : 3;
   const prefix = from === "screens" ? "../" : "";
@@ -29029,7 +29029,7 @@ function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) 
   meta.push(s.route ? `<dt>\uACBD\uB85C</dt><dd><code>${escapeHtml(s.route)}</code></dd>` : `<dt>\uC0C1\uC704 \uD654\uBA74</dt><dd>${link(s.parentId)}</dd>`);
   meta.push(`<dt>\uBAA9\uC801</dt><dd>${flag(s.purpose)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</dd>`);
   const evTight = evOf(input, "");
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : "\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9";
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C";
   meta.push(`<dt>\uC0AC\uC6A9 \uC5ED\uD560</dt><dd>${roles}</dd>`);
   const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul>${s.sections.map((x) => `<li>${escapeHtml(x.title)}${ev(x.evidence)}</li>`).join("")}</ul>` : "";
   const fields = table(
@@ -29212,7 +29212,7 @@ function renderReadme({ inventory, screens, summary, date, projectName: projectN
     "",
     "## \uC0AC\uC6A9\uC790 \uC5ED\uD560",
     "",
-    ...roles.length ? roles.map((r) => `- ${md(r)}`) : ["- \uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9"],
+    ...roles.length ? roles.map((r) => `- ${md(r)}`) : ["- \uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C"],
     "",
     "## \uB354 \uBCF4\uAE30",
     "",
@@ -35011,8 +35011,12 @@ async function runValidate(projectDir, { only = [] } = {}) {
     if (!r.valid) problems.push(`summary.json: ${r.errors.join("; ")}`);
     else checkSummary(summary, screens, allIds, problems);
   }
-  const mine = (p) => only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
+  const shared = (p) => p.startsWith("inventory.json:") || p.startsWith("screens/:");
+  const mine = (p) => shared(p) || only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
   const result = only.length ? problems.filter(mine) : problems;
+  for (const id of only) {
+    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4`);
+  }
   return { ok: result.length === 0, problems: result };
 }
 
@@ -35251,14 +35255,16 @@ async function byLabel(page2, label, timeoutMs) {
   );
   return page2.locator(`[data-docent-label="${mark}"]`);
 }
+var escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 async function byRole(page2, role, label, timeoutMs) {
   const exact = page2.getByRole(role, { name: label, exact: true });
+  const visible = page2.getByRole(role).filter({ hasText: new RegExp(`^\\s*\\d*\\s*${escapeRe(label)}\\s*[\u2197\u2192\u2190\u2715\xD7\u203A\xBB]*\\s*$`) });
   try {
-    await exact.first().waitFor({ state: "attached", timeout: Math.min(timeoutMs, 1500) });
-    return exact;
+    await exact.or(visible).first().waitFor({ state: "attached", timeout: timeoutMs });
   } catch {
-    return page2.getByRole(role).filter({ hasText: label });
+    return exact;
   }
+  return await exact.count() > 0 ? exact : visible;
 }
 async function pick(locator, nth, describe, timeoutMs) {
   if (nth === void 0) return single(locator, describe, timeoutMs);
@@ -35342,14 +35348,16 @@ function captureContextOptions() {
 async function prepareForFullPage(page2) {
   await page2.evaluate(async () => {
     const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-    for (let i = 0; i < 40; i++) {
+    const limit = document.documentElement.scrollHeight;
+    for (let i = 0; i < 40 && window.scrollY + window.innerHeight < limit; i++) {
       const before = window.scrollY;
-      window.scrollBy(0, window.innerHeight);
+      window.scrollTo({ top: Math.min(before + window.innerHeight, limit - window.innerHeight), behavior: "instant" });
       await pause(120);
       if (window.scrollY === before) break;
     }
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "instant" });
     await pause(300);
+  }).catch(() => {
   });
 }
 function staticPath(route) {
@@ -36281,9 +36289,9 @@ function toDocentPath(path) {
   if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) return void 0;
   return "/" + segs.join("/");
 }
-var escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+var escapeRe2 = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function findImport(source, name5) {
-  const n = escapeRe(name5);
+  const n = escapeRe2(name5);
   const def = new RegExp(`import\\s+${n}\\s*(?:,\\s*\\{[^}]*\\})?\\s*from\\s*['"]([^'"]+)['"]`).exec(source);
   if (def) return def[1];
   for (const m of source.matchAll(/import\s*(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g)) {
