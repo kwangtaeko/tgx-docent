@@ -60,3 +60,8 @@ test('screen-analyzer가 실전에서 걸린 경우를 안내한다', async () =
 test('SKILL은 화면 목록 확인 때 출력·인쇄 전용 화면 제외를 제안한다', async () => {
   assert.ok((await readFile('skills/docent/SKILL.md', 'utf8')).includes('인쇄·PDF 생성 전용'));
 });
+
+test('summary-writer가 소개형 사이트와 열리지 않는 화면을 안내한다', async () => {
+  const md = await readFile('skills/docent/agents/summary-writer.md', 'utf8');
+  for (const phrase of ['입력 양식이 없는', '지금 열리지 않는', '부모 화면의 메뉴', '그 밖의 화면']) assert.ok(md.includes(phrase), phrase);
+});
