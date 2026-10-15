@@ -7,8 +7,8 @@
   "plugins": [
     {
       "name": "docent",
-      "description": "소스 코드를 분석해 화면 목록·사용자 매뉴얼·소개 문서를 만드는 플러그인",
-      "version": "0.0.1",
+      "description": "소스 코드를 분석해 화면 목록·사용자 매뉴얼·소개 문서를 만드는 플러그인 (Generates screen lists, user manuals and project overviews from web app source code)",
+      "version": "1.0.0",
       "source": "./"
     }
   ]

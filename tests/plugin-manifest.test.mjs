@@ -75,3 +75,26 @@ test('run-guide가 packageManager 필드와 pnpm 프로덕션 실행을 안내�
   const md = await readFile('skills/docent/references/run-guide.md', 'utf8');
   for (const s of ['packageManager', 'pnpm install --frozen-lockfile', 'pnpm build && pnpm start', 'corepack']) assert.ok(md.includes(s), s);
 });
+
+test('세 매니페스트의 버전이 1.0.0으로 같다', async () => {
+  const plugin = JSON.parse(await readFile('.claude-plugin/plugin.json', 'utf8'));
+  const market = JSON.parse(await readFile('.claude-plugin/marketplace.json', 'utf8'));
+  const pkg = JSON.parse(await readFile('package.json', 'utf8'));
+  assert.equal(plugin.version, '1.0.0');
+  assert.equal(market.plugins[0].version, '1.0.0');
+  assert.equal(pkg.version, '1.0.0');
+});
+
+test('LICENSE가 MIT이고 plugin.json license와 같다', async () => {
+  const plugin = JSON.parse(await readFile('.claude-plugin/plugin.json', 'utf8'));
+  const license = await readFile('LICENSE', 'utf8');
+  assert.equal(plugin.license, 'MIT');
+  assert.match(license, /^MIT License/);
+  assert.match(license, /Copyright \(c\) 2026 kwangtaeko/);
+});
+
+test('CHANGELOG 맨 위 항목이 현재 버전', async () => {
+  const plugin = JSON.parse(await readFile('.claude-plugin/plugin.json', 'utf8'));
+  const changelog = await readFile('CHANGELOG.md', 'utf8');
+  assert.equal(/^## (\S+)/m.exec(changelog)?.[1], plugin.version);
+});
