@@ -54,5 +54,9 @@ test('SKILL은 감지기 네 가지를 안내한다', async () => {
 
 test('screen-analyzer가 실전에서 걸린 경우를 안내한다', async () => {
   const md = await readFile('skills/docent/agents/screen-analyzer.md', 'utf8');
-  for (const phrase of ['공통 레이아웃', 'aria-label', '데이터 파일', '$DOCENT validate <화면ID>', '기능 플래그', '참고로만']) assert.ok(md.includes(phrase), phrase);
+  for (const phrase of ['공통 레이아웃', 'aria-label', '데이터 파일', '$DOCENT validate <화면ID>', '기능 플래그', '참고로만', '읽기 전용 상세', '끼워 넣은']) assert.ok(md.includes(phrase), phrase);
+});
+
+test('SKILL은 화면 목록 확인 때 출력·인쇄 전용 화면 제외를 제안한다', async () => {
+  assert.ok((await readFile('skills/docent/SKILL.md', 'utf8')).includes('인쇄·PDF 생성 전용'));
 });
