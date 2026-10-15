@@ -154,3 +154,17 @@ test('HTML 메뉴 트리는 메뉴 근거(파일·줄) 순서를 따른다', asy
   assert.ok(order.every((x) => x > 0), String(order));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
+
+test('portfolio 카드의 캡처는 위쪽만 일정 비율로 보여 준다', async () => {
+  const input = await loadGolden();
+  input.options = { preset: 'portfolio' };
+  const css = renderSite(input).get('assets/style.css');
+  assert.match(css, /\.card img \{[^}]*aspect-ratio: 16 \/ 10;[^}]*object-fit: cover;[^}]*object-position: top/);
+});
+
+test('역할이 없으면 로그인 없이 사용한다고 쓴다', async () => {
+  const input = await loadGolden();
+  for (const s of input.screens.values()) s.roles = [];
+  const index = renderSite(input).get('index.html');
+  assert.match(index, /<h2>사용자 역할<\/h2>\n<ul><li>로그인 없이 사용합니다<\/li><\/ul>/);
+});

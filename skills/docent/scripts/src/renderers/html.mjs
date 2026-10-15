@@ -128,7 +128,7 @@ ${rows}
 export function introBody(input, { from = 'root', heading = true } = {}) {
   const { inventory, screens, summary } = input;
   const features = summary.features.map((f) => `<li><strong>${h(f.menu)}</strong> — ${h(f.value)}${screensNote(input, f.screens)}</li>`).join('\n');
-  const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('');
+  const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('') || '<li>로그인 없이 사용합니다</li>';
   const media = mediaOf(input);
   const limit = presetOf(input) === 'portfolio' ? 6 : 3;
   const prefix = from === 'screens' ? '../' : '';
@@ -367,7 +367,7 @@ figure img { max-width: 100%; border: 1px solid var(--line); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .card { border: 1px solid var(--line); padding: 0.75rem; }
 .card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
-.card img { width: 100%; border: 1px solid var(--line); }
+.card img { width: 100%; border: 1px solid var(--line); aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
 .no-shot { border: 1px dashed var(--line); color: var(--muted); padding: 2rem; text-align: center; }
 @media print {
   header.site nav, .crumb { display: none; }

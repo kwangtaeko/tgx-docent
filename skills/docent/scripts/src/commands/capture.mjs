@@ -10,6 +10,26 @@ import { loadRun } from './run.mjs';
 
 export const CAPTURE_VIEWPORT = { width: 1280, height: 800 };
 
+// 움직임 줄이기: 등장 애니메이션을 끄는 사이트가 많아 캡처에 내용이 다 찍힌다
+export function captureContextOptions() {
+  return { viewport: CAPTURE_VIEWPORT, reducedMotion: 'reduce' };
+}
+
+// 스크롤할 때 나타나는 내용(IntersectionObserver)을 띄운 뒤 맨 위로 돌아간다
+export async function prepareForFullPage(page) {
+  await page.evaluate(async () => {
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    for (let i = 0; i < 40; i++) {
+      const before = window.scrollY;
+      window.scrollBy(0, window.innerHeight);
+      await pause(120);
+      if (window.scrollY === before) break;
+    }
+    window.scrollTo(0, 0);
+    await pause(300);
+  });
+}
+
 // 라우트를 그대로 열 수 있으면 그 경로(route group·병렬 슬롯 제거), 동적이면 undefined
 export function staticPath(route) {
   if (!route || route.includes('[')) return undefined;
@@ -62,10 +82,10 @@ export async function runCapture(projectDir, ids) {
   const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
+    const context = await newContext(browser, projectDir, captureContextOptions());
     await maskContext(context, config.mask.selectors);
     // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
-    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
@@ -87,6 +107,7 @@ export async function runCapture(projectDir, ids) {
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
+        await prepareForFullPage(page);
         await page.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, 'capture');
         result.captured.push(screen.id);

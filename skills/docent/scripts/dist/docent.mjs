@@ -28935,7 +28935,7 @@ ${rows}
 function introBody(input, { from = "root", heading = true } = {}) {
   const { inventory, screens, summary } = input;
   const features = summary.features.map((f) => `<li><strong>${escapeHtml(f.menu)}</strong> \u2014 ${escapeHtml(f.value)}${screensNote(input, f.screens)}</li>`).join("\n");
-  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+  const roles = rolesOf(screens).map((r) => `<li>${escapeHtml(r)}</li>`).join("") || "<li>\uB85C\uADF8\uC778 \uC5C6\uC774 \uC0AC\uC6A9\uD569\uB2C8\uB2E4</li>";
   const media = mediaOf(input);
   const limit = presetOf(input) === "portfolio" ? 6 : 3;
   const prefix = from === "screens" ? "../" : "";
@@ -29143,7 +29143,7 @@ figure img { max-width: 100%; border: 1px solid var(--line); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .card { border: 1px solid var(--line); padding: 0.75rem; }
 .card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
-.card img { width: 100%; border: 1px solid var(--line); }
+.card img { width: 100%; border: 1px solid var(--line); aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
 .no-shot { border: 1px dashed var(--line); color: var(--muted); padding: 2rem; text-align: center; }
 @media print {
   header.site nav, .crumb { display: none; }
@@ -35336,6 +35336,22 @@ function usesEnvValue(steps) {
 
 // skills/docent/scripts/src/commands/capture.mjs
 var CAPTURE_VIEWPORT = { width: 1280, height: 800 };
+function captureContextOptions() {
+  return { viewport: CAPTURE_VIEWPORT, reducedMotion: "reduce" };
+}
+async function prepareForFullPage(page2) {
+  await page2.evaluate(async () => {
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    for (let i = 0; i < 40; i++) {
+      const before = window.scrollY;
+      window.scrollBy(0, window.innerHeight);
+      await pause(120);
+      if (window.scrollY === before) break;
+    }
+    window.scrollTo(0, 0);
+    await pause(300);
+  });
+}
 function staticPath(route) {
   if (!route || route.includes("[")) return void 0;
   const parts = route.split("/").filter((seg) => seg && !/^\(.*\)$/.test(seg) && !seg.startsWith("@"));
@@ -35382,9 +35398,9 @@ async function runCapture(projectDir, ids) {
   const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
+    const context = await newContext(browser, projectDir, captureContextOptions());
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
@@ -35407,6 +35423,7 @@ async function runCapture(projectDir, ids) {
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
+        await prepareForFullPage(page2);
         await page2.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, "capture");
         result.captured.push(screen.id);

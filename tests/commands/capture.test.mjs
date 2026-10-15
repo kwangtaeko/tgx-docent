@@ -113,3 +113,29 @@ test('로그인 화면은 로그인하지 않은 상태로 연다(로그인 사�
     await bouncing.close();
   }
 });
+
+test('전체 페이지 캡처 전에 스크롤해 나중에 나타나는 내용을 띄우고, 움직임 줄이기를 켠다', async () => {
+  const { prepareForFullPage, captureContextOptions } = await import('../../skills/docent/scripts/src/commands/capture.mjs');
+  const { browser } = await import('../helpers/browser.mjs');
+  const { page } = await import('../helpers/web.mjs');
+  const reveal = await startTestSite({
+    pages: {
+      '/r': page('긴 화면', `<div style="height:3000px"></div><p id="late" style="opacity:0">늦게</p>
+        <script>new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) e.target.style.opacity = '1'; })).observe(document.getElementById('late'));</script>`),
+    },
+  });
+  try {
+    const context = await (await browser()).newContext(captureContextOptions());
+    const p = await context.newPage();
+    await p.goto(`${reveal.url}/r`);
+    assert.equal(await p.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches), true);
+    await prepareForFullPage(p);
+    assert.equal(await p.evaluate(() => getComputedStyle(document.getElementById('late')).opacity), '1');
+    assert.equal(await p.evaluate(() => window.scrollY), 0);
+    await context.close();
+  } finally {
+    await reveal.close();
+    const { closeBrowser } = await import('../helpers/browser.mjs');
+    await closeBrowser();
+  }
+});
