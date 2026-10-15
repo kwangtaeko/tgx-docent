@@ -128,3 +128,12 @@ test('로그인 화면이 / 이면 / 를 벗어났을 때 성공', async () => {
     await root.close();
   }
 });
+
+test('캡처·녹화 컨텍스트는 클립보드 쓰기를 허용한다', async () => {
+  const dir = await siteProject(site.url, '');
+  const context = await newContext(await browser(), dir, { baseURL: site.url });
+  const p = await context.newPage();
+  await p.goto(`${site.url}/`);
+  assert.equal(await p.evaluate(() => navigator.clipboard.writeText('x').then(() => 'ok', (e) => String(e))), 'ok');
+  await context.close();
+});

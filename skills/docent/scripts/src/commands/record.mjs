@@ -7,7 +7,7 @@ import { launchBrowser } from '../lib/playwright.mjs';
 import { maskContext, runSteps, usesEnvValue } from '../lib/steps.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { encodeGif } from '../renderers/gif.mjs';
-import { newContext } from './auth.mjs';
+import { CONTEXT_PERMISSIONS, newContext } from './auth.mjs';
 import { isLoginPath, loadScenario, openScreen } from './capture.mjs';
 import { loadRun } from './run.mjs';
 import { gifTargets } from './scenarios.mjs';
@@ -74,7 +74,7 @@ export async function runRecord(projectDir, ids) {
   try {
     const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT });
+    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);

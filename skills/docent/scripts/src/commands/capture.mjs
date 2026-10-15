@@ -5,7 +5,7 @@ import { clearFailure, ensureMediaDirs, mediaPaths, recordFailure } from '../lib
 import { launchBrowser } from '../lib/playwright.mjs';
 import { maskContext, runSteps, usesEnvValue } from '../lib/steps.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
-import { newContext } from './auth.mjs';
+import { CONTEXT_PERMISSIONS, newContext } from './auth.mjs';
 import { loadRun } from './run.mjs';
 
 export const CAPTURE_VIEWPORT = { width: 1280, height: 800 };
@@ -65,7 +65,7 @@ export async function runCapture(projectDir, ids) {
     const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
     await maskContext(context, config.mask.selectors);
     // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
-    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT });
+    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);

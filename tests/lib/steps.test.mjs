@@ -143,3 +143,27 @@ test('fill·select·check는 nth로 몇 번째 항목인지 고른다', async ()
     await twin.close();
   }
 });
+
+test('보이는 글자와 접근성 이름이 달라도 보이는 글자로 누른다', async () => {
+  const s = await startTestSite({
+    pages: {
+      '/a': html('목차', `<a href="#c"><b>02</b>Company</a>
+        <button aria-label="가 프로젝트 상세 보기" onclick="document.getElementById('m').textContent='열림'">자세히 →</button>
+        <button aria-label="나 프로젝트 상세 보기">자세히 →</button><p id="m"></p>`),
+    },
+  });
+  try {
+    const p = await (await browser()).newPage();
+    await p.goto(`${s.url}/a`);
+    assert.deepEqual(await runSteps(p, [{ do: 'click', role: 'link', label: 'Company', evidence: ev }], { timeoutMs: 2000 }), { ok: true });
+    const two = await runSteps(p, [{ do: 'click', role: 'button', label: '자세히', evidence: ev }], { timeoutMs: 2000 });
+    assert.match(two.reason, /2개/);
+    assert.deepEqual(await runSteps(p, [
+      { do: 'click', role: 'button', label: '자세히', nth: 0, evidence: ev },
+      { do: 'expectText', text: '열림', evidence: ev },
+    ], { timeoutMs: 2000 }), { ok: true });
+    await p.close();
+  } finally {
+    await s.close();
+  }
+});

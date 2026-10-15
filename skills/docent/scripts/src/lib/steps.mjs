@@ -52,6 +52,17 @@ async function byLabel(page, label, timeoutMs) {
   return page.locator(`[data-docent-label="${mark}"]`);
 }
 
+// role+접근성 이름으로 찾고, 없으면 보이는 글자로 찾는다(<b>02</b>Company → "02Company", aria-label이 따로 있는 버튼)
+async function byRole(page, role, label, timeoutMs) {
+  const exact = page.getByRole(role, { name: label, exact: true });
+  try {
+    await exact.first().waitFor({ state: 'attached', timeout: Math.min(timeoutMs, 1500) });
+    return exact;
+  } catch {
+    return page.getByRole(role).filter({ hasText: label });
+  }
+}
+
 // nth가 있으면 그 번째 요소, 없으면 하나뿐인 요소
 async function pick(locator, nth, describe, timeoutMs) {
   if (nth === undefined) return single(locator, describe, timeoutMs);
@@ -81,8 +92,7 @@ async function runStep(page, step, env, timeoutMs) {
       return el.check({ timeout: timeoutMs });
     }
     case 'click': {
-      const all = page.getByRole(step.role, { name: step.label, exact: true });
-      return (await pick(all, step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
+      return (await pick(await byRole(page, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
     }
     case 'expectText':
       try {

@@ -65,3 +65,8 @@ test('summary-writer가 소개형 사이트와 열리지 않는 화면을 안내
   const md = await readFile('skills/docent/agents/summary-writer.md', 'utf8');
   for (const phrase of ['입력 양식이 없는', '지금 열리지 않는', '부모 화면의 메뉴', '그 밖의 화면']) assert.ok(md.includes(phrase), phrase);
 });
+
+test('scenario-writer가 보이는 글자 찾기와 열 수 없는 동적 화면을 안내한다', async () => {
+  const md = await readFile('skills/docent/agents/scenario-writer.md', 'utf8');
+  for (const phrase of ['보이는 글자', '열 수 있는 주소가 없는']) assert.ok(md.includes(phrase), phrase);
+});

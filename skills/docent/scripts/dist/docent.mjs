@@ -28622,9 +28622,10 @@ async function exists(path) {
     return false;
   }
 }
+var CONTEXT_PERMISSIONS = ["clipboard-read", "clipboard-write"];
 async function newContext(browser, projectDir, options = {}) {
   const state = statePath(projectDir);
-  return browser.newContext({ ...options, ...await exists(state) ? { storageState: state } : {} });
+  return browser.newContext({ permissions: CONTEXT_PERMISSIONS, ...options, ...await exists(state) ? { storageState: state } : {} });
 }
 var under = (path, base) => {
   const b = base.length > 1 ? base.replace(/\/+$/, "") : base;
@@ -35250,6 +35251,15 @@ async function byLabel(page2, label, timeoutMs) {
   );
   return page2.locator(`[data-docent-label="${mark}"]`);
 }
+async function byRole(page2, role, label, timeoutMs) {
+  const exact = page2.getByRole(role, { name: label, exact: true });
+  try {
+    await exact.first().waitFor({ state: "attached", timeout: Math.min(timeoutMs, 1500) });
+    return exact;
+  } catch {
+    return page2.getByRole(role).filter({ hasText: label });
+  }
+}
 async function pick(locator, nth, describe, timeoutMs) {
   if (nth === void 0) return single(locator, describe, timeoutMs);
   const el = locator.nth(nth);
@@ -35277,8 +35287,7 @@ async function runStep(page2, step, env, timeoutMs) {
       return el.check({ timeout: timeoutMs });
     }
     case "click": {
-      const all = page2.getByRole(step.role, { name: step.label, exact: true });
-      return (await pick(all, step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
+      return (await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
     }
     case "expectText":
       try {
@@ -35375,7 +35384,7 @@ async function runCapture(projectDir, ids) {
   try {
     const context = await newContext(browser, projectDir, { viewport: CAPTURE_VIEWPORT });
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT });
+    const anonymous = await browser.newContext({ viewport: CAPTURE_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
@@ -35642,7 +35651,7 @@ async function runRecord(projectDir, ids) {
   try {
     const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT });
+    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);

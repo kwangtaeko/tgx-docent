@@ -19,10 +19,13 @@ async function exists(path) {
   }
 }
 
+// 캡처·녹화 브라우저 권한: "주소 복사" 같은 버튼이 실제처럼 동작하도록 클립보드를 허용한다
+export const CONTEXT_PERMISSIONS = ['clipboard-read', 'clipboard-write'];
+
 // 저장된 로그인 상태가 있으면 그것으로 컨텍스트를 만든다
 export async function newContext(browser, projectDir, options = {}) {
   const state = statePath(projectDir);
-  return browser.newContext({ ...options, ...((await exists(state)) ? { storageState: state } : {}) });
+  return browser.newContext({ permissions: CONTEXT_PERMISSIONS, ...options, ...((await exists(state)) ? { storageState: state } : {}) });
 }
 
 const under = (path, base) => {
