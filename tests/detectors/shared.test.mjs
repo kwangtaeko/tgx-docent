@@ -42,3 +42,11 @@ test('폴더 import는 index.vue·index.svelte도 푼다', async () => {
   assert.equal(await resolveImport(dir, 'src/router.js', './views/user', []), 'src/views/user/index.vue');
   assert.equal(await resolveImport(dir, 'src/router.js', './lib/nav', []), 'src/lib/nav/index.svelte');
 });
+
+test('스타일·이미지 import는 화면 파일이 아니다', async () => {
+  const dir = await project({
+    'app/page.tsx': "import s from './page.module.css';\nimport './globals.scss';\nimport logo from './logo.svg';\nimport hero from './hero.png';\nimport Nav from './nav';\n",
+    'app/page.module.css': '', 'app/globals.scss': '', 'app/logo.svg': '', 'app/hero.png': '', 'app/nav.tsx': '',
+  });
+  assert.deepEqual(await screenFiles(dir, 'app/page.tsx', []), ['app/page.tsx', 'app/nav.tsx']);
+});

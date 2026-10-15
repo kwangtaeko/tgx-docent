@@ -46,6 +46,18 @@ export function followable(href, origin, matchers = []) {
   return path;
 }
 
+// 앱의 /sitemap.xml에 적힌 주소(없거나 읽지 못하면 빈 목록)
+async function sitemapLocations(origin) {
+  try {
+    const res = await fetch(`${origin}/sitemap.xml`, { signal: AbortSignal.timeout(5000), redirect: 'follow' });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, '&')).slice(0, 500);
+  } catch {
+    return [];
+  }
+}
+
 export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const run = await loadRun(projectDir);
   const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
@@ -61,6 +73,21 @@ export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}
     const seen = new Set(['/']);
     const queue = [{ path: normalizePath(new URL(run.baseUrl).pathname), depth: 0 }];
     seen.add(queue[0].path);
+    // 메뉴·링크가 없는 화면도 사이트맵에 있으면 찾는다. 사이트맵은 운영 도메인으로 적히므로 경로만 쓴다
+    for (const loc of await sitemapLocations(origin)) {
+      let local;
+      try {
+        const u = new URL(loc, origin);
+        local = new URL(u.pathname + u.search, origin).href;
+      } catch {
+        continue;
+      }
+      const next = followable(local, origin, routeRes);
+      if (next && !seen.has(next)) {
+        seen.add(next);
+        queue.push({ path: next, depth: 1 });
+      }
+    }
     while (queue.length && visited.length < maxPages) {
       const { path, depth } = queue.shift();
       try {

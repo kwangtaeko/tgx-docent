@@ -86,3 +86,29 @@ test('정적 HTML 파일 링크는 화면 후보가 아니다', async () => {
   assert.equal(followable('http://h/board/list.html', 'http://h', [routeMatcher('/board/list.html')]), '/board/list.html');
   assert.equal(followable('http://h/a', 'http://h'), '/a');
 });
+
+test('sitemap.xml에 적힌 주소의 경로도 시작점으로 쓴다(운영 도메인으로 적혀 있어도)', async () => {
+  const xml = () => '<?xml version="1.0"?><urlset><url><loc>https://prod.example/hidden-page</loc></url><url><loc>https://prod.example/files/a.pdf</loc></url></urlset>';
+  let base = '';
+  const mapped = await startTestSite({
+    pages: {
+      '/': page('홈'),
+      '/hidden-page': page('숨은 화면'),
+      '/sitemap.xml': (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/xml' });
+        res.end(xml(base));
+      },
+    },
+  });
+  base = mapped.url;
+  try {
+    const dir = await siteProject(mapped.url);
+    const entry = (id, route) => ({ id, route, kind: 'page', files: ['x.ts'], evidence: 'x.ts:1', source: 'agent' });
+    await writeJsonFile(join(dir, '.docent', 'inventory.json'), { version: 1, screens: [entry('home', '/'), entry('hidden', '/hidden-page')] });
+    const r = await runCrawl(dir);
+    assert.deepEqual([...r.visited].sort(), ['/', '/hidden-page']);
+    assert.deepEqual(r.unreached, []);
+  } finally {
+    await mapped.close();
+  }
+});

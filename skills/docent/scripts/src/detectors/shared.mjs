@@ -127,7 +127,10 @@ export async function resolveImport(projectDir, fromFile, spec, aliases) {
   return undefined;
 }
 
-// 화면 파일과 그 파일이 직접 import하는 프로젝트 내부 파일(1단계까지). (설계 문서 6장)
+// 스타일·이미지·글꼴은 화면 동작을 설명하지 않고, 바뀔 때마다 재분석만 부른다
+const ASSET = /\.(css|scss|sass|less|styl|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf)$/i;
+
+// 화면 파일과 그 파일이 직접 import하는 프로젝트 내부 파일(1단계까지, 스타일·이미지 제외). (설계 문서 6장)
 export async function screenFiles(projectDir, file, aliases) {
   const source = await readFile(join(projectDir, file), 'utf8');
   const specs = new Set();
@@ -137,7 +140,7 @@ export async function screenFiles(projectDir, file, aliases) {
   const imports = new Set();
   for (const spec of specs) {
     const resolved = await resolveImport(projectDir, file, spec, aliases);
-    if (resolved && resolved !== file) imports.add(resolved);
+    if (resolved && resolved !== file && !ASSET.test(resolved)) imports.add(resolved);
   }
   return [file, ...[...imports].sort()];
 }

@@ -35441,6 +35441,16 @@ function followable(href, origin, matchers = []) {
   if (/\.html?$/i.test(path) && !matchers.some((re) => re.test(path))) return void 0;
   return path;
 }
+async function sitemapLocations(origin) {
+  try {
+    const res = await fetch(`${origin}/sitemap.xml`, { signal: AbortSignal.timeout(5e3), redirect: "follow" });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, "&")).slice(0, 500);
+  } catch {
+    return [];
+  }
+}
 async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const run2 = await loadRun(projectDir);
   const inventory = await readJson(join14(docentDir(projectDir), "inventory.json"));
@@ -35455,6 +35465,20 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
     const seen = /* @__PURE__ */ new Set(["/"]);
     const queue = [{ path: normalizePath(new URL(run2.baseUrl).pathname), depth: 0 }];
     seen.add(queue[0].path);
+    for (const loc of await sitemapLocations(origin)) {
+      let local;
+      try {
+        const u = new URL(loc, origin);
+        local = new URL(u.pathname + u.search, origin).href;
+      } catch {
+        continue;
+      }
+      const next = followable(local, origin, routeRes);
+      if (next && !seen.has(next)) {
+        seen.add(next);
+        queue.push({ path: next, depth: 1 });
+      }
+    }
     while (queue.length && visited.length < maxPages) {
       const { path, depth } = queue.shift();
       try {
@@ -35800,6 +35824,7 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
   }
   return void 0;
 }
+var ASSET = /\.(css|scss|sass|less|styl|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf)$/i;
 async function screenFiles(projectDir, file, aliases) {
   const source = await readFile8(join17(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
@@ -35809,7 +35834,7 @@ async function screenFiles(projectDir, file, aliases) {
   const imports = /* @__PURE__ */ new Set();
   for (const spec of specs) {
     const resolved = await resolveImport(projectDir, file, spec, aliases);
-    if (resolved && resolved !== file) imports.add(resolved);
+    if (resolved && resolved !== file && !ASSET.test(resolved)) imports.add(resolved);
   }
   return [file, ...[...imports].sort()];
 }
