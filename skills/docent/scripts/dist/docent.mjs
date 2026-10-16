@@ -10690,9 +10690,9 @@ var require_utils = __commonJS({
       let output = "";
       for (let i = 0; i < input.length; i++) {
         if (input[i] === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            const normalizedHex = hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            const normalizedHex = hex2.toUpperCase();
             const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
             if (decodeUnreserved && isUnreserved(decoded)) {
               output += decoded;
@@ -10712,9 +10712,9 @@ var require_utils = __commonJS({
       for (let i = 0; i < input.length; i++) {
         const ch = input[i];
         if (ch === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            const normalizedHex = hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            const normalizedHex = hex2.toUpperCase();
             const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
             if (decoded !== "." && isUnreserved(decoded)) {
               output += decoded;
@@ -10754,9 +10754,9 @@ var require_utils = __commonJS({
       for (let i = 0; i < input.length; i++) {
         const ch = input[i];
         if (ch === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            output += "%" + hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            output += "%" + hex2.toUpperCase();
             i += 2;
             continue;
           }
@@ -10792,9 +10792,9 @@ var require_utils = __commonJS({
       for (let i = 0; i < input.length; i++) {
         const ch = input[i];
         if (ch === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            output += "%" + hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            output += "%" + hex2.toUpperCase();
             i += 2;
             continue;
           }
@@ -10839,9 +10839,9 @@ var require_utils = __commonJS({
       for (let i = 0; i < input.length; i++) {
         const ch = input[i];
         if (ch === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            const normalizedHex = hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            const normalizedHex = hex2.toUpperCase();
             const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
             if (isUnreserved(decoded)) {
               output += decoded;
@@ -10879,9 +10879,9 @@ var require_utils = __commonJS({
       let output = "";
       for (let i = 0; i < input.length; i++) {
         if (input[i] === "%" && i + 2 < input.length) {
-          const hex = input.slice(i + 1, i + 3);
-          if (isHexPair(hex)) {
-            output += "%" + hex.toUpperCase();
+          const hex2 = input.slice(i + 1, i + 3);
+          if (isHexPair(hex2)) {
+            output += "%" + hex2.toUpperCase();
             i += 2;
             continue;
           }
@@ -25180,12 +25180,12 @@ var require_ZipFileWorker = __commonJS({
     var crc32 = require_crc32();
     var signature = require_signature();
     var decToHex = function(dec, bytes) {
-      var hex = "", i;
+      var hex2 = "", i;
       for (i = 0; i < bytes; i++) {
-        hex += String.fromCharCode(dec & 255);
+        hex2 += String.fromCharCode(dec & 255);
         dec = dec >>> 8;
       }
-      return hex;
+      return hex2;
     };
     var generateUnixExternalFileAttr = function(unixPermissions, isDir2) {
       var result = unixPermissions;
@@ -29455,6 +29455,8 @@ async function renderDiagrams(browser, input, { assetsDir }) {
 
 // skills/docent/scripts/src/renderers/pdf.mjs
 import { pathToFileURL } from "node:url";
+var BAND_BG = "#f6f6fb";
+var band = (inner, justify) => `<style>#header,#footer{padding:0!important}</style><div style="-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;width:100%;height:18mm;margin:0;padding:0 15mm;display:flex;align-items:center;justify-content:${justify};background:${BAND_BG};font-size:8px;color:#6a6a76">${inner}</div>`;
 async function renderPdf(printHtmlPath, outPath, { title: title2, date, browser, waitMs = 2e4 } = {}) {
   const own = !browser;
   const b = browser ?? await launchBrowser();
@@ -29466,10 +29468,11 @@ async function renderPdf(printHtmlPath, outPath, { title: title2, date, browser,
       path: outPath,
       format: "A4",
       printBackground: true,
-      margin: { top: "18mm", bottom: "18mm", left: "15mm", right: "15mm" },
+      // 좌우 여백은 인쇄용 HTML의 안쪽 여백으로, 위아래 여백은 바탕색을 칠한 머리글·바닥글로 채워 쪽 전체가 같은 바탕이 되게 한다
+      margin: { top: "18mm", bottom: "18mm", left: "0", right: "0" },
       displayHeaderFooter: true,
-      headerTemplate: `<div style="font-size:8px;width:100%;text-align:right;padding-right:15mm;color:#59636e">${escapeHtml(title2 ?? "")}</div>`,
-      footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#59636e"><span class="pageNumber"></span> / <span class="totalPages"></span>${date ? ` \xB7 ${escapeHtml(date)}` : ""}</div>`
+      headerTemplate: band(`<span style="margin-left:auto">${escapeHtml(title2 ?? "")}</span>`, "flex-end"),
+      footerTemplate: band(`<span class="pageNumber"></span>&nbsp;/&nbsp;<span class="totalPages"></span>${date ? `&nbsp;\xB7&nbsp;${escapeHtml(date)}` : ""}`, "center")
     });
     await page2.close();
     return { diagramsReady };
@@ -30118,8 +30121,8 @@ function convertRotationDegrees(d) {
   return Math.round((d > 360 ? d - 360 : d) * 6e4);
 }
 function componentToHex(c) {
-  const hex = c.toString(16);
-  return hex.length === 1 ? "0" + hex : hex;
+  const hex2 = c.toString(16);
+  return hex2.length === 1 ? "0" + hex2 : hex2;
 }
 function rgbToHex(r, g, b) {
   return (componentToHex(r) + componentToHex(g) + componentToHex(b)).toUpperCase();
@@ -34819,6 +34822,47 @@ var COL_W = [0.8, 1.8, 3.4];
 var SHOT_BOX = { x: 0.5, y: 1.5, w: 6, h: 5.6 };
 var TYPE_LABELS2 = { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" };
 var low = (x) => x.confidence === "low" ? "[\uD655\uC778 \uD544\uC694] " : "";
+var BG_W = 1333;
+var BG_H = 750;
+var hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
+var BACKDROPS = {
+  // 본문: 옅은 회청색 + 위쪽 남색·분홍, 아래 하늘색 번짐
+  body: { base: ["F6F6FB"], glows: [[0.06, -0.14, 0.75, 0.75, "6366F1", 0.16], [0.97, -0.1, 0.62, 0.68, "EC4899", 0.1], [0.5, 1.15, 0.7, 0.6, "0EA5E9", 0.08]], dots: true },
+  // 표지: 남색→보라 대각 그라데이션 + 오른쪽 위 분홍, 왼쪽 아래 하늘색 번짐
+  cover: { base: ["312E81", "4F46E5", "7C3AED"], glows: [[1, 0, 0.6, 0.75, "EC4899", 0.55], [0, 1, 0.55, 0.7, "0EA5E9", 0.45]], dots: false }
+};
+var backdropCache = /* @__PURE__ */ new Map();
+function backdrop(kind) {
+  if (backdropCache.has(kind)) return backdropCache.get(kind);
+  const { base, glows, dots } = BACKDROPS[kind];
+  const stops = base.map(hex);
+  const png = new import_pngjs.PNG({ width: BG_W, height: BG_H });
+  for (let y = 0; y < BG_H; y++) {
+    for (let x = 0; x < BG_W; x++) {
+      let t = stops.length === 1 ? 0 : Math.min(1, Math.max(0, (x / BG_W + y / BG_H) / 2)) * (stops.length - 1);
+      const k = Math.min(stops.length - 2, Math.floor(t));
+      t -= Math.max(0, k);
+      let [r, g, b] = stops.length === 1 ? stops[0] : stops[k].map((v, i) => v + (stops[k + 1][i] - v) * t);
+      for (const [cx, cy, rx, ry, color, alpha] of glows) {
+        const d = Math.hypot((x / BG_W - cx) / rx, (y / BG_H - cy) / ry);
+        const a = alpha * Math.max(0, 1 - d / 0.65) ** 1.5;
+        if (a > 0) [r, g, b] = [r, g, b].map((v, i) => v + (hex(color)[i] - v) * a);
+      }
+      if (dots && x % 22 === 11 && y % 22 === 11) {
+        const a = 0.09 * Math.max(0, 1 - y / (BG_H * 0.8));
+        [r, g, b] = [r, g, b].map((v) => v + (15 - v) * a);
+      }
+      const o = (y * BG_W + x) * 4;
+      png.data[o] = r;
+      png.data[o + 1] = g;
+      png.data[o + 2] = b;
+      png.data[o + 3] = 255;
+    }
+  }
+  const uri = dataUri(import_pngjs.PNG.sync.write(png), "image/png");
+  backdropCache.set(kind, uri);
+  return uri;
+}
 function imageSize(buf) {
   if (buf.subarray(1, 4).toString("latin1") === "PNG") return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
   if (buf.subarray(0, 3).toString("latin1") === "GIF") return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
@@ -34923,20 +34967,19 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   if (options.organization) pptx.company = options.organization;
   pptx.defineSlideMaster({
     title: "DOCENT",
-    background: { color: "F6F6FB" },
+    background: { data: backdrop("body") },
     objects: [{ line: { x: 0.5, y: 7.05, w: W - 1, h: 0, line: { color: C.line, width: 0.75 } } }, { text: { text: input.projectName, options: { x: 0.5, y: 7.08, w: 6, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted } } }],
     slideNumber: { x: W - 1.2, y: 7.08, w: 0.7, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted, align: "right" }
   });
   const addSlide = () => pptx.addSlide({ masterName: "DOCENT" });
   const cover = pptx.addSlide();
-  cover.background = { color: C.ink };
-  cover.addShape("rect", { x: 0, y: 0, w: 0.22, h: 7.5, fill: { color: C.accent }, line: { color: C.accent } });
-  cover.addText(options.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: "roundRect", rectRadius: 0.2, fill: { color: C.accent }, align: "center", fontFace: FONT, fontSize: 13, bold: true, color: "FFFFFF", fit: "shrink" });
+  cover.background = { data: backdrop("cover") };
+  cover.addText(options.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: "roundRect", rectRadius: 0.2, fill: { color: "FFFFFF", transparency: 82 }, line: { color: "FFFFFF", transparency: 65, width: 0.75 }, align: "center", fontFace: FONT, fontSize: 13, bold: true, color: "FFFFFF", fit: "shrink" });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: "FFFFFF" });
   cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1, fontFace: FONT, fontSize: 16, color: C.onInk, valign: "top", fit: "shrink" });
   const stats = [[input.inventory.screens.length, "\uD654\uBA74"], [input.summary.workflows.length, "\uC6CC\uD06C\uD50C\uB85C\uC6B0"]];
   stats.forEach(([n, label], i) => {
-    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: "FFFFFF", breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5, w: 1.7, h: 1, shape: "roundRect", rectRadius: 0.12, fill: { color: "2E2A6B" }, line: { color: "4338CA", width: 0.75 }, fontFace: FONT, valign: "middle", margin: 10 });
+    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: "FFFFFF", breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5, w: 1.7, h: 1, shape: "roundRect", rectRadius: 0.12, fill: { color: "FFFFFF", transparency: 86 }, line: { color: "FFFFFF", transparency: 70, width: 0.75 }, fontFace: FONT, valign: "middle", margin: 10 });
   });
   cover.addText([options.organization, `\uAE30\uC900\uC77C ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
   splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
@@ -35017,7 +35060,9 @@ var PRINT_STYLE = `
 .screen, .part { break-before: page; }
 .cover { break-after: page; }
 header.site, footer.site, .crumb { display: none; }
-main { max-width: none; padding: 0 0.5rem; }
+/* PDF: \uC6F9\uACFC \uAC19\uC740 \uC605\uC740 \uBC14\uD0D5. \uC88C\uC6B0 \uC5EC\uBC31\uC740 0\uC73C\uB85C \uCC0D\uACE0 \uC548\uCABD \uC5EC\uBC31\uC73C\uB85C \uB300\uC2E0\uD55C\uB2E4(\uC704\uC544\uB798 \uC5EC\uBC31\uC740 \uBA38\uB9AC\uAE00\xB7\uBC14\uB2E5\uAE00\uC774 \uAC19\uC740 \uC0C9\uC73C\uB85C \uCE60\uD568) */
+main { max-width: none; padding: 0 15mm; }
+html, body { background: #f6f6fb; }
 `;
 function renderPrint(input) {
   const preset = presetOf(input);

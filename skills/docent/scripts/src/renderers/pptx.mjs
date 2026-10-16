@@ -24,6 +24,50 @@ const SHOT_BOX = { x: 0.5, y: 1.5, w: 6.0, h: 5.6 };
 const TYPE_LABELS = { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' };
 const low = (x) => (x.confidence === 'low' ? '[확인 필요] ' : '');
 
+// 슬라이드 배경 그림(HTML 산출물의 배경과 같은 느낌): 바탕색 위에 타원형 색 번짐을 겹치고, 본문 배경에는 아래로 흐려지는 점 격자를 찍는다
+const BG_W = 1333;
+const BG_H = 750;
+const hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
+const BACKDROPS = {
+  // 본문: 옅은 회청색 + 위쪽 남색·분홍, 아래 하늘색 번짐
+  body: { base: ['F6F6FB'], glows: [[0.06, -0.14, 0.75, 0.75, '6366F1', 0.16], [0.97, -0.1, 0.62, 0.68, 'EC4899', 0.1], [0.5, 1.15, 0.7, 0.6, '0EA5E9', 0.08]], dots: true },
+  // 표지: 남색→보라 대각 그라데이션 + 오른쪽 위 분홍, 왼쪽 아래 하늘색 번짐
+  cover: { base: ['312E81', '4F46E5', '7C3AED'], glows: [[1, 0, 0.6, 0.75, 'EC4899', 0.55], [0, 1, 0.55, 0.7, '0EA5E9', 0.45]], dots: false },
+};
+const backdropCache = new Map();
+export function backdrop(kind) {
+  if (backdropCache.has(kind)) return backdropCache.get(kind);
+  const { base, glows, dots } = BACKDROPS[kind];
+  const stops = base.map(hex);
+  const png = new PNG({ width: BG_W, height: BG_H });
+  for (let y = 0; y < BG_H; y++) {
+    for (let x = 0; x < BG_W; x++) {
+      // 바탕: 한 색이거나 135도 그라데이션
+      let t = stops.length === 1 ? 0 : Math.min(1, Math.max(0, (x / BG_W + y / BG_H) / 2)) * (stops.length - 1);
+      const k = Math.min(stops.length - 2, Math.floor(t));
+      t -= Math.max(0, k);
+      let [r, g, b] = stops.length === 1 ? stops[0] : stops[k].map((v, i) => v + (stops[k + 1][i] - v) * t);
+      for (const [cx, cy, rx, ry, color, alpha] of glows) {
+        const d = Math.hypot((x / BG_W - cx) / rx, (y / BG_H - cy) / ry);
+        const a = alpha * Math.max(0, 1 - d / 0.65) ** 1.5;
+        if (a > 0) [r, g, b] = [r, g, b].map((v, i) => v + (hex(color)[i] - v) * a);
+      }
+      if (dots && x % 22 === 11 && y % 22 === 11) {
+        const a = 0.09 * Math.max(0, 1 - y / (BG_H * 0.8));
+        [r, g, b] = [r, g, b].map((v) => v + (15 - v) * a);
+      }
+      const o = (y * BG_W + x) * 4;
+      png.data[o] = r;
+      png.data[o + 1] = g;
+      png.data[o + 2] = b;
+      png.data[o + 3] = 255;
+    }
+  }
+  const uri = dataUri(PNG.sync.write(png), 'image/png');
+  backdropCache.set(kind, uri);
+  return uri;
+}
+
 // PNG·GIF 머리에서 크기를 읽는다
 function imageSize(buf) {
   if (buf.subarray(1, 4).toString('latin1') === 'PNG') return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
@@ -149,21 +193,20 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   // 표지
   pptx.defineSlideMaster({
     title: 'DOCENT',
-    background: { color: 'F6F6FB' },
+    background: { data: backdrop('body') },
     objects: [{ line: { x: 0.5, y: 7.05, w: W - 1, h: 0, line: { color: C.line, width: 0.75 } } }, { text: { text: input.projectName, options: { x: 0.5, y: 7.08, w: 6, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted } } }],
     slideNumber: { x: W - 1.2, y: 7.08, w: 0.7, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted, align: 'right' },
   });
   const addSlide = () => pptx.addSlide({ masterName: 'DOCENT' });
 
   const cover = pptx.addSlide();
-  cover.background = { color: C.ink };
-  cover.addShape('rect', { x: 0, y: 0, w: 0.22, h: 7.5, fill: { color: C.accent }, line: { color: C.accent } });
-  cover.addText(options.title ?? '사용자 매뉴얼', { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: C.accent }, align: 'center', fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', fit: 'shrink' });
+  cover.background = { data: backdrop('cover') };
+  cover.addText(options.title ?? '사용자 매뉴얼', { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: 'FFFFFF', transparency: 82 }, line: { color: 'FFFFFF', transparency: 65, width: 0.75 }, align: 'center', fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', fit: 'shrink' });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: 'FFFFFF' });
   cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1.0, fontFace: FONT, fontSize: 16, color: C.onInk, valign: 'top', fit: 'shrink' });
   const stats = [[input.inventory.screens.length, '화면'], [input.summary.workflows.length, '워크플로우']];
   stats.forEach(([n, label], i) => {
-    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: 'FFFFFF', breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5.0, w: 1.7, h: 1.0, shape: 'roundRect', rectRadius: 0.12, fill: { color: '2E2A6B' }, line: { color: '4338CA', width: 0.75 }, fontFace: FONT, valign: 'middle', margin: 10 });
+    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: 'FFFFFF', breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5.0, w: 1.7, h: 1.0, shape: 'roundRect', rectRadius: 0.12, fill: { color: 'FFFFFF', transparency: 86 }, line: { color: 'FFFFFF', transparency: 70, width: 0.75 }, fontFace: FONT, valign: 'middle', margin: 10 });
   });
   cover.addText([options.organization, `기준일 ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
 

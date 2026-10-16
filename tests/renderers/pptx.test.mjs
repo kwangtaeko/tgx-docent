@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import JSZip from 'jszip';
 import { PNG } from 'pngjs';
-import { cropForSlide, renderPptx } from '../../skills/docent/scripts/src/renderers/pptx.mjs';
+import { backdrop, cropForSlide, renderPptx } from '../../skills/docent/scripts/src/renderers/pptx.mjs';
 import { loadGolden, loadLarge } from '../helpers/golden.mjs';
 
 async function slides(buf) {
@@ -118,12 +118,24 @@ test('세로로 긴 캡처는 위쪽만 잘라 넣는다', () => {
   assert.equal(cropForSlide(short, 6.0, 5.6), short);
 });
 
-test('HTML과 같은 색 토큰: 진한 표지·강조 막대·기능 카드·단계 칩', async () => {
+test('HTML과 같은 색 토큰: 그라데이션 표지·강조 막대·기능 카드·단계 칩', async () => {
   const input = await loadGolden();
   input.options = opts('handover');
   const all = await slides(await renderPptx(input, { mediaDir: await emptyMedia() }));
-  assert.match(all[0], /1E1B4B/, '표지 배경');
+  assert.match(all[0], /<p:bg><p:bgPr><a:blipFill/, '표지 배경 그림');
   assert.match(all[1], /4F46E5/, '제목 강조 막대');
   assert.ok((all[1].match(/prstGeom prst="roundRect"/g) ?? []).length >= input.summary.features.length, '기능마다 카드');
   assert.match(all[4], /EEF2FF/, '단계 칩');
+});
+
+test('배경 그림: 본문은 옅은 바탕, 표지는 진한 그라데이션', () => {
+  const px = (uri, x, y) => {
+    const png = PNG.sync.read(Buffer.from(uri.split(',')[1], 'base64'));
+    const o = (y * png.width + x) * 4;
+    return [png.data[o], png.data[o + 1], png.data[o + 2]];
+  };
+  const body = backdrop('body');
+  assert.ok(px(body, 660, 700).every((v) => v > 230), '본문 아래쪽은 밝다');
+  assert.ok(px(body, 30, 10)[2] > px(body, 30, 10)[0], '왼쪽 위는 남색 번짐');
+  assert.ok(px(backdrop('cover'), 600, 400)[0] < 120, '표지는 진하다');
 });

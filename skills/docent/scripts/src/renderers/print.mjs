@@ -6,7 +6,9 @@ const PRINT_STYLE = `
 .screen, .part { break-before: page; }
 .cover { break-after: page; }
 header.site, footer.site, .crumb { display: none; }
-main { max-width: none; padding: 0 0.5rem; }
+/* PDF: 웹과 같은 옅은 바탕. 좌우 여백은 0으로 찍고 안쪽 여백으로 대신한다(위아래 여백은 머리글·바닥글이 같은 색으로 칠함) */
+main { max-width: none; padding: 0 15mm; }
+html, body { background: #f6f6fb; }
 `;
 
 export function renderPrint(input) {

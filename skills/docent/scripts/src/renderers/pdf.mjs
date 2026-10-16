@@ -3,6 +3,10 @@ import { pathToFileURL } from 'node:url';
 import { launchBrowser } from '../lib/playwright.mjs';
 import { escapeHtml as h } from './escape.mjs';
 
+const BAND_BG = '#f6f6fb';
+const band = (inner, justify) =>
+  `<style>#header,#footer{padding:0!important}</style><div style="-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;width:100%;height:18mm;margin:0;padding:0 15mm;display:flex;align-items:center;justify-content:${justify};background:${BAND_BG};font-size:8px;color:#6a6a76">${inner}</div>`;
+
 // → { diagramsReady }: Mermaid 렌더가 끝나지 않았으면 false(PDF에 원문이 들어갔을 수 있음)
 export async function renderPdf(printHtmlPath, outPath, { title, date, browser, waitMs = 20000 } = {}) {
   const own = !browser;
@@ -18,10 +22,11 @@ export async function renderPdf(printHtmlPath, outPath, { title, date, browser, 
       path: outPath,
       format: 'A4',
       printBackground: true,
-      margin: { top: '18mm', bottom: '18mm', left: '15mm', right: '15mm' },
+      // 좌우 여백은 인쇄용 HTML의 안쪽 여백으로, 위아래 여백은 바탕색을 칠한 머리글·바닥글로 채워 쪽 전체가 같은 바탕이 되게 한다
+      margin: { top: '18mm', bottom: '18mm', left: '0', right: '0' },
       displayHeaderFooter: true,
-      headerTemplate: `<div style="font-size:8px;width:100%;text-align:right;padding-right:15mm;color:#59636e">${h(title ?? '')}</div>`,
-      footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#59636e"><span class="pageNumber"></span> / <span class="totalPages"></span>${date ? ` · ${h(date)}` : ''}</div>`,
+      headerTemplate: band(`<span style="margin-left:auto">${h(title ?? '')}</span>`, 'flex-end'),
+      footerTemplate: band(`<span class="pageNumber"></span>&nbsp;/&nbsp;<span class="totalPages"></span>${date ? `&nbsp;·&nbsp;${h(date)}` : ''}`, 'center'),
     });
     await page.close();
     return { diagramsReady };
