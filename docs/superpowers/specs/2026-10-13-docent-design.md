@@ -1,5 +1,7 @@
 # docent 설계 문서
 
+> 1.0 구현과 다른 곳은 코드·`skills/docent/SKILL.md`·`references/`가 우선합니다(이후 더한 것: `view` 화면, 데스크톱 앱은 소스만으로, 산출물은 `.docent/media/`·`.docent/out/`, 레포 구조는 `skills/docent/` 아래). 이 문서는 설계 당시 기록입니다.
+
 > 작성일: 2026-10-13 · 상태: 승인 대기
 > 이 문서는 `docs/PLAN.md`(초기 기획서)를 대체합니다. 두 문서가 다르면 이 문서를 따릅니다.
 > "(설계자 결정)"이 붙은 항목은 사용자가 정한 것이 아니라 설계 과정에서 기본값으로 정한 것이며, 근거를 함께 적었습니다.
@@ -122,7 +124,7 @@ flowchart LR
 
 **화면 ID 규칙** (설계자 결정): 라우트에서 결정적으로 만듭니다. `/order/[id]/edit` → `order-id-edit`, `/` → `home`. 하위 화면은 `<부모ID>--<이름>`(예: `order-new--customer-search`). 충돌 시 `-2`, `-3`을 붙입니다. 화면 코드 체계가 있는 프로젝트(예: `ORD1010`)는 `config.yaml`의 `screens.idMap`으로 덮어씁니다. ID는 한번 정해지면 라우트가 바뀌지 않는 한 유지되어야 합니다(증분 갱신·캡처·GIF 연결의 키).
 
-**inventory.json 항목**: `id`, `route`, `files`(화면 관련 파일 목록 — 페이지 파일과 그 파일이 직접 import하는 프로젝트 내부 파일, 1단계까지), `menuPath`(알 수 있을 때), `evidence`, `source`(`detector:<이름>` | `agent` | `crawl`), `kind`(`page` | `modal` | `popup`), `parentId`(하위 화면만).
+**inventory.json 항목**: `id`, `route`, `files`(화면 관련 파일 목록 — 페이지 파일과 그 파일이 직접 import하는 프로젝트 내부 파일, 1단계까지), `menuPath`(알 수 있을 때), `evidence`, `source`(`detector:<이름>` | `agent` | `crawl`), `kind`(`page` | `modal` | `popup` | `view`), `parentId`(하위 화면만).
 
 ## 7. 화면 분석 (analyze)
 

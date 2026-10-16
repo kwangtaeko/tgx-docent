@@ -10,7 +10,7 @@ docent is a Claude Code plugin that reads a web app's source code and writes a *
 | --- | --- |
 | ![Screen manual](docs/assets/demo-screen.png) | ![Order entry](docs/assets/demo.gif) |
 
-<sub>These examples come from the sample app in this repo (`fixtures/nextjs-sample`). Run `npm run demo` to rebuild them. The output is written in Korean for now.</sub>
+<sub>These examples come from the sample app in this repo (`fixtures/nextjs-sample`). Run `npm run demo` to rebuild them. The demo is in Korean; set `language: en` for English output.</sub>
 
 ## Install
 
@@ -25,7 +25,7 @@ Run `/docent` in your project. docent shows you the screen list and asks you to 
 
 - `.docent/out/html/index.html` — introduction, screen list, a manual page for each screen (screenshot and GIF), and workflows
 - `.docent/out/README.md` — an introduction for first-time readers
-- `.docent/out/UserManual.pdf`, `.pptx` — PDF and PPT (on request; `사용자매뉴얼.pdf` when the language is Korean)
+- `.docent/out/UserManual.pdf`, `.pptx` — PDF and PPT (on request; the file name is `output.title` without spaces, `사용자매뉴얼.pdf` by default in Korean)
 - `.docent/review.md` — items that need review (write your answer and run `/docent-analyze` again)
 
 Pick a preset for your audience:
@@ -45,6 +45,7 @@ When the code changes, `/docent-update` redoes only the screens that changed.
 | Next.js (App and Pages Router), React Router (v6, v7, `flatRoutes()`) and Remix v2, Vue Router and Nuxt, SvelteKit — including apps inside a monorepo | detector (script) | starts the app, or uses a URL you give |
 | Spring MVC (JSP, Thymeleaf), Django and Flask, PHP, other JS routers | agent exploration with per-stack hints (`skills/docent/references/stacks/`) | starts the app, or uses a URL you give |
 | ASP.NET WebForms | agent exploration with hints | URL only (needs IIS and Windows) |
+| Desktop apps (Electron, Tauri, including menu-switched screens) | agent exploration | not supported (source only) |
 
 The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). Records of running docent on real repositories (a personal site and a desktop-app monorepo) are in `docs/field-tests/`.
 

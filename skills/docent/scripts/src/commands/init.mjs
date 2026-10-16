@@ -13,7 +13,7 @@ const GITIGNORE_HEADER = '# docent: 로그인 세션·산출물·캡처(실데�
 
 function configYaml(detectors, app) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join('\n') : '  []';
-  return `# docent 설정 — 항목 설명은 docent 설계 문서를 참고하세요
+  return `# docent 설정 — 각 항목 설명은 아래 주석과 docent 스킬의 references/run-guide.md를 참고하세요
 language: ko  # 산출물 언어: ko 한국어 | en 영어 (화면 분석 전에 정합니다)
 ${app ? `# 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준)\napp: ${app}\n` : ''}# date: 2026-01-01  # 산출물에 찍을 날짜 (없으면 마지막 커밋 날짜)
 detectors:

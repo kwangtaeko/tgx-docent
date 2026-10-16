@@ -23,14 +23,14 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 | 명령 | 하는 일 |
 | --- | --- |
-| `$DOCENT init` | `.docent/config.yaml`, `.docent/.gitignore` 생성(있으면 유지), 프레임워크 감지 |
+| `$DOCENT init [--app <폴더>]` | `.docent/config.yaml`, `.docent/.gitignore` 생성(있으면 유지), 프레임워크 감지. `--app`은 모노레포에서 문서로 만들 앱 폴더 |
 | `$DOCENT inventory` | 감지기 결과 + `.docent/inventory.agent.json`을 합쳐 `.docent/inventory.json` 작성 |
 | `$DOCENT update` | 코드가 바뀐 뒤 계획: 새 화면, 삭제 후보, 다시 분석·시나리오·캡처할 화면 |
 | `$DOCENT pending` | 다시 분석할 화면 목록(분석 결과 없음·소스 변경·사용자가 답한 확인 항목) |
 | `$DOCENT hash <파일…>` | 화면 JSON의 `sourceHash` 값 계산 |
-| `$DOCENT validate` | 스키마·근거·연결·해시 검사 (문제 있으면 exit 1) |
+| `$DOCENT validate [화면ID…]` | 스키마·근거·연결·해시 검사 (문제 있으면 exit 1). 화면 ID를 주면 그 화면 문제만 |
 | `$DOCENT review` | 확인 필요 항목을 `.docent/review.md`로 정리(사용자 답 보존) |
-| `$DOCENT build` | `.docent/out/html/`(소개·화면 목록·화면별 매뉴얼·워크플로우)와 `.docent/out/README.md` 생성 |
+| `$DOCENT build [--preset delivery\|handover\|portfolio] [--format html,readme,pdf,pptx]` | `.docent/out/html/`(소개·화면 목록·화면별 매뉴얼·워크플로우)와 `.docent/out/README.md` 생성 |
 | `$DOCENT session start` / `end` | 분석 세션 표시(비밀 파일 차단 훅이 이때만 동작) |
 | `$DOCENT runtime status` / `install` | 캡처용 Playwright·Chromium 확인 / 설치(**사용자 동의 후**, `~/.cache/docent/runtime`) |
 | `$DOCENT run approve` | 사용자가 동의한 `run.json` 명령을 이 컴퓨터에서 승인(승인 전에는 실행하지 않음) |
@@ -92,9 +92,10 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
    - 받는 사람 → 프리셋: 고객사·발주처 납품 = `delivery`(표지·목차·개정 이력, 근거 주석 제거), 팀 내부 인수인계 = `handover`(근거 주석·소스 파일 목록 유지), 외부 공개·포트폴리오 = `portfolio`(소개·GIF 중심, 화면은 카드)
    - 형식: `html`, `readme`, `pdf`, `pptx` 중 여럿
    - 납품용이면 `output.title`·`output.organization`·`output.revisions`(버전·날짜·작성자·내용)도 묻습니다
+   - 색 테마(`output.theme`: indigo·blue·emerald·rose·slate, 기본 indigo)와 산출물에 보일 이름(`output.projectName`, 비우면 앱의 제품 이름·package.json name)을 원하면 `config.yaml`에 적습니다. 모노레포에서 루트 패키지 이름이 내부 이름이면 `projectName`을 권합니다
 2. `$DOCENT build --preset <프리셋> --format <형식,…>`
 3. 경고가 나오면 그대로 전합니다. 특히 납품용에서 "확인 필요 항목 N건"이 나오면 `.docent/review.md`를 먼저 처리하도록 권합니다. PDF가 건너뛰어졌으면(Playwright 없음) 설치 동의를 받아 `$DOCENT runtime install` 후 다시 build
-4. 결과 위치(`.docent/out/html/index.html`, `.docent/out/README.md`, `.docent/out/<제목>.pdf`, `.pptx`)를 알리고 `$DOCENT session end`
+4. 결과 위치(`.docent/out/html/index.html`, `.docent/out/README.md`, `.docent/out/<output.title에서 공백을 뺀 이름>.pdf`·`.pptx`, 기본 `사용자매뉴얼`, 영어면 `UserManual`)를 알리고 `$DOCENT session end`
 
 ## 갱신 (`/docent-update`)
 

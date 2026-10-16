@@ -37361,7 +37361,7 @@ var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid"
 var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4";
 function configYaml(detectors, app) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
-  return `# docent \uC124\uC815 \u2014 \uD56D\uBAA9 \uC124\uBA85\uC740 docent \uC124\uACC4 \uBB38\uC11C\uB97C \uCC38\uACE0\uD558\uC138\uC694
+  return `# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694
 language: ko  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)
 ${app ? `# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)
 app: ${app}

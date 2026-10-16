@@ -1,6 +1,6 @@
 # 중간 산출물 스키마
 
-docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.json`)과 화면별 분석 결과(`screens/<id>.json`)를 먼저 만든 뒤 렌더링합니다. 두 파일의 정식 정의는 `schemas/inventory.schema.json`, `schemas/screen.schema.json`(JSON Schema 2020-12)이며, 이 문서는 사람이 읽기 위한 설명입니다.
+docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.json`)과 화면별 분석 결과(`screens/<id>.json`)를 먼저 만든 뒤 렌더링합니다. 두 파일의 정식 정의는 `schemas/inventory.schema.json`, `schemas/screen.schema.json`(JSON Schema 2020-12)이며(그 밖에 `summary`·`scenario`·`run`·`inventory-agent` 스키마도 `schemas/`에 있음), 이 문서는 사람이 읽기 위한 설명입니다.
 
 ## 공통 규칙
 
@@ -39,6 +39,8 @@ docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.
 
 | 필드 | 내용 |
 | --- | --- |
+| `id`·`kind`·`route`·`parentId` | inventory 항목 값 그대로(`route`는 page가 아니면 null, `parentId`는 page가 아니면 필수) |
+| `sourceHash` | `$DOCENT hash <readFiles…>`가 출력한 값 |
 | `title` | 화면 이름 `{value, evidence}` |
 | `menuPath` | 메뉴 위치 `{value: [...], evidence}` (알 수 있을 때만) |
 | `purpose` | 화면 목적 `{value, evidence, confidence}` |
