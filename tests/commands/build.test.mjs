@@ -9,6 +9,11 @@ import { copyFixture, copyGoldenWorkspace, readJsonFile, writeJsonFile } from '.
 async function fakeAssets() {
   const dir = await mkdtemp(join(tmpdir(), 'docent-assets-'));
   await writeFile(join(dir, 'mermaid.min.js'), '/* mermaid */');
+  await writeFile(join(dir, 'zoom.min.js'), '/* zoom */');
+  const { mkdir } = await import('node:fs/promises');
+  await mkdir(join(dir, 'fonts'));
+  await writeFile(join(dir, 'fonts', 'PretendardVariable.woff2'), 'font');
+  await writeFile(join(dir, 'fonts', 'Pretendard-OFL.txt'), 'OFL');
   return dir;
 }
 
@@ -116,4 +121,16 @@ test('config의 output.title이 파일 이름이 된다', async () => {
   await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\ndetectors: [nextjs]\noutput:\n  title: "운영/관리 매뉴얼"\n');
   const r = await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['pptx'] });
   assert.ok(r.files.includes('운영_관리매뉴얼.pptx'), r.files.join(','));
+});
+
+test('산출물에 글꼴·라이선스·확대 스크립트를 함께 넣는다', async () => {
+  const { dir, docent } = await prepared();
+  const { files } = await runBuild(dir, { assetsDir: await fakeAssets() });
+  for (const f of ['html/assets/zoom.min.js', 'html/assets/fonts/PretendardVariable.woff2', 'html/assets/fonts/Pretendard-OFL.txt']) assert.ok(files.includes(f), f);
+  assert.equal(await readFile(join(docent, 'out', 'html', 'assets', 'fonts', 'Pretendard-OFL.txt'), 'utf8'), 'OFL');
+});
+
+test('실제 자산 폴더에 글꼴·라이선스·확대 스크립트가 있다', async () => {
+  const { stat } = await import('node:fs/promises');
+  for (const f of ['zoom.min.js', 'fonts/PretendardVariable.woff2', 'fonts/Pretendard-OFL.txt']) assert.ok((await stat(join('skills/docent/assets', f))).size > 0, f);
 });

@@ -17,7 +17,7 @@ test('파일 목록', async () => {
 
 test('화면별 매뉴얼', async () => {
   const html = renderSite(await loadGolden()).get('screens/orders-new.html');
-  for (const text of ['거래처', '납기일', '<mark>[확인 필요]</mark>', '<!-- evidence: app/orders/new/order-form.tsx:32 -->', 'href="orders.html"', 'href="orders-new--customer-search.html"']) {
+  for (const text of ['거래처', '납기일', '<mark class="flag">확인 필요</mark>', '<!-- evidence: app/orders/new/order-form.tsx:32 -->', 'href="orders.html"', 'href="orders-new--customer-search.html"']) {
     assert.ok(html.includes(text), text);
   }
 });
@@ -79,8 +79,8 @@ test('캡처와 GIF를 화면 페이지와 소개에 넣는다', async () => {
   input.media = { images: new Set(['orders-new', 'orders']), gifs: new Set(['orders-new', 'orders', 'login', 'home']) };
   const site = renderSite(input);
   const page = site.get('screens/orders-new.html');
-  assert.ok(page.includes('<img src="../media/img/orders-new.png" alt="주문 등록 화면">'));
-  assert.ok(page.includes('<img src="../media/gif/orders-new.gif" alt="주문 등록 조작 예시">'));
+  assert.ok(page.includes('<img src="../media/img/orders-new.png" alt="주문 등록 화면" data-zoomable>'));
+  assert.ok(page.includes('<img src="../media/gif/orders-new.gif" alt="주문 등록 조작 예시" data-zoomable>'));
   const index = site.get('index.html');
   assert.ok(!index.includes('화면 캡처 없이'));
   assert.equal((index.match(/media\/gif\//g) ?? []).length, 3);
@@ -98,7 +98,7 @@ test('delivery: 표지·목차·개정 이력, 근거 주석 제거', async () =
   const index = site.get('index.html');
   for (const t of ['class="cover"', 'class="toc"', 'id="revisions"', '초안', '샘플㈜', '사용자 매뉴얼']) assert.ok(index.includes(t), t);
   assert.ok(!/<!-- (evidence|screens):/.test(allText(site)));
-  assert.ok(allText(site).includes('<mark>[확인 필요]</mark>'));
+  assert.ok(allText(site).includes('<mark class="flag">확인 필요</mark>'));
 });
 
 test('delivery: 본문에 든 <!--는 지우지 않는다', async () => {
@@ -159,14 +159,14 @@ test('portfolio 카드의 캡처는 위쪽만 일정 비율로 보여 준다', a
   const input = await loadGolden();
   input.options = { preset: 'portfolio' };
   const css = renderSite(input).get('assets/style.css');
-  assert.match(css, /\.card img \{[^}]*aspect-ratio: 16 \/ 10;[^}]*object-fit: cover;[^}]*object-position: top/);
+  assert.match(css, /\.card \.frame img \{[^}]*aspect-ratio: 16 \/ 10;[^}]*object-fit: cover;[^}]*object-position: top/);
 });
 
 test('역할이 없으면 근거 없이 로그인 여부를 단정하지 않고 확인된 역할이 없다고 쓴다', async () => {
   const input = await loadGolden();
   for (const s of input.screens.values()) s.roles = [];
   const site = renderSite(input);
-  assert.match(site.get('index.html'), /<h2>사용자 역할<\/h2>\n<ul><li>확인된 역할 없음<\/li><\/ul>/);
+  assert.match(site.get('index.html'), /<h2>사용자 역할<\/h2>\n<ul class="chips"><li>확인된 역할 없음<\/li><\/ul>/);
   assert.ok(site.get('screens/orders.html').includes('확인된 역할 없음'));
   for (const html of site.values()) assert.ok(!html.includes('로그인 없이 사용'));
   const { renderReadme } = await import('../../skills/docent/scripts/src/renderers/readme.mjs');

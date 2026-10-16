@@ -9,7 +9,7 @@ const TYPE_LABELS = {
 };
 
 const NO_CAPTURE = '화면 캡처 없이 소스만으로 만들었습니다.';
-const flag = (item) => (item.confidence === 'low' ? '<mark>[확인 필요]</mark> ' : '');
+const flag = (item) => (item.confidence === 'low' ? '<mark class="flag">확인 필요</mark> ' : '');
 // Mermaid 예약어(end, class, style 등)와 겹치지 않게 접두어를 붙인다
 const nodeId = (id) => `s_${id.replace(/-/g, '_')}`;
 const mediaOf = (input) => input.media ?? { images: new Set(), gifs: new Set() };
@@ -26,7 +26,24 @@ export function screenHref(input, id, from = 'root') {
   return from === 'screens' ? `${id}.html` : `screens/${id}.html`;
 }
 
-function page({ title, body, root, projectName, date, scripts = '' }) {
+const NAV = [
+  ['index.html', '소개'],
+  ['screens.html', '화면 목록'],
+  ['workflows.html', '워크플로우'],
+];
+
+// 캡처를 누르면 크게 본다(medium-zoom, 산출물 assets에 함께 들어감)
+const zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
+<script>if (window.mediumZoom) mediumZoom('[data-zoomable]', { margin: 24, background: 'rgba(12, 12, 16, 0.86)' });</script>
+`;
+
+// 브라우저 창 모양의 틀. 주소 칸에 화면 경로를 보인다
+function frame(img, url = '') {
+  return `<figure class="frame"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${h(url)}</span>` : ''}</div>${img}</figure>`;
+}
+
+function page({ title, body, root, projectName, date, scripts = '', active = '' }) {
+  const nav = NAV.map(([file, label]) => `<a href="${root}${file}"${file === active ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -37,14 +54,16 @@ function page({ title, body, root, projectName, date, scripts = '' }) {
 </head>
 <body>
 <header class="site">
-  <a class="brand" href="${root}index.html">${h(projectName)}</a>
-  <nav><a href="${root}index.html">소개</a><a href="${root}screens.html">화면 목록</a><a href="${root}workflows.html">워크플로우</a></nav>
+  <div class="site-inner">
+    <a class="brand" href="${root}index.html"><span class="brand-mark" aria-hidden="true">${h([...projectName][0] ?? 'D')}</span>${h(projectName)}</a>
+    <nav>${nav}</nav>
+  </div>
 </header>
 <main>
 ${body}
 </main>
-<footer class="site">docent로 생성한 초안입니다 · 기준일 ${h(date)}</footer>
-${scripts}</body>
+<footer class="site"><div class="site-inner">docent로 생성한 초안입니다 · 기준일 ${h(date)}</div></footer>
+${scripts}${zoomScript(root)}</body>
 </html>
 `;
 }
@@ -127,8 +146,11 @@ ${rows}
 
 export function introBody(input, { from = 'root', heading = true } = {}) {
   const { inventory, screens, summary } = input;
-  const features = summary.features.map((f) => `<li><strong>${h(f.menu)}</strong> — ${h(f.value)}${screensNote(input, f.screens)}</li>`).join('\n');
-  const roles = rolesOf(screens).map((r) => `<li>${h(r)}</li>`).join('') || '<li>확인된 역할 없음</li>';
+  const features = summary.features
+    .map((f) => `<article class="feature"><h3>${h(f.menu)}</h3><p>${h(f.value)}${screensNote(input, f.screens)}</p></article>`)
+    .join('\n');
+  const roleList = rolesOf(screens);
+  const roles = roleList.map((r) => `<li>${h(r)}</li>`).join('') || '<li>확인된 역할 없음</li>';
   const media = mediaOf(input);
   const limit = presetOf(input) === 'portfolio' ? 6 : 3;
   const prefix = from === 'screens' ? '../' : '';
@@ -139,19 +161,30 @@ export function introBody(input, { from = 'root', heading = true } = {}) {
         .map((e) => {
           const title = h(screenTitle(screens, e.id));
           const src = input.printAnchors ? `${prefix}media/img/${h(e.id)}.png` : `${prefix}media/gif/${h(e.id)}.gif`;
-          return `<figure><img src="${src}" alt="${title} 조작 예시"><figcaption><a href="${screenHref(input, e.id, from)}">${title}</a></figcaption></figure>`;
+          return `<div class="preview-item">${frame(`<img src="${src}" alt="${title} 조작 예시" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title}</a></div>`;
         })
         .join('')}</div>`
     : '';
   const notice = media.images.size || media.gifs.size ? '' : `<p class="notice">${NO_CAPTURE}</p>\n`;
-  return `${heading ? `<h1>${h(input.projectName)}</h1>\n` : ''}${notice}<p class="lead">${h(summary.oneLiner.value)}${screensNote(input, summary.oneLiner.screens)}</p>
-<h2>주요 기능</h2>
-<ul>
+  const stats = [
+    [inventory.screens.length, '화면'],
+    [summary.workflows.length, '워크플로우'],
+    [roleList.length, '역할'],
+  ]
+    .map(([n, label]) => `<li><b>${n}</b><span>${label}</span></li>`)
+    .join('');
+  return `<section class="hero">
+<p class="eyebrow">${h(input.options?.title ?? '사용자 매뉴얼')}</p>
+${heading ? `<h1>${h(input.projectName)}</h1>\n` : ''}<p class="lead">${h(summary.oneLiner.value)}${screensNote(input, summary.oneLiner.screens)}</p>
+<ul class="stats">${stats}</ul>
+</section>
+${notice}<h2>주요 기능</h2>
+<div class="feature-grid">
 ${features}
-</ul>
+</div>
 ${preview}
 <h2>사용자 역할</h2>
-<ul>${roles}</ul>
+<ul class="chips">${roles}</ul>
 <h2>메뉴 구조</h2>
 ${menuTree(input, from)}`;
 }
@@ -160,7 +193,7 @@ function renderIndex(input) {
   const delivery = presetOf(input) === 'delivery';
   const body = `${delivery ? `${coverBody(input)}\n${tocBody(input)}\n` : ''}${introBody(input)}
 <p>전체 화면은 <a href="screens.html">화면 목록</a>, 업무 흐름은 <a href="workflows.html">워크플로우</a>에서 볼 수 있습니다.</p>${delivery ? `\n${revisionsBody(input)}` : ''}`;
-  return page({ ...input, title: '소개', body, root: '' });
+  return page({ ...input, title: '소개', body, root: '', active: 'index.html' });
 }
 
 export function listBody(input) {
@@ -174,13 +207,15 @@ export function listBody(input) {
     })
     .join('\n');
   return `<h1>화면 목록</h1>
-<p>전체 ${inventory.screens.length}개 화면</p>
+<p class="lead">전체 ${inventory.screens.length}개 화면</p>
+<div class="table-wrap">
 <table>
 <thead><tr><th>ID</th><th>화면</th><th>경로</th><th>메뉴</th><th>역할</th><th>목적</th></tr></thead>
 <tbody>
 ${rows}
 </tbody>
-</table>`;
+</table>
+</div>`;
 }
 
 // portfolio: 화면을 캡처·목적 카드로
@@ -191,18 +226,20 @@ export function cardsBody(input, { prefix = '' } = {}) {
     .map((entry) => {
       const s = screens.get(entry.id);
       const shot = media.images.has(entry.id)
-        ? `<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(s.title.value)} 화면">`
+        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(s.title.value)} 화면" data-zoomable>`, entry.route ?? '')
         : '<p class="no-shot">캡처 없음</p>';
-      const gif = media.gifs.has(entry.id) ? `<p><a href="${prefix}media/gif/${h(entry.id)}.gif">조작 예시 보기</a></p>` : '';
+      const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">조작 예시 보기</a>` : '';
       return `<article class="card" id="${h(entry.id)}">
-<h2>${h(s.title.value)}</h2>
 ${shot}
+<div class="card-body">
+<h2>${h(s.title.value)}</h2>
 <p>${flag(s.purpose)}${h(s.purpose.value)}</p>
-${gif}</article>`;
+${gif}</div>
+</article>`;
     })
     .join('\n');
   return `<h1>화면 목록</h1>
-<p>전체 ${inventory.screens.length}개 화면</p>
+<p class="lead">전체 ${inventory.screens.length}개 화면</p>
 <div class="cards">
 ${cards}
 </div>`;
@@ -210,17 +247,7 @@ ${cards}
 
 function renderList(input) {
   const body = presetOf(input) === 'portfolio' ? cardsBody(input) : listBody(input);
-  return page({ ...input, title: '화면 목록', body, root: '' });
-}
-
-function table(headers, rows) {
-  if (!rows.length) return '<p class="empty">없음</p>';
-  return `<table>
-<thead><tr>${headers.map((x) => `<th>${x}</th>`).join('')}</tr></thead>
-<tbody>
-${rows.join('\n')}
-</tbody>
-</table>`;
+  return page({ ...input, title: '화면 목록', body, root: '', active: 'screens.html' });
 }
 
 // 화면 상세 본문. from: 'screens'(screens/ 폴더의 페이지) | 'root'(인쇄용 단일 문서)
@@ -231,45 +258,63 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
   const link = (id) => `<a href="${from === 'root' && input.printAnchors ? `#screen-${h(id)}` : screenHref(input, id, from)}">${h(screenTitle(screens, id))}</a>`;
   const prefix = from === 'screens' ? '../' : '';
   const meta = [];
-  if (s.menuPath) meta.push(`<dt>메뉴 위치</dt><dd>${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}</dd>`);
-  meta.push(s.route ? `<dt>경로</dt><dd><code>${h(s.route)}</code></dd>` : `<dt>상위 화면</dt><dd>${link(s.parentId)}</dd>`);
-  meta.push(`<dt>목적</dt><dd>${flag(s.purpose)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</dd>`);
+  const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
+  if (s.menuPath) meta.push(item('메뉴 위치', `${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}`));
+  meta.push(s.route ? item('경로', `<code>${h(s.route)}</code>`) : item('상위 화면', link(s.parentId)));
   const evTight = evOf(input, '');
   const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : '확인된 역할 없음';
-  meta.push(`<dt>사용 역할</dt><dd>${roles}</dd>`);
+  meta.push(item('사용 역할', roles));
 
-  const sections = s.sections.length ? `<h2>구성</h2><ul>${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';
-  const fields = table(
-    ['항목', '형식', '필수'],
-    s.fields.map((f) => `<tr><td>${flag(f)}${h(f.label)}${ev(f.evidence)}</td><td>${h(TYPE_LABELS[f.type])}</td><td>${f.required ? '필수' : ''}</td></tr>`),
-  );
-  const actions = table(
-    ['버튼', '동작', '이어지는 화면'],
-    s.actions.map((a) => {
-      const next = [a.navigatesTo && `이동: ${link(a.navigatesTo)}`, a.opens && `열기: ${link(a.opens)}`].filter(Boolean).join(', ');
-      return `<tr><td>${h(a.label)}</td><td>${flag(a)}${h(a.effect)}${ev(a.evidence)}</td><td>${next}</td></tr>`;
-    }),
-  );
-  const messages = table(['메시지', '나오는 때'], s.messages.map((m) => `<tr><td>${h(m.text)}${ev(m.evidence)}</td><td>${h(m.when)}</td></tr>`));
+  const sections = s.sections.length ? `<h2>구성</h2><ul class="chips">${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';
+  const empty = '<p class="empty">없음</p>';
+  const fields = s.fields.length
+    ? `<ul class="fields">
+${s.fields
+  .map(
+    (f) =>
+      `<li><div class="field-head">${flag(f)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(TYPE_LABELS[f.type])}</span>${f.required ? '<span class="badge required">필수</span>' : ''}</div></li>`,
+  )
+  .join('\n')}
+</ul>`
+    : empty;
+  const actions = s.actions.length
+    ? `<ul class="fields actions">
+${s.actions
+  .map((a) => {
+    const next = [a.navigatesTo && `<span class="next">이동 → ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">열기 → ${link(a.opens)}</span>`]
+      .filter(Boolean)
+      .join('');
+    return `<li><div class="field-head"><span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
+  })
+  .join('\n')}
+</ul>`
+    : empty;
+  const messages = s.messages.length
+    ? s.messages
+        .map((m) => `<aside class="callout note"><p class="callout-title">${h(m.text)}${ev(m.evidence)}</p><p>${h(m.when)}</p></aside>`)
+        .join('\n')
+    : empty;
   const children = inventory.screens.filter((x) => x.parentId === s.id);
-  const childList = children.length ? `<h2>하위 화면</h2><ul>${children.map((c) => `<li>${link(c.id)}</li>`).join('')}</ul>` : '';
+  const childList = children.length ? `<h2>하위 화면</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join('')}</ul>` : '';
   const unknowns = s.unknowns.length
-    ? `<h2>확인 필요</h2><ul class="unknowns">${s.unknowns.map((u) => `<li><mark>[확인 필요]</mark> ${h(u)}</li>`).join('')}</ul>`
+    ? `<h2>확인 필요</h2>
+<aside class="callout caution"><p class="callout-title">소스만으로 확정하지 못한 내용입니다</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${h(u)}</li>`).join('')}</ul></aside>`
     : '';
   const sources =
-    presetOf(input) === 'handover' ? `<h2>소스 파일</h2><ul>${entry.files.map((f) => `<li><code>${h(f)}</code></li>`).join('')}</ul>` : '';
+    presetOf(input) === 'handover' ? `<h2>소스 파일</h2><ul class="sources">${entry.files.map((f) => `<li><code>${h(f)}</code></li>`).join('')}</ul>` : '';
 
   const media = mediaOf(input);
   const shot = media.images.has(s.id)
-    ? `<figure class="shot"><img src="${prefix}media/img/${h(s.id)}.png" alt="${h(s.title.value)} 화면"></figure>\n`
+    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(s.title.value)} 화면" data-zoomable>`, s.route ?? '')}\n`
     : input.printAnchors
       ? '<p class="no-shot">캡처 없음</p>\n'
       : '';
   const gif =
     media.gifs.has(s.id) && !input.printAnchors
-      ? `<h2>조작 예시</h2>\n<figure><img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(s.title.value)} 조작 예시"></figure>\n`
+      ? `<h2>조작 예시</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(s.title.value)} 조작 예시" data-zoomable>`, s.route ?? '')}\n`
       : '';
   return `<${headingTag}>${h(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
+<p class="lead">${flag(s.purpose)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>
 ${shot}
 <dl class="meta">
 ${meta.join('\n')}
@@ -289,7 +334,7 @@ ${sources}`;
 function renderScreen(input, entry) {
   const body = `<p class="crumb"><a href="../screens.html">화면 목록</a> › <code>${h(entry.id)}</code></p>
 ${screenBody(input, entry)}`;
-  return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: '../' });
+  return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: '../', active: 'screens.html' });
 }
 
 // 워크플로우 하나의 Mermaid 정의. 라벨만 이스케이프하고 화살표는 그대로 둔다(mermaid는 textContent를 읽음)
@@ -309,6 +354,14 @@ export function workflowMermaid(input, wf, { forHtml = true } = {}) {
   return ['flowchart LR', ...nodes, ...edges].join('\n');
 }
 
+// 워크플로우 다이어그램 색을 산출물 색에 맞춘다(다크 모드면 어두운 색)
+export const MERMAID_INIT = `(() => {
+  const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  return { startOnLoad: true, theme: 'base', themeVariables: dark
+    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#1e1b4b', primaryTextColor: '#e0e7ff', primaryBorderColor: '#6366f1', lineColor: '#8b8b98', background: '#0e0e11' }
+    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#eef2ff', primaryTextColor: '#1e1b4b', primaryBorderColor: '#818cf8', lineColor: '#9a9aa6', background: '#ffffff' } };
+})()`;
+
 export function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
   const blocks = summary.workflows
@@ -320,7 +373,7 @@ export function workflowsBody(input, { linkToScreen = (id) => screenHref(input, 
 <pre class="mermaid">
 ${workflowMermaid(input, wf)}
 </pre>
-<ol>${steps}</ol>
+<ol class="steps">${steps}</ol>
 </section>`;
     })
     .join('\n');
@@ -330,51 +383,197 @@ ${blocks}`;
 }
 
 function renderWorkflows(input) {
-  const scripts = '<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n';
-  return page({ ...input, title: '워크플로우', body: workflowsBody(input), root: '', scripts });
+  const scripts = `<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize(${MERMAID_INIT});</script>\n`;
+  return page({ ...input, title: '워크플로우', body: workflowsBody(input), root: '', scripts, active: 'workflows.html' });
 }
 
-const STYLE = `:root { --fg: #1f2328; --muted: #59636e; --line: #d1d9e0; --bg: #ffffff; --accent: #0969da; --mark: #fff8c5; }
+const STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/PretendardVariable.woff2") format("woff2-variations");
+}
+:root {
+  --bg: #ffffff; --bg-soft: #f6f6f8; --card: #ffffff;
+  --fg: #17171c; --muted: #6a6a76; --faint: #9a9aa6;
+  --line: rgba(15, 15, 30, 0.08); --line-strong: rgba(15, 15, 30, 0.14);
+  --accent: #4f46e5; --accent-soft: rgba(79, 70, 229, 0.08); --accent-fg: #ffffff;
+  --note: #2563eb; --note-bg: rgba(37, 99, 235, 0.06); --note-line: rgba(37, 99, 235, 0.22);
+  --caution: #b45309; --caution-bg: rgba(245, 158, 11, 0.1); --caution-line: rgba(217, 119, 6, 0.3);
+  --success: #15803d;
+  --radius: 14px; --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(15, 15, 30, 0.04), 0 4px 14px rgba(15, 15, 30, 0.06);
+  --shadow-lg: 0 2px 6px rgba(15, 15, 30, 0.05), 0 24px 48px -16px rgba(15, 15, 30, 0.22);
+  --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --content: 1080px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d10; --bg-soft: #141418; --card: #16161b;
+    --fg: #ececf1; --muted: #a2a2ae; --faint: #6f6f7b;
+    --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+    --accent: #8b8cf8; --accent-soft: rgba(139, 140, 248, 0.12); --accent-fg: #0d0d10;
+    --note: #7aa7ff; --note-bg: rgba(96, 140, 255, 0.1); --note-line: rgba(96, 140, 255, 0.28);
+    --caution: #f5b544; --caution-bg: rgba(245, 158, 11, 0.12); --caution-line: rgba(245, 158, 11, 0.32);
+    --success: #4ade80;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.7);
+    color-scheme: dark;
+  }
+}
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: var(--fg); background: var(--bg); line-height: 1.6; }
-header.site, footer.site { display: flex; gap: 1.5rem; align-items: center; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--line); }
-footer.site { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
-header.site nav { display: flex; gap: 1rem; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; font-family: var(--font); font-size: 16px; line-height: 1.7; letter-spacing: -0.01em;
+  color: var(--fg); background: var(--bg); word-break: keep-all; overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
 a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-.brand { font-weight: 700; color: var(--fg); }
-main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
-.lead { font-size: 1.15rem; }
-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1.5rem; }
-th, td { border: 1px solid var(--line); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
-th { background: #f6f8fa; }
-dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; }
-dl.meta dt { color: var(--muted); }
-dl.meta dd { margin: 0; }
-mark { background: var(--mark); padding: 0 0.2rem; }
-.crumb { color: var(--muted); font-size: 0.9rem; }
-.empty { color: var(--muted); }
-pre.mermaid { background: #f6f8fa; padding: 1rem; overflow-x: auto; }
-figure { margin: 1rem 0; }
-figure img { max-width: 100%; border: 1px solid var(--line); }
-.preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-.notice { background: #f6f8fa; border-left: 4px solid var(--line); padding: 0.5rem 0.75rem; color: var(--muted); }
-.cover { padding: 4rem 0 3rem; border-bottom: 2px solid var(--fg); margin-bottom: 2rem; }
-.cover h1 { font-size: 2.2rem; margin: 0 0 0.5rem; }
-.cover .doc-title { font-size: 1.4rem; margin: 0 0 2rem; }
-.cover dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; color: var(--muted); }
-.toc ol { padding-left: 1.2rem; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-.card { border: 1px solid var(--line); padding: 0.75rem; }
-.card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
-.card img { width: 100%; border: 1px solid var(--line); aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
-.no-shot { border: 1px dashed var(--line); color: var(--muted); padding: 2rem; text-align: center; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 6px; padding: 0.08em 0.4em; }
+h1, h2, h3 { line-height: 1.3; letter-spacing: -0.025em; }
+h1 { font-size: clamp(1.9rem, 3.4vw, 2.6rem); font-weight: 800; margin: 0.6rem 0 0.6rem; }
+h2 { font-size: 1.3rem; font-weight: 700; margin: 2.6rem 0 0.9rem; }
+h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.35rem; }
+.lead { font-size: 1.12rem; color: var(--muted); margin: 0 0 1.4rem; max-width: 46rem; }
+
+/* 머리말·꼬리말 */
+header.site { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--line); }
+.site-inner { max-width: var(--content); margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
+header.site .site-inner { height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; }
+.brand:hover { text-decoration: none; }
+.brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #a855f7); color: #fff; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
+header.site nav { display: flex; gap: 0.25rem; margin-left: auto; }
+header.site nav a { color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.92rem; font-weight: 500; }
+header.site nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
+header.site nav a[aria-current="page"] { color: var(--fg); background: var(--bg-soft); box-shadow: inset 0 0 0 1px var(--line); }
+footer.site { margin-top: 5rem; border-top: 1px solid var(--line); color: var(--faint); font-size: 0.85rem; }
+footer.site .site-inner { padding-top: 1.6rem; padding-bottom: 2.4rem; }
+main { max-width: var(--content); margin: 0 auto; padding: 2.2rem 1.5rem 0; }
+
+/* 소개 */
+.hero { position: relative; padding: 3.2rem 2.4rem 2.4rem; margin: 0 0 1rem; border-radius: 22px; border: 1px solid var(--line); background:
+  radial-gradient(900px 340px at 0% 0%, var(--accent-soft), transparent 60%),
+  radial-gradient(700px 300px at 100% 0%, rgba(168, 85, 247, 0.08), transparent 60%), var(--bg-soft); overflow: hidden; }
+.hero h1 { font-size: clamp(2.2rem, 4.6vw, 3.4rem); margin: 0.3rem 0 0.8rem; }
+.hero .lead { font-size: 1.2rem; color: var(--fg); opacity: 0.8; }
+.eyebrow { display: inline-block; margin: 0; padding: 0.2rem 0.7rem; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--accent); font-size: 0.8rem; font-weight: 600; letter-spacing: 0; }
+.stats { list-style: none; display: flex; flex-wrap: wrap; gap: 0.8rem; padding: 0; margin: 1.6rem 0 0; }
+.stats li { min-width: 120px; padding: 0.8rem 1.1rem; border-radius: 12px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.stats b { display: block; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+.stats span { color: var(--muted); font-size: 0.85rem; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.9rem; }
+.feature { padding: 1.1rem 1.2rem; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .18s ease, box-shadow .18s ease; }
+.feature:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.feature h3::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; vertical-align: 0.12em; background: var(--accent); }
+.feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0 0 1rem; }
+.chips li { padding: 0.25rem 0.8rem; border-radius: 999px; background: var(--bg-soft); border: 1px solid var(--line); font-size: 0.9rem; }
+.notice { padding: 0.8rem 1rem; border-radius: var(--radius-sm); background: var(--bg-soft); border: 1px dashed var(--line-strong); color: var(--muted); }
+.preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+.preview-title { display: inline-block; margin-top: 0.55rem; font-weight: 600; }
+main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
+
+/* 브라우저 틀 */
+.frame { margin: 1rem 0 1.4rem; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line-strong); background: var(--card); box-shadow: var(--shadow-lg); }
+.frame-bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; background: var(--bg-soft); border-bottom: 1px solid var(--line); }
+.frame-bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+.frame-bar i:nth-child(2) { background: #febc2e; }
+.frame-bar i:nth-child(3) { background: #28c840; }
+.frame-url { margin: 0 auto; min-width: 40%; max-width: 70%; padding: 2px 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted); font: 12px/18px var(--mono); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.medium-zoom-overlay, .medium-zoom-image--opened { z-index: 999; }
+
+/* 화면 목록 */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--card); }
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--bg-soft); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+.card { display: flex; flex-direction: column; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); overflow: hidden; transition: transform .18s ease, box-shadow .18s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.card .frame { margin: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+.card .frame img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+.card-body { padding: 1rem 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+.card h2 { font-size: 1.08rem; margin: 0; }
+.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.card .button { margin-top: auto; align-self: flex-start; }
+.button { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.85rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.85rem; font-weight: 600; }
+.button:hover { text-decoration: none; filter: brightness(1.05); }
+.no-shot { margin: 0; padding: 2.4rem 1rem; text-align: center; color: var(--faint); background: repeating-linear-gradient(135deg, var(--bg-soft) 0 10px, transparent 10px 20px); border-bottom: 1px solid var(--line); }
+
+/* 화면별 매뉴얼 */
+.crumb { color: var(--muted); font-size: 0.88rem; margin: 0; }
+dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.7rem; margin: 0 0 0.5rem; }
+.meta-item { padding: 0.75rem 1rem; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); }
+.meta-item dt { color: var(--muted); font-size: 0.78rem; font-weight: 600; }
+.meta-item dd { margin: 0.1rem 0 0; }
+.fields { list-style: none; padding: 0; margin: 0 0 0.5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.fields > li { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--line); }
+.fields > li:last-child { border-bottom: 0; }
+.field-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+.field-name { font-weight: 650; }
+.field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
+.badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-size: 0.74rem; font-weight: 500; line-height: 1; white-space: nowrap; }
+.badge.required { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: var(--accent-soft); }
+.next { font-size: 0.85rem; color: var(--muted); margin-left: auto; }
+mark.flag { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; background: var(--caution-bg); color: var(--caution); border: 1px solid var(--caution-line); font-size: 0.74rem; font-weight: 600; line-height: 1; vertical-align: 0.1em; }
+.callout { margin: 0 0 0.6rem; padding: 0.8rem 1rem 0.8rem 2.6rem; border-radius: 12px; position: relative; border: 1px solid; }
+.callout::before { position: absolute; left: 1rem; top: 0.82rem; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 0.72rem; font-weight: 800; color: #fff; }
+.callout p { margin: 0; }
+.callout .callout-title { font-weight: 650; margin-bottom: 0.15rem; }
+.callout.note { background: var(--note-bg); border-color: var(--note-line); }
+.callout.note::before { content: "i"; background: var(--note); }
+.callout.note p:not(.callout-title) { color: var(--muted); font-size: 0.92rem; }
+.callout.caution { background: var(--caution-bg); border-color: var(--caution-line); }
+.callout.caution::before { content: "!"; background: var(--caution); }
+.callout.caution ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+.empty { color: var(--faint); margin: 0; }
+.sources { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* 워크플로우 */
+section.workflow { margin: 1.4rem 0; padding: 1.4rem 1.5rem; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+section.workflow h2 { margin-top: 0; }
+pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); overflow-x: auto; text-align: center; }
+.steps { list-style: none; counter-reset: step; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; padding: 0; margin: 0; }
+.steps li { counter-increment: step; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem 0.25rem 0.3rem; border-radius: 999px; background: var(--bg-soft); border: 1px solid var(--line); font-size: 0.9rem; }
+.steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-size: 0.72rem; font-weight: 700; }
+.steps li + li { margin-left: 1.1rem; position: relative; }
+.steps li + li::after { content: "→"; position: absolute; left: -1.2rem; color: var(--faint); }
+
+/* 납품용 표지·목차 */
+.cover { padding: 5rem 2.6rem 3rem; margin-bottom: 2.4rem; border-radius: 22px; color: #fff; background: radial-gradient(800px 400px at 100% 0%, rgba(168, 85, 247, 0.55), transparent 60%), linear-gradient(135deg, #312e81, #4f46e5 55%, #6d28d9); }
+.cover h1 { font-size: 2.8rem; margin: 0 0 0.4rem; color: #fff; }
+.cover .doc-title { font-size: 1.35rem; margin: 0 0 3rem; opacity: 0.85; }
+.cover dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.2rem; margin: 0; opacity: 0.9; }
+.cover dd { margin: 0; }
+.toc { padding: 1.4rem 1.6rem; border-radius: var(--radius); background: var(--bg-soft); border: 1px solid var(--line); }
+.toc h2 { margin-top: 0; }
+.toc ol { padding-left: 1.2rem; margin: 0; }
+
+@media (max-width: 640px) {
+  .site-inner { padding: 0 1rem; gap: 0.8rem; }
+  header.site nav a { padding: 0.3rem 0.5rem; font-size: 0.85rem; }
+  main { padding: 1.4rem 1rem 0; }
+  .hero { padding: 2rem 1.2rem 1.6rem; }
+}
 @media print {
-  header.site nav, .crumb { display: none; }
+  :root { color-scheme: light; --bg: #fff; --bg-soft: #f6f6f8; --card: #fff; --fg: #17171c; --muted: #555561; --line: #e3e3e8; --line-strong: #d0d0d8; --shadow: none; --shadow-lg: none; }
+  header.site, .crumb, footer.site { display: none; }
   main { max-width: none; padding: 0; }
   a { color: var(--fg); }
   h1, h2 { break-after: avoid; }
-  table, section.workflow { break-inside: avoid; }
+  .fields > li, .callout, section.workflow, .frame, .feature, .card, .preview-item, .meta-item, tr { break-inside: avoid; }
+  .preview .frame img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+  .feature:hover, .card:hover { transform: none; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 `;
 

@@ -25,4 +25,5 @@ await build({
 
 await mkdir('skills/docent/assets', { recursive: true });
 await copyFile('node_modules/mermaid/dist/mermaid.min.js', 'skills/docent/assets/mermaid.min.js');
-console.log('번들 완료: skills/docent/scripts/dist/docent.mjs, skills/docent/assets/mermaid.min.js');
+await copyFile('node_modules/medium-zoom/dist/medium-zoom.min.js', 'skills/docent/assets/zoom.min.js');
+console.log('번들 완료: skills/docent/scripts/dist/docent.mjs, skills/docent/assets/{mermaid,zoom}.min.js');

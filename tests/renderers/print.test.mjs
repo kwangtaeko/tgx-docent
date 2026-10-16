@@ -48,3 +48,16 @@ test('인쇄용 소개의 미리보기는 GIF 대신 캡처 PNG', async () => {
   assert.ok(html.includes('media/img/orders.png'));
   assert.ok(!html.includes('.gif'));
 });
+
+test('인쇄용 HTML의 글꼴 경로는 assets/fonts를 가리킨다', async () => {
+  const html = renderPrint(await loadGolden());
+  assert.ok(html.includes('url("assets/fonts/PretendardVariable.woff2")'));
+  assert.ok(!html.includes('url("fonts/'));
+});
+
+test('인쇄용 HTML은 미리보기 캡션을 이미지와 같은 쪽에 두고 다이어그램에 산출물 테마를 쓴다', async () => {
+  const html = renderPrint(await loadGolden());
+  assert.match(html, /\.preview-item[^{]*\{ break-inside: avoid; \}/);
+  assert.ok(html.includes("theme: 'base'"));
+  assert.ok(html.includes('startOnLoad: false'));
+});

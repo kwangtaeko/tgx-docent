@@ -96,8 +96,12 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
   if (wants('html')) for (const [rel, content] of renderSite(input)) await put(outDir, `html/${rel}`, content, files);
   if (needsHtmlDir) {
     await mkdir(join(outDir, 'html', 'assets'), { recursive: true });
-    await copyFile(join(assetsDir, 'mermaid.min.js'), join(outDir, 'html', 'assets', 'mermaid.min.js'));
-    files.push('html/assets/mermaid.min.js');
+    // 그림·확대 스크립트와 글꼴(Pretendard, SIL OFL — 라이선스 파일을 함께 넣어야 함)
+    await mkdir(join(outDir, 'html', 'assets', 'fonts'), { recursive: true });
+    for (const asset of ['mermaid.min.js', 'zoom.min.js', 'fonts/PretendardVariable.woff2', 'fonts/Pretendard-OFL.txt']) {
+      await copyFile(join(assetsDir, asset), join(outDir, 'html', 'assets', asset));
+      files.push(`html/assets/${asset}`);
+    }
     for (const [kind, ext] of [['img', 'png'], ['gif', 'gif']]) {
       const set = kind === 'img' ? media.images : media.gifs;
       if (!set.size) continue;
