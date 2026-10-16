@@ -27,7 +27,8 @@
       "enum": [
         "page",
         "modal",
-        "popup"
+        "popup",
+        "view"
       ]
     },
     "parentId": {

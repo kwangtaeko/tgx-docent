@@ -27483,6 +27483,7 @@ var ko = {
   menu: "\uBA54\uB274 \uAD6C\uC870",
   seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
   childOf: (t) => `${t}\uC758 \uD558\uC704 \uD654\uBA74`,
+  viewNote: "\uBA54\uB274\uB85C \uC804\uD658",
   totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
   listHead: ["ID", "\uD654\uBA74", "\uACBD\uB85C", "\uBA54\uB274", "\uC5ED\uD560", "\uBAA9\uC801"],
   noShot: "\uCEA1\uCC98 \uC5C6\uC74C",
@@ -27550,6 +27551,7 @@ var en = {
   menu: "Menu structure",
   seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
   childOf: (t) => `Inside ${t}`,
+  viewNote: "switched from the menu",
   totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
   listHead: ["ID", "Screen", "Path", "Menu", "Roles", "Purpose"],
   noShot: "No screenshot",
@@ -27811,7 +27813,7 @@ var inventory_agent_schema_default = {
         required: ["route", "kind", "files", "evidence"],
         properties: {
           route: { type: ["string", "null"] },
-          kind: { enum: ["page", "modal", "popup"] },
+          kind: { enum: ["page", "modal", "popup", "view"] },
           parentRoute: { type: "string" },
           name: { type: "string", minLength: 1 },
           files: { type: "array", minItems: 1, items: { type: "string" } },
@@ -27888,7 +27890,8 @@ var inventory_schema_default = {
           enum: [
             "page",
             "modal",
-            "popup"
+            "popup",
+            "view"
           ]
         },
         parentId: {
@@ -28248,7 +28251,8 @@ var screen_schema_default = {
       enum: [
         "page",
         "modal",
-        "popup"
+        "popup",
+        "view"
       ]
     },
     parentId: {
@@ -29070,6 +29074,7 @@ ${scripts}${zoomScript(root)}</body>
 </html>
 `;
 }
+var routeOf = (inventory, id) => inventory.screens.find((x) => x.id === id)?.route ?? "";
 function screenTitle(screens, id) {
   return screens.get(id)?.title.value ?? id;
 }
@@ -29188,7 +29193,7 @@ function listBody(input) {
   const rows = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
     const menu = s.menuPath?.value.join(" \u203A ") ?? "";
-    const where = entry.route ?? T.childOf(screenTitle(screens, entry.parentId));
+    const where = entry.route ?? (entry.kind === "view" ? `${routeOf(inventory, entry.parentId)} \xB7 ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
     return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</td></tr>`;
   }).join("\n");
   return `<h1>${T.screenList}</h1>
@@ -29238,7 +29243,9 @@ function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) 
   const meta = [];
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
   if (s.menuPath) meta.push(item(T.menuPath, `${escapeHtml(s.menuPath.value.join(" \u203A "))}${ev(s.menuPath.evidence)}`));
-  meta.push(s.route ? item(T.route, `<code>${escapeHtml(s.route)}</code>`) : item(T.parent, link(s.parentId)));
+  if (s.route) meta.push(item(T.route, `<code>${escapeHtml(s.route)}</code>`));
+  else if (entry.kind === "view") meta.push(item(T.route, `<code>${escapeHtml(routeOf(inventory, s.parentId))}</code> \xB7 ${T.viewNote}`));
+  else meta.push(item(T.parent, link(s.parentId)));
   const evTight = evOf(input, "");
   const roles = s.roles.length ? s.roles.map((r) => `${flag(r, T)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : T.noRoles;
   meta.push(item(T.usedBy, roles));
@@ -37080,7 +37087,7 @@ var LOADERS = ["+page.ts", "+page.js", "+page.server.ts", "+page.server.js"];
 async function detect3(projectDir) {
   return hasDependency(projectDir, ["@sveltejs/kit"]);
 }
-function routeOf(file) {
+function routeOf2(file) {
   const parts = file.slice(ROUTES.length + 1).split("/").slice(0, -1);
   return "/" + parts.map((p) => p.replace(/^(\[{1,2}(?:\.\.\.)?[^\]=]+)=[^\]]+(\]{1,2})$/, "$1$2")).join("/");
 }
@@ -37090,7 +37097,7 @@ async function listScreens3(projectDir) {
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
     if (!/^\+page(@[^/]*)?\.svelte$/.test(posix5.basename(file))) continue;
-    const route = routeOf(file);
+    const route = routeOf2(file);
     const segs = route.split("/").filter((s) => s && !/^\(.*\)$/.test(s));
     if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) continue;
     const [page2, ...imports] = await screenFiles(projectDir, file, aliases);
@@ -37237,17 +37244,34 @@ async function expand(projectDir, pattern) {
   const entries = await readdir5(join23(projectDir, base), { withFileTypes: true });
   return entries.filter((e) => e.isDirectory() && !SKIP_DIRS.has(e.name)).map((e) => base ? `${base}/${e.name}` : e.name);
 }
+var UI_DEPS = ["react", "vue", "svelte", "solid-js", "preact", "@angular/core", "electron", "@tauri-apps/api"];
+var depsOf = async (dir) => {
+  const pkg = await readJsonc(join23(dir, "package.json"));
+  return /* @__PURE__ */ new Set([...Object.keys(pkg?.dependencies ?? {}), ...Object.keys(pkg?.devDependencies ?? {})]);
+};
+async function desktopKind(dir) {
+  const deps = await depsOf(dir);
+  if (deps.has("electron")) return "electron";
+  if (deps.has("@tauri-apps/api") || deps.has("@tauri-apps/cli")) return "tauri";
+  return void 0;
+}
 async function findWorkspaceApps(projectDir) {
   const dirs = /* @__PURE__ */ new Set();
   for (const pattern of await patterns(projectDir)) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
-  const apps = [];
+  const detected = [];
+  const ui = [];
   for (const dir of [...dirs].sort()) {
-    if (!await isFile(join23(projectDir, dir, "package.json"))) continue;
+    const abs = join23(projectDir, dir);
+    if (!await isFile(join23(abs, "package.json"))) continue;
+    const desktop = await desktopKind(abs);
+    const deps = await depsOf(abs);
     const detectors = [];
-    for (const d of DETECTORS) if (await d.detect(join23(projectDir, dir))) detectors.push(d.name);
-    if (detectors.length) apps.push({ dir, detectors });
+    for (const d of DETECTORS) if (await d.detect(abs)) detectors.push(d.name);
+    const entry = { dir, detectors, ...desktop ? { desktop } : {} };
+    if (detectors.length) detected.push(entry);
+    else if (desktop || UI_DEPS.some((d) => deps.has(d))) ui.push(entry);
   }
-  return apps;
+  return detected.length ? detected : ui;
 }
 
 // skills/docent/scripts/src/commands/init.mjs
@@ -37332,20 +37356,21 @@ async function runInit(projectDir, { app } = {}) {
     if (!await isDir(join24(projectDir, rel))) throw new Error(`--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${rel}`);
     const detectors2 = await detect5(join24(projectDir, rel));
     await writeFile5(configPath, configYaml(detectors2, rel));
-    return { created: true, detectors: detectors2, app: rel };
+    return withDesktop({ created: true, detectors: detectors2, app: rel }, await desktopKind(join24(projectDir, rel)));
   }
   const detectors = await detect5(projectDir);
   if (!detectors.length) {
     const apps = await findWorkspaceApps(projectDir);
     if (apps.length === 1) {
       await writeFile5(configPath, configYaml(apps[0].detectors, apps[0].dir));
-      return { created: true, detectors: apps[0].detectors, app: apps[0].dir };
+      return withDesktop({ created: true, detectors: apps[0].detectors, app: apps[0].dir }, apps[0].desktop);
     }
     if (apps.length > 1) return { created: false, detectors: [], apps };
   }
   await writeFile5(configPath, configYaml(detectors));
-  return { created: true, detectors };
+  return withDesktop({ created: true, detectors }, await desktopKind(projectDir));
 }
+var withDesktop = (result, desktop) => desktop ? { ...result, desktop } : result;
 async function detect5(dir) {
   const names = [];
   for (const detector of DETECTORS) if (await detector.detect(dir)) names.push(detector.name);
@@ -37819,12 +37844,13 @@ async function main() {
       const r = await runInit(project, at > 0 ? { app: args[at + 1] ?? "" } : {});
       if (r.apps) {
         console.log("\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>");
-        for (const a of r.apps) console.log(`- ${a.dir}	${a.detectors.join(", ")}`);
+        for (const a of r.apps) console.log(`- ${a.dir}	${[...a.detectors, ...a.desktop ? [a.desktop] : []].join(", ") || "\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)"}`);
         return 0;
       }
       console.log(r.created ? ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4." : ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.");
       if (r.app) console.log(`\uC571 \uD3F4\uB354: ${r.app}`);
       console.log(`\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: ${r.detectors.length ? r.detectors.join(", ") : "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)"}`);
+      if (r.desktop) console.log(`\uB370\uC2A4\uD06C\uD1B1 \uC571(${r.desktop})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)`);
       return 0;
     }
     case "inventory": {

@@ -10,7 +10,7 @@ docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.
 | evidence | `파일:라인`, `파일:시작-끝`, `파일:함수명`. 파일은 프로젝트 루트 기준 상대 경로이고 구분자는 `/`. |
 | confidence | `high`·`medium`·`low`. 해석이 들어간 항목에만 붙인다. `low`는 본문에 `[확인 필요]`로 표시된다. |
 | sourceHash | `sha256:` + 64자리 hex. `readFiles`를 경로순으로 정렬해 `경로\0내용\0`을 이어 붙인 해시. 줄바꿈은 LF로 맞춘 뒤 계산한다. |
-| kind | `page`(라우트가 있는 화면), `modal`, `popup`(자체 입력·버튼이 있는 하위 화면). `page`가 아니면 `parentId` 필수, `page`는 `route` 필수. |
+| kind | `page`(라우트가 있는 화면), `modal`, `popup`(자체 입력·버튼이 있는 하위 화면), `view`(주소는 부모 page와 같고 메뉴·탭으로 바뀌는 화면). `page`가 아니면 `parentId` 필수, `page`는 `route` 필수. |
 
 ## inventory.json
 

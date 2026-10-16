@@ -166,3 +166,24 @@ test('config.app 폴더가 없으면 문제로 알린다', async () => {
   assert.ok(problems.some((p) => /app 폴더 apps\/none/.test(p)), problems.join());
   assert.equal(inventory.screens.filter((s) => s.source.startsWith('detector:')).length, 0);
 });
+
+test('view: 같은 주소에서 메뉴로 바뀌는 화면은 부모 page의 하위 화면이 된다', async () => {
+  const { project } = await import('../helpers/project.mjs');
+  const dir = await project({
+    'package.json': '{}',
+    'src/App.tsx': 'export function App() {\n  return <nav><a onClick={() => setView("home")}>홈</a><a onClick={() => setView("report")}>보고서</a></nav>;\n}\n',
+    '.docent/config.yaml': 'detectors: []\n',
+    '.docent/inventory.agent.json': JSON.stringify({
+      screens: [
+        { route: '/', kind: 'page', files: ['src/App.tsx'], evidence: 'src/App.tsx:2' },
+        { route: null, kind: 'view', parentRoute: '/', name: 'report', files: ['src/App.tsx'], evidence: 'src/App.tsx:2' },
+      ],
+    }),
+  });
+  const { inventory, problems } = await runInventory(dir);
+  assert.deepEqual(problems, []);
+  assert.deepEqual(inventory.screens.map(({ id, kind, parentId }) => ({ id, kind, parentId })), [
+    { id: 'home', kind: 'page', parentId: undefined },
+    { id: 'home--report', kind: 'view', parentId: 'home' },
+  ]);
+});

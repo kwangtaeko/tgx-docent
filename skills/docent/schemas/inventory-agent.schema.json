@@ -14,7 +14,7 @@
         "required": ["route", "kind", "files", "evidence"],
         "properties": {
           "route": { "type": ["string", "null"] },
-          "kind": { "enum": ["page", "modal", "popup"] },
+          "kind": { "enum": ["page", "modal", "popup", "view"] },
           "parentRoute": { "type": "string" },
           "name": { "type": "string", "minLength": 1 },
           "files": { "type": "array", "minItems": 1, "items": { "type": "string" } },

@@ -173,3 +173,14 @@ test('역할이 없으면 근거 없이 로그인 여부를 단정하지 않고 
   const md = renderReadme(input);
   assert.ok(md.includes('- 확인된 역할 없음') && !md.includes('로그인 없이 사용'));
 });
+
+test('view 화면은 부모 주소와 "메뉴로 전환"으로 보인다', async () => {
+  const input = await loadGolden();
+  const child = input.inventory.screens.find((s) => s.parentId);
+  const parent = input.inventory.screens.find((s) => s.id === child.parentId);
+  child.kind = 'view';
+  input.screens.get(child.id).kind = 'view';
+  const site = renderSite(input);
+  assert.ok(site.get('screens.html').includes(`<td>${parent.route} · 메뉴로 전환</td>`));
+  assert.match(site.get(`screens/${child.id}.html`), /<dt>경로<\/dt><dd><code>[^<]*<\/code> · 메뉴로 전환<\/dd>/);
+});

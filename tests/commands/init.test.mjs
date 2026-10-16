@@ -83,3 +83,19 @@ test('루트에서 감지되면 하위 앱은 찾지 않는다', async () => {
   const dir = await project({ ...NEXT_APP, ...prefixed('apps/admin', NEXT_APP) });
   assert.deepEqual(await runInit(dir), { created: true, detectors: ['nextjs'] });
 });
+
+test('화면 앱 하나뿐인 모노레포의 데스크톱 앱: app으로 정하고 데스크톱이라고 알린다', async () => {
+  const dir = await project({
+    'package.json': '{"private":true}',
+    'pnpm-workspace.yaml': 'packages:\n  - packages/*\n  - apps/*\n',
+    'apps/desktop/package.json': '{"dependencies":{"react":"19"},"devDependencies":{"electron":"44"}}',
+    'packages/core/package.json': '{"dependencies":{"zod":"3"}}',
+  });
+  assert.deepEqual(await runInit(dir), { created: true, detectors: [], app: 'apps/desktop', desktop: 'electron' });
+  assert.equal((await loadConfig(dir)).app, 'apps/desktop');
+});
+
+test('루트가 Electron 앱이면 데스크톱이라고 알린다', async () => {
+  const dir = await project({ 'package.json': '{"dependencies":{"react":"19"},"devDependencies":{"electron":"44"}}' });
+  assert.deepEqual(await runInit(dir), { created: true, detectors: [], desktop: 'electron' });
+});

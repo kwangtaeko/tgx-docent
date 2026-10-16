@@ -69,12 +69,13 @@ async function main() {
       const r = await runInit(project, at > 0 ? { app: args[at + 1] ?? '' } : {});
       if (r.apps) {
         console.log('모노레포에서 앱을 여러 개 찾았습니다. 문서로 만들 앱을 골라 다시 실행하세요: docent init --app <폴더>');
-        for (const a of r.apps) console.log(`- ${a.dir}\t${a.detectors.join(', ')}`);
+        for (const a of r.apps) console.log(`- ${a.dir}\t${[...a.detectors, ...(a.desktop ? [a.desktop] : [])].join(', ') || '화면 앱(감지기 없음)'}`);
         return 0;
       }
       console.log(r.created ? '.docent/config.yaml을 만들었습니다.' : '.docent/config.yaml이 이미 있어 그대로 둡니다.');
       if (r.app) console.log(`앱 폴더: ${r.app}`);
       console.log(`감지된 프레임워크: ${r.detectors.length ? r.detectors.join(', ') : '없음 (에이전트 탐색으로 화면을 찾습니다)'}`);
+      if (r.desktop) console.log(`데스크톱 앱(${r.desktop})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)`);
       return 0;
     }
     case 'inventory': {

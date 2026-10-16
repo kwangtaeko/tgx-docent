@@ -65,6 +65,8 @@ ${scripts}${zoomScript(root)}</body>
 `;
 }
 
+const routeOf = (inventory, id) => inventory.screens.find((x) => x.id === id)?.route ?? '';
+
 export function screenTitle(screens, id) {
   return screens.get(id)?.title.value ?? id;
 }
@@ -205,7 +207,7 @@ export function listBody(input) {
     .map((entry) => {
       const s = screens.get(entry.id);
       const menu = s.menuPath?.value.join(' › ') ?? '';
-      const where = entry.route ?? T.childOf(screenTitle(screens, entry.parentId));
+      const where = entry.route ?? (entry.kind === 'view' ? `${routeOf(inventory, entry.parentId)} · ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
       return `<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose, T)}${h(s.purpose.value)}</td></tr>`;
     })
     .join('\n');
@@ -265,7 +267,10 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
   const meta = [];
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
   if (s.menuPath) meta.push(item(T.menuPath, `${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}`));
-  meta.push(s.route ? item(T.route, `<code>${h(s.route)}</code>`) : item(T.parent, link(s.parentId)));
+  // view(같은 주소에서 메뉴로 바뀌는 화면)는 부모 주소를 경로로 보인다
+  if (s.route) meta.push(item(T.route, `<code>${h(s.route)}</code>`));
+  else if (entry.kind === 'view') meta.push(item(T.route, `<code>${h(routeOf(inventory, s.parentId))}</code> · ${T.viewNote}`));
+  else meta.push(item(T.parent, link(s.parentId)));
   const evTight = evOf(input, '');
   const roles = s.roles.length ? s.roles.map((r) => `${flag(r, T)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : T.noRoles;
   meta.push(item(T.usedBy, roles));

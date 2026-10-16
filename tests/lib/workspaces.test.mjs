@@ -29,3 +29,25 @@ test('프로젝트 밖·제외 패턴은 무시한다', async () => {
   const dir = await project({ 'package.json': '{"workspaces":["../outside/*","!apps/*"]}' });
   assert.deepEqual(await findWorkspaceApps(dir), []);
 });
+
+test('감지기가 맞는 앱이 없으면 화면 라이브러리·데스크톱 앱을 후보로', async () => {
+  const dir = await project({
+    'package.json': '{"workspaces":["apps/*","packages/*"]}',
+    'apps/desktop/package.json': '{"dependencies":{"react":"19"},"devDependencies":{"electron":"44"}}',
+    'apps/tauri/package.json': '{"dependencies":{"@tauri-apps/api":"2","vue":"3"}}',
+    'packages/shared/package.json': '{"dependencies":{"zod":"3"}}',
+  });
+  assert.deepEqual(await findWorkspaceApps(dir), [
+    { dir: 'apps/desktop', detectors: [], desktop: 'electron' },
+    { dir: 'apps/tauri', detectors: [], desktop: 'tauri' },
+  ]);
+});
+
+test('감지기가 맞는 앱이 있으면 그 앱만', async () => {
+  const dir = await project({
+    'package.json': '{"workspaces":["apps/*"]}',
+    'apps/web/package.json': '{"dependencies":{"next":"15"}}',
+    'apps/desktop/package.json': '{"devDependencies":{"electron":"44"}}',
+  });
+  assert.deepEqual(await findWorkspaceApps(dir), [{ dir: 'apps/web', detectors: ['nextjs'] }]);
+});

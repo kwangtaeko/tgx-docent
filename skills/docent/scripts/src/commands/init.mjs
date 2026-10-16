@@ -5,7 +5,7 @@ import { DETECTORS } from '../detectors/index.mjs';
 import { isDir } from '../detectors/shared.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { normalizeRel } from '../lib/paths.mjs';
-import { findWorkspaceApps } from '../lib/workspaces.mjs';
+import { desktopKind, findWorkspaceApps } from '../lib/workspaces.mjs';
 import { docentDir } from '../lib/workspace.mjs';
 
 const IGNORE_LINES = ['auth/', 'out/', 'media/', '.session', 'run.log', '.run-pid', '.run-approved'];
@@ -93,7 +93,7 @@ export async function runInit(projectDir, { app } = {}) {
     if (!(await isDir(join(projectDir, rel)))) throw new Error(`--app 폴더가 없습니다: ${rel}`);
     const detectors = await detect(join(projectDir, rel));
     await writeFile(configPath, configYaml(detectors, rel));
-    return { created: true, detectors, app: rel };
+    return withDesktop({ created: true, detectors, app: rel }, await desktopKind(join(projectDir, rel)));
   }
   const detectors = await detect(projectDir);
   if (!detectors.length) {
@@ -101,13 +101,16 @@ export async function runInit(projectDir, { app } = {}) {
     const apps = await findWorkspaceApps(projectDir);
     if (apps.length === 1) {
       await writeFile(configPath, configYaml(apps[0].detectors, apps[0].dir));
-      return { created: true, detectors: apps[0].detectors, app: apps[0].dir };
+      return withDesktop({ created: true, detectors: apps[0].detectors, app: apps[0].dir }, apps[0].desktop);
     }
     if (apps.length > 1) return { created: false, detectors: [], apps };
   }
   await writeFile(configPath, configYaml(detectors));
-  return { created: true, detectors };
+  return withDesktop({ created: true, detectors }, await desktopKind(projectDir));
 }
+
+// 데스크톱 앱이면 알린다(화면 분석·산출물은 소스만으로, 캡처·GIF는 지원하지 않음)
+const withDesktop = (result, desktop) => (desktop ? { ...result, desktop } : result);
 
 async function detect(dir) {
   const names = [];
