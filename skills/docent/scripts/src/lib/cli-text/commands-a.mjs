@@ -105,4 +105,6 @@ export default {
     'Could not draw {0} workflow diagram(s); added step lists instead',
   'Playwright가 없어 PPT의 워크플로우 다이어그램 대신 단계 목록을 넣었습니다':
     'Playwright is not installed; added step lists instead of workflow diagrams in the PPT',
+  // validate.mjs — effectEvidence
+  '"{0}"의 effectEvidence 파일 {1}이 readFiles에 없습니다': 'effectEvidence file {1} of "{0}" is not in readFiles',
 };

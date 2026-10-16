@@ -25,7 +25,11 @@ function evidenceChecks(s) {
     // 선택지도 화면 문구 그대로 근거 근처에 있어야 한다
     for (const option of f.options ?? []) checks.push([f.evidence, option]);
   }
-  for (const a of s.actions) checks.push([a.evidence, a.label]);
+  for (const a of s.actions) {
+    checks.push([a.evidence, a.label]);
+    // 결과의 근거: 위치만 확인한다(라벨 글자는 없어도 된다)
+    for (const ev of a.effectEvidence ?? []) checks.push([ev]);
+  }
   for (const m of s.messages) checks.push([m.evidence, m.text]);
   return checks;
 }
@@ -34,6 +38,14 @@ async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
     const r = await checkEvidence(projectDir, ev, text === undefined ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
+  }
+  // 결과 근거 파일은 readFiles에 있어야 그 파일이 바뀔 때 다시 분석한다
+  const read = new Set(s.readFiles ?? []);
+  for (const a of s.actions) {
+    for (const ev of a.effectEvidence ?? []) {
+      const file = ev.slice(0, ev.lastIndexOf(':'));
+      if (file && !read.has(file)) problems.push(`${s.id}: ${t('"{0}"의 effectEvidence 파일 {1}이 readFiles에 없습니다', a.label, file)}`);
+    }
   }
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t('없는 부모 화면 {0}', s.parentId)}`);
   for (const a of s.actions) {

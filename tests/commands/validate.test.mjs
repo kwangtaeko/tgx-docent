@@ -151,3 +151,21 @@ test('view는 부모로 닫혀 돌아가는 연결이 아니다(모달·팝업�
   const { problems } = await runValidate(dir);
   assert.ok(problems.some((p) => p.includes(`${child.id} → ${child.parentId}`)), problems.join('\n'));
 });
+
+test('effectEvidence: 위치가 있어야 하고 파일은 readFiles에 있어야 한다', async () => {
+  const { dir, docent } = await golden();
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = await readJsonFile(path);
+  const file = s.readFiles[0];
+  s.actions[0].effectEvidence = [`${file}:1`];
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+
+  s.actions[0].effectEvidence = [`${file}:99999`];
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('99999')));
+
+  s.actions[0].effectEvidence = ['package.json:1'];
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('effectEvidence') && p.includes('package.json')));
+});

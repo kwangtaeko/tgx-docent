@@ -221,3 +221,9 @@ test('묶음 없는 문구가 많으면 표 하나로, 자리 표시는 칩으�
   assert.match(html, /<table class="messages">/);
   assert.match(html, /현재 버전 <span class="ph">버전 0<\/span>이 최신입니다\./);
 });
+
+test('handover는 effectEvidence도 근거 주석으로 남긴다', async () => {
+  const input = await loadGolden();
+  input.screens.get('orders-new').actions[0].effectEvidence = ['app/actions/orders.ts:12'];
+  assert.match(renderSite(input).get('screens/orders-new.html'), /<!-- evidence: app\/actions\/orders\.ts:12 -->/);
+});

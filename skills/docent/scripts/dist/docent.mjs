@@ -27673,7 +27673,9 @@ var commands_a_default = {
   "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)": "PDF not built: Playwright is not installed (docent runtime install)",
   "PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4": "Workflow diagrams in the PDF were not ready; the PDF may contain raw Mermaid text",
   "\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Could not draw {0} workflow diagram(s); added step lists instead",
-  "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT"
+  "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT",
+  // validate.mjs — effectEvidence
+  '"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'effectEvidence file {1} of "{0}" is not in readFiles'
 };
 
 // skills/docent/scripts/src/lib/cli-text/commands-b.mjs
@@ -28717,6 +28719,14 @@ var screen_schema_default = {
           section: {
             type: "string",
             description: "\uAC19\uC740 \uB77C\uBCA8\uC774 \uC5EC\uB7EC \uAD6C\uD68D\uC5D0 \uC788\uC744 \uB54C \uAD6C\uBD84\uD558\uB294 \uAD6C\uD68D \uC81C\uBAA9(sections\uC758 title)"
+          },
+          effectEvidence: {
+            type: "array",
+            minItems: 1,
+            items: {
+              $ref: "#/$defs/evidence"
+            },
+            description: "\uBC84\uD2BC \uACB0\uACFC(effect)\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uB2E4\uB978 \uC704\uCE58(\uCC98\uB9AC \uD568\uC218, \uBA54\uC778 \uD504\uB85C\uC138\uC2A4 \uB4F1). evidence\uB294 \uB77C\uBCA8\uC774 \uC788\uB294 \uC904"
           }
         }
       }
@@ -29585,7 +29595,7 @@ ${s.fields.map(
   const actions = s.actions.length ? `<ul class="fields actions">
 ${s.actions.map((a) => {
     const next = [a.navigatesTo && `<span class="next">${T.goTo} \u2192 ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} \u2192 ${link(a.opens)}</span>`].filter(Boolean).join("");
-    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
+    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}${(a.effectEvidence ?? []).map((x) => ev(x)).join("")}</p></li>`;
   }).join("\n")}
 </ul>` : empty;
   const groups = /* @__PURE__ */ new Map();
@@ -35737,7 +35747,10 @@ function evidenceChecks(s) {
     checks.push([f.evidence, f.label]);
     for (const option of f.options ?? []) checks.push([f.evidence, option]);
   }
-  for (const a of s.actions) checks.push([a.evidence, a.label]);
+  for (const a of s.actions) {
+    checks.push([a.evidence, a.label]);
+    for (const ev of a.effectEvidence ?? []) checks.push([ev]);
+  }
   for (const m of s.messages) checks.push([m.evidence, m.text]);
   return checks;
 }
@@ -35745,6 +35758,13 @@ async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
     const r = await checkEvidence(projectDir, ev, text === void 0 ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
+  }
+  const read = new Set(s.readFiles ?? []);
+  for (const a of s.actions) {
+    for (const ev of a.effectEvidence ?? []) {
+      const file = ev.slice(0, ev.lastIndexOf(":"));
+      if (file && !read.has(file)) problems.push(`${s.id}: ${t('"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', a.label, file)}`);
+    }
   }
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t("\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}", s.parentId)}`);
   for (const a of s.actions) {

@@ -299,7 +299,7 @@ ${s.actions
     const next = [a.navigatesTo && `<span class="next">${T.goTo} → ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} → ${link(a.opens)}</span>`]
       .filter(Boolean)
       .join('');
-    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
+    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${h(a.effect)}${ev(a.evidence)}${(a.effectEvidence ?? []).map((x) => ev(x)).join('')}</p></li>`;
   })
   .join('\n')}
 </ul>`
