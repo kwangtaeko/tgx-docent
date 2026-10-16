@@ -3,8 +3,8 @@ export const LANGUAGES = ['ko', 'en'];
 
 const ko = {
   htmlLang: 'ko',
-  types: { text: '텍스트', textarea: '여러 줄 텍스트', number: '숫자', date: '날짜', select: '선택', checkbox: '체크박스', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' },
-  typesShort: { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' },
+  types: { text: '텍스트', textarea: '여러 줄 텍스트', number: '숫자', date: '날짜', select: '선택', checkbox: '체크박스', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', url: '주소(URL)', tel: '전화번호', other: '기타' },
+  typesShort: { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', url: 'URL', tel: '전화', other: '기타' },
   defaultTitle: '사용자 매뉴얼',
   defaultFileName: '사용자매뉴얼',
   noCapture: '화면 캡처 없이 소스만으로 만들었습니다.',
@@ -72,8 +72,8 @@ const ko = {
 
 const en = {
   htmlLang: 'en',
-  types: { text: 'Text', textarea: 'Multi-line text', number: 'Number', date: 'Date', select: 'Select', checkbox: 'Checkbox', radio: 'Single choice', file: 'File', password: 'Password', email: 'Email', other: 'Other' },
-  typesShort: { text: 'Text', textarea: 'Multi-line', number: 'Number', date: 'Date', select: 'Select', checkbox: 'Checkbox', radio: 'Choice', file: 'File', password: 'Password', email: 'Email', other: 'Other' },
+  types: { text: 'Text', textarea: 'Multi-line text', number: 'Number', date: 'Date', select: 'Select', checkbox: 'Checkbox', radio: 'Single choice', file: 'File', password: 'Password', email: 'Email', url: 'URL', tel: 'Phone', other: 'Other' },
+  typesShort: { text: 'Text', textarea: 'Multi-line', number: 'Number', date: 'Date', select: 'Select', checkbox: 'Checkbox', radio: 'Choice', file: 'File', password: 'Password', email: 'Email', url: 'URL', tel: 'Phone', other: 'Other' },
   defaultTitle: 'User Manual',
   defaultFileName: 'UserManual',
   noCapture: 'Made from the source code only, without screenshots.',

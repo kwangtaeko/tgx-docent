@@ -176,10 +176,12 @@ function menuLines(input) {
   return lines;
 }
 
+const sectionPrefix = (x) => (x.section ? `[${x.section}] ` : '');
+
 function screenRows(s, T) {
   return [
-    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ''}`]),
-    ...s.actions.map((a) => [T.kindAction, a.label, `${low(a, T)}${a.effect}`]),
+    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${sectionPrefix(f)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ''}${f.options ? ` · ${f.options.join(' / ')}` : ''}`]),
+    ...s.actions.map((a) => [T.kindAction, `${sectionPrefix(a)}${a.label}`, `${low(a, T)}${a.effect}`]),
   ];
 }
 

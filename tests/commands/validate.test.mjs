@@ -122,3 +122,14 @@ test('없는 화면 ID나 깨진 inventory는 화면 하나만 검사해도 문�
   await writeFile(join(docent, 'inventory.json'), '{');
   assert.equal((await runValidate(dir, { only: ['login'] })).ok, false);
 });
+
+test('선택지가 근거 근처에 없으면 실패', async () => {
+  const { dir, docent } = await golden();
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = await readJsonFile(path);
+  s.fields[0].options = ['소스에 없는 선택지'];
+  await writeJsonFile(path, s);
+  const { ok, problems } = await runValidate(dir);
+  assert.equal(ok, false);
+  assert.ok(problems.some((p) => p.includes('소스에 없는 선택지')), problems.join('\n'));
+});

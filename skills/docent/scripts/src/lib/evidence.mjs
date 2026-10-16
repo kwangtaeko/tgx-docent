@@ -3,6 +3,9 @@ import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve, sep } from 'node:path';
 
 export const TEXT_WINDOW = 5;
+// 문구 안의 자리 표시({버전}, {name})와 그 자리에 올 수 있는 소스 글자 수
+const PLACEHOLDER = /\{[^{}\s]{1,30}\}/;
+const PLACEHOLDER_GAP = 80;
 
 const LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 const SYMBOL = /^[A-Za-z_$][\w$.]*$/;
@@ -73,7 +76,14 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
 
   // 문구가 여러 줄로 나뉘어 있을 수 있으므로 공백을 하나로 모은 창 전체에서도 찾는다
   const squash = (t) => t.replace(/\s+/g, ' ').trim();
-  const found = (text) => window.some((line) => line.includes(text)) || squash(window.join(' ')).includes(squash(text));
+  const joined = squash(window.join(' '));
+  const found = (text) => {
+    if (window.some((line) => line.includes(text)) || joined.includes(squash(text))) return true;
+    // 실행 중에 값이 채워지는 문구: {이름} 자리는 소스의 ${...}·변수 등 짧은 글자로 본다(나머지 글자는 그대로 있어야 함)
+    const parts = squash(text).split(PLACEHOLDER);
+    if (parts.length < 2 || parts.join('').replace(/\s/g, '').length < 2) return false;
+    return new RegExp(parts.map(escapeRegExp).join(`.{0,${PLACEHOLDER_GAP}}?`)).test(joined);
+  };
   if (opts.expectText !== undefined && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} 근처(±${TEXT_WINDOW}줄)에 "${opts.expectText}" 없음` };
   }

@@ -184,3 +184,14 @@ test('view 화면은 부모 주소와 "메뉴로 전환"으로 보인다', async
   assert.ok(site.get('screens.html').includes(`<td>${parent.route} · 메뉴로 전환</td>`));
   assert.match(site.get(`screens/${child.id}.html`), /<dt>경로<\/dt><dd><code>[^<]*<\/code> · 메뉴로 전환<\/dd>/);
 });
+
+test('입력 항목의 선택지와 같은 라벨을 구분하는 구획 표시', async () => {
+  const input = await loadGolden();
+  const s = input.screens.get('orders-new');
+  s.fields[0] = { ...s.fields[0], options: ['검증된 버전 사용', '정책에 맞는 버전 조회'], section: 'GitHub' };
+  s.actions[0] = { ...s.actions[0], section: 'GitLab' };
+  const html = renderSite(input).get('screens/orders-new.html');
+  assert.match(html, /<ul class="options"><li>검증된 버전 사용<\/li><li>정책에 맞는 버전 조회<\/li><\/ul>/);
+  assert.match(html, /<span class="field-section">GitHub<\/span>/);
+  assert.match(html, /<span class="field-section">GitLab<\/span>/);
+});

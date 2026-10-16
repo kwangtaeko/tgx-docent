@@ -117,3 +117,19 @@ test('여러 줄로 나뉜 문구도 근거 근처에 있으면 찾는다', asyn
   assert.deepEqual(await checkEvidence(root, 'p.tsx:2', { expectText: '방문 기록은 남기지만 개인을 식별하지 않습니다.' }), { ok: true });
   assert.equal((await checkEvidence(root, 'p.tsx:2', { expectText: '방문 기록은 남기지 않습니다.' })).ok, false);
 });
+
+test('{이름} 자리 표시: 실행 중 값이 채워지는 문구도 근거와 맞춰 본다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'docent-ev-'));
+  await writeFile(
+    join(dir, 'a.tsx'),
+    ['const a = 1;', "toast(`현재 버전 ${version}이 최신입니다.`);", "setStatus(`${provider.name} 준비됨`);", 'const msg = name + "을(를) 선택해야 합니다.";', ''].join('\n'),
+  );
+  const ok = async (text, line = 2) => (await checkEvidence(dir, `a.tsx:${line}`, { expectText: text })).ok;
+  assert.equal(await ok('현재 버전 {버전}이 최신입니다.'), true);
+  assert.equal(await ok('{서비스} 준비됨', 3), true);
+  assert.equal(await ok('{항목}을(를) 선택해야 합니다.', 4), true);
+  // 자리 표시 밖의 글자는 그대로 있어야 한다
+  assert.equal(await ok('현재 버전 {버전}이 오래되었습니다.'), false);
+  // 자리 표시만 있는 문구는 아무것과도 맞지 않는다
+  assert.equal(await ok('{버전}'), false);
+});

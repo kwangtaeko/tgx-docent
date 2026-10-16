@@ -19,7 +19,11 @@ function evidenceChecks(s) {
   const checks = [[s.title.evidence], [s.purpose.evidence]];
   if (s.menuPath) checks.push([s.menuPath.evidence]);
   for (const x of [...s.roles, ...s.sections]) checks.push([x.evidence]);
-  for (const f of s.fields) checks.push([f.evidence, f.label]);
+  for (const f of s.fields) {
+    checks.push([f.evidence, f.label]);
+    // 선택지도 화면 문구 그대로 근거 근처에 있어야 한다
+    for (const option of f.options ?? []) checks.push([f.evidence, option]);
+  }
   for (const a of s.actions) checks.push([a.evidence, a.label]);
   for (const m of s.messages) checks.push([m.evidence, m.text]);
   return checks;

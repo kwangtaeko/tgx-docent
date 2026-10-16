@@ -44,10 +44,10 @@ docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.
 | `purpose` | 화면 목적 `{value, evidence, confidence}` |
 | `roles` | 접근 가능한 역할 `[{value, evidence, confidence}]` |
 | `sections` | 탭·단계 입력 같은 화면 내 구획 `[{title, evidence}]` |
-| `fields` | 입력 항목 `[{label, type, required, section?, evidence, confidence}]`. `type`은 `text textarea number date select checkbox radio file password email other` |
-| `actions` | 버튼 동작 `[{label, effect, navigatesTo?, opens?, evidence, confidence}]`. `navigatesTo`는 이동하는 화면 ID(워크플로우 재료), `opens`는 여는 하위 화면 ID |
+| `fields` | 입력 항목 `[{label, type, required, section?, options?, evidence, confidence}]`. `type`은 `text textarea number date select checkbox radio file password email url tel other`. `options`는 고정된 선택지(화면 문구 그대로) |
+| `actions` | 버튼 동작 `[{label, effect, section?, navigatesTo?, opens?, evidence, confidence}]`. `section`은 같은 라벨이 여러 구획에 있을 때 구획 제목. `navigatesTo`는 이동하는 화면 ID(워크플로우 재료), `opens`는 여는 하위 화면 ID |
 | `messages` | 안내 메시지 `[{text, when, evidence}]` |
 | `unknowns` | 소스만으로 확정할 수 없는 것. `review.md`로 모인다 |
 | `readFiles` | 분석 중 실제로 읽은 파일. `sourceHash` 계산 대상 |
 
-문자열이 소스에 그대로 나오는 항목(`fields[].label`, `actions[].label`, `messages[].text`)은 근거 위치 ±5줄 안에 그 문구가 실제로 있어야 합니다.
+문자열이 소스에 그대로 나오는 항목(`fields[].label`, `fields[].options`, `actions[].label`, `messages[].text`)은 근거 위치 ±5줄 안에 그 문구가 실제로 있어야 합니다. 실행 중에 값이 채워지는 자리는 `{이름}`으로 적으며("현재 버전 {버전}이 최신입니다."), 검증은 자리 표시를 뺀 나머지 글자가 순서대로 있는지 봅니다.

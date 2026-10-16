@@ -165,6 +165,8 @@
               "file",
               "password",
               "email",
+              "url",
+              "tel",
               "other"
             ]
           },
@@ -179,6 +181,15 @@
           },
           "confidence": {
             "$ref": "#/$defs/confidence"
+          },
+          "options": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "고정된 선택지(화면 문구 그대로). 근거 근처에 글자가 있어야 한다"
           }
         }
       }
@@ -212,6 +223,10 @@
           },
           "confidence": {
             "$ref": "#/$defs/confidence"
+          },
+          "section": {
+            "type": "string",
+            "description": "같은 라벨이 여러 구획에 있을 때 구분하는 구획 제목(sections의 title)"
           }
         }
       }

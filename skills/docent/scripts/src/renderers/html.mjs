@@ -277,12 +277,14 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
 
   const sections = s.sections.length ? `<h2>${T.sections}</h2><ul class="chips">${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';
   const empty = `<p class="empty">${T.none}</p>`;
+  // 같은 라벨이 여러 구획에 있을 때 어느 구획인지
+  const sectionTag = (x) => (x.section ? `<span class="field-section">${h(x.section)}</span>` : '');
   const fields = s.fields.length
     ? `<ul class="fields">
 ${s.fields
   .map(
     (f) =>
-      `<li><div class="field-head">${flag(f, T)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ''}</div></li>`,
+      `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ''}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${h(o)}</li>`).join('')}</ul>` : ''}</li>`,
   )
   .join('\n')}
 </ul>`
@@ -294,7 +296,7 @@ ${s.actions
     const next = [a.navigatesTo && `<span class="next">${T.goTo} → ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} → ${link(a.opens)}</span>`]
       .filter(Boolean)
       .join('');
-    return `<li><div class="field-head"><span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
+    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
   })
   .join('\n')}
 </ul>`
@@ -542,6 +544,9 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
 .field-name { font-weight: 650; }
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
+.field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
+.options { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0; margin: 0.45rem 0 0; }
+.options li { font-size: 0.82rem; padding: 0.05rem 0.55rem; border-radius: 999px; color: var(--muted); border: 1px dashed var(--line-strong); }
 .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-size: 0.74rem; font-weight: 500; line-height: 1; white-space: nowrap; }
 .badge.required { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: var(--accent-soft); }
 .next { font-size: 0.85rem; color: var(--muted); margin-left: auto; }

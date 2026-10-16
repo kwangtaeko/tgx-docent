@@ -27453,8 +27453,8 @@ import { join } from "node:path";
 var LANGUAGES = ["ko", "en"];
 var ko = {
   htmlLang: "ko",
-  types: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C\uBC15\uC2A4", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" },
-  typesShort: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" },
+  types: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C\uBC15\uC2A4", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "\uC8FC\uC18C(URL)", tel: "\uC804\uD654\uBC88\uD638", other: "\uAE30\uD0C0" },
+  typesShort: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "URL", tel: "\uC804\uD654", other: "\uAE30\uD0C0" },
   defaultTitle: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC",
   defaultFileName: "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC",
   noCapture: "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.",
@@ -27521,8 +27521,8 @@ var ko = {
 };
 var en = {
   htmlLang: "en",
-  types: { text: "Text", textarea: "Multi-line text", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Single choice", file: "File", password: "Password", email: "Email", other: "Other" },
-  typesShort: { text: "Text", textarea: "Multi-line", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Choice", file: "File", password: "Password", email: "Email", other: "Other" },
+  types: { text: "Text", textarea: "Multi-line text", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Single choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
+  typesShort: { text: "Text", textarea: "Multi-line", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
   defaultTitle: "User Manual",
   defaultFileName: "UserManual",
   noCapture: "Made from the source code only, without screenshots.",
@@ -28389,6 +28389,8 @@ var screen_schema_default = {
               "file",
               "password",
               "email",
+              "url",
+              "tel",
               "other"
             ]
           },
@@ -28403,6 +28405,15 @@ var screen_schema_default = {
           },
           confidence: {
             $ref: "#/$defs/confidence"
+          },
+          options: {
+            type: "array",
+            minItems: 1,
+            items: {
+              type: "string",
+              minLength: 1
+            },
+            description: "\uACE0\uC815\uB41C \uC120\uD0DD\uC9C0(\uD654\uBA74 \uBB38\uAD6C \uADF8\uB300\uB85C). \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
           }
         }
       }
@@ -28436,6 +28447,10 @@ var screen_schema_default = {
           },
           confidence: {
             $ref: "#/$defs/confidence"
+          },
+          section: {
+            type: "string",
+            description: "\uAC19\uC740 \uB77C\uBCA8\uC774 \uC5EC\uB7EC \uAD6C\uD68D\uC5D0 \uC788\uC744 \uB54C \uAD6C\uBD84\uD558\uB294 \uAD6C\uD68D \uC81C\uBAA9(sections\uC758 title)"
           }
         }
       }
@@ -28891,6 +28906,8 @@ function escapeComment(value) {
 import { readFile as readFile4, realpath } from "node:fs/promises";
 import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
+var PLACEHOLDER = /\{[^{}\s]{1,30}\}/;
+var PLACEHOLDER_GAP = 80;
 var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
 function parseEvidence(s) {
@@ -28949,7 +28966,13 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
     window2 = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
   const squash = (t) => t.replace(/\s+/g, " ").trim();
-  const found = (text) => window2.some((line2) => line2.includes(text)) || squash(window2.join(" ")).includes(squash(text));
+  const joined = squash(window2.join(" "));
+  const found = (text) => {
+    if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text))) return true;
+    const parts = squash(text).split(PLACEHOLDER);
+    if (parts.length < 2 || parts.join("").replace(/\s/g, "").length < 2) return false;
+    return new RegExp(parts.map(escapeRegExp).join(`.{0,${PLACEHOLDER_GAP}}?`)).test(joined);
+  };
   if (opts.expectText !== void 0 && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
   }
@@ -29251,15 +29274,16 @@ function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) 
   meta.push(item(T.usedBy, roles));
   const sections = s.sections.length ? `<h2>${T.sections}</h2><ul class="chips">${s.sections.map((x) => `<li>${escapeHtml(x.title)}${ev(x.evidence)}</li>`).join("")}</ul>` : "";
   const empty = `<p class="empty">${T.none}</p>`;
+  const sectionTag = (x) => x.section ? `<span class="field-section">${escapeHtml(x.section)}</span>` : "";
   const fields = s.fields.length ? `<ul class="fields">
 ${s.fields.map(
-    (f) => `<li><div class="field-head">${flag(f, T)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}<span class="badge">${escapeHtml(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ""}</div></li>`
+    (f) => `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}<span class="badge">${escapeHtml(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ""}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${escapeHtml(o)}</li>`).join("")}</ul>` : ""}</li>`
   ).join("\n")}
 </ul>` : empty;
   const actions = s.actions.length ? `<ul class="fields actions">
 ${s.actions.map((a) => {
     const next = [a.navigatesTo && `<span class="next">${T.goTo} \u2192 ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} \u2192 ${link(a.opens)}</span>`].filter(Boolean).join("");
-    return `<li><div class="field-head"><span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
+    return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
   }).join("\n")}
 </ul>` : empty;
   const messages = s.messages.length ? s.messages.map((m) => `<aside class="callout note"><p class="callout-title">${escapeHtml(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`).join("\n") : empty;
@@ -29485,6 +29509,9 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
 .field-name { font-weight: 650; }
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
+.field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
+.options { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0; margin: 0.45rem 0 0; }
+.options li { font-size: 0.82rem; padding: 0.05rem 0.55rem; border-radius: 999px; color: var(--muted); border: 1px dashed var(--line-strong); }
 .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-size: 0.74rem; font-weight: 500; line-height: 1; white-space: nowrap; }
 .badge.required { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: var(--accent-soft); }
 .next { font-size: 0.85rem; color: var(--muted); margin-left: auto; }
@@ -35145,10 +35172,11 @@ function menuLines2(input) {
   }
   return lines;
 }
+var sectionPrefix = (x) => x.section ? `[${x.section}] ` : "";
 function screenRows(s, T) {
   return [
-    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ""}`]),
-    ...s.actions.map((a) => [T.kindAction, a.label, `${low(a, T)}${a.effect}`])
+    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${sectionPrefix(f)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ""}${f.options ? ` \xB7 ${f.options.join(" / ")}` : ""}`]),
+    ...s.actions.map((a) => [T.kindAction, `${sectionPrefix(a)}${a.label}`, `${low(a, T)}${a.effect}`])
   ];
 }
 async function renderPptx(input, { diagrams, mediaDir } = {}) {
@@ -35380,7 +35408,10 @@ function evidenceChecks(s) {
   const checks = [[s.title.evidence], [s.purpose.evidence]];
   if (s.menuPath) checks.push([s.menuPath.evidence]);
   for (const x of [...s.roles, ...s.sections]) checks.push([x.evidence]);
-  for (const f of s.fields) checks.push([f.evidence, f.label]);
+  for (const f of s.fields) {
+    checks.push([f.evidence, f.label]);
+    for (const option of f.options ?? []) checks.push([f.evidence, option]);
+  }
   for (const a of s.actions) checks.push([a.evidence, a.label]);
   for (const m of s.messages) checks.push([m.evidence, m.text]);
   return checks;
