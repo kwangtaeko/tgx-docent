@@ -2,6 +2,7 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { checkEvidence } from '../lib/evidence.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { validateInventory, validateScenario, validateScreen, validateSummary } from '../lib/schema.mjs';
 import { hashFiles } from '../lib/source-hash.mjs';
 import { docentDir, readJson } from '../lib/workspace.mjs';
@@ -10,7 +11,7 @@ async function load(path, label, problems) {
   try {
     return await readJson(path);
   } catch (err) {
-    problems.push(`${label}: ${err.code === 'ENOENT' ? '파일 없음' : `JSON 형식 오류 (${err.message})`}`);
+    problems.push(`${label}: ${err.code === 'ENOENT' ? t('파일 없음') : t('JSON 형식 오류 ({0})', err.message)}`);
     return undefined;
   }
 }
@@ -34,15 +35,15 @@ async function checkScreen(projectDir, s, ids, problems) {
     const r = await checkEvidence(projectDir, ev, text === undefined ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
-  if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: 없는 부모 화면 ${s.parentId}`);
+  if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t('없는 부모 화면 {0}', s.parentId)}`);
   for (const a of s.actions) {
     for (const key of ['navigatesTo', 'opens']) {
-      if (a[key] && !ids.has(a[key])) problems.push(`${s.id}: "${a.label}"의 ${key}가 없는 화면 ${a[key]}`);
+      if (a[key] && !ids.has(a[key])) problems.push(`${s.id}: ${t('"{0}"의 {1}가 없는 화면 {2}', a.label, key, a[key])}`);
     }
   }
   try {
     if (s.sourceHash !== (await hashFiles(projectDir, s.readFiles))) {
-      problems.push(`${s.id}: 소스가 바뀌었습니다. 다시 분석하세요`);
+      problems.push(`${s.id}: ${t('소스가 바뀌었습니다. 다시 분석하세요')}`);
     }
   } catch (err) {
     problems.push(`${s.id}: ${err.message}`);
@@ -62,25 +63,25 @@ function checkSummary(summary, screens, known, problems) {
   const exists = (id) => known.has(id);
   const loaded = (id) => screens.has(id);
   const supported = (ids) => ids.some((id) => !loaded(id) || screens.get(id).purpose.confidence !== 'low');
-  const claims = [['한 줄 소개', summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
+  const claims = [[t('한 줄 소개'), summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
-    for (const id of claim.screens) if (!exists(id)) problems.push(`summary.json: "${label}"의 없는 화면 ${id}`);
-    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"를 뒷받침하는 화면이 모두 확신도 low입니다`);
+    for (const id of claim.screens) if (!exists(id)) problems.push(`summary.json: ${t('"{0}"의 없는 화면 {1}', label, id)}`);
+    if (!supported(claim.screens)) problems.push(`summary.json: ${t('"{0}"를 뒷받침하는 화면이 모두 확신도 low입니다', label)}`);
   }
   for (const wf of summary.workflows) {
     const missing = wf.steps.filter((id) => !exists(id));
     if (missing.length) {
-      problems.push(`summary.json: 워크플로우 "${wf.name}"의 없는 화면 ${missing.join(', ')}`);
+      problems.push(`summary.json: ${t('워크플로우 "{0}"의 없는 화면 {1}', wf.name, missing.join(', '))}`);
       continue;
     }
     if (new Set(wf.steps).size < 2) {
-      problems.push(`summary.json: 워크플로우 "${wf.name}"는 화면 2개 이상을 오가야 합니다`);
+      problems.push(`summary.json: ${t('워크플로우 "{0}"는 화면 2개 이상을 오가야 합니다', wf.name)}`);
       continue;
     }
     for (let i = 0; i + 1 < wf.steps.length; i++) {
       const [a, b] = [wf.steps[i], wf.steps[i + 1]];
       if (!loaded(a) || !loaded(b)) continue;
-      if (!hasEdge(screens, a, b)) problems.push(`summary.json: 워크플로우 "${wf.name}"의 ${a} → ${b} 연결이 화면 동작에 없습니다`);
+      if (!hasEdge(screens, a, b)) problems.push(`summary.json: ${t('워크플로우 "{0}"의 {1} → {2} 연결이 화면 동작에 없습니다', wf.name, a, b)}`);
     }
   }
 }
@@ -102,8 +103,8 @@ async function checkScenarios(projectDir, dir, ids, problems) {
       problems.push(`${label}: ${r.errors.join('; ')}`);
       continue;
     }
-    if (`${sc.screenId}.json` !== file) problems.push(`${label}: 파일 이름과 screenId(${sc.screenId})가 다릅니다`);
-    if (!ids.has(sc.screenId)) problems.push(`${label}: 없는 화면 ${sc.screenId}`);
+    if (`${sc.screenId}.json` !== file) problems.push(`${label}: ${t('파일 이름과 screenId({0})가 다릅니다', sc.screenId)}`);
+    if (!ids.has(sc.screenId)) problems.push(`${label}: ${t('없는 화면 {0}', sc.screenId)}`);
     for (const step of [...sc.setup, ...sc.steps]) {
       const text = step.label ?? step.text;
       const res = await checkEvidence(projectDir, step.evidence, text === undefined ? {} : { expectText: text });
@@ -129,7 +130,7 @@ export async function runValidate(projectDir, { only = [] } = {}) {
   try {
     files = (await readdir(join(dir, 'screens'))).filter((f) => f.endsWith('.json')).sort();
   } catch {
-    problems.push('screens/: 디렉터리 없음');
+    problems.push(`screens/: ${t('디렉터리 없음')}`);
   }
   for (const file of files) {
     const s = await load(join(dir, 'screens', file), `screens/${file}`, problems);
@@ -139,12 +140,12 @@ export async function runValidate(projectDir, { only = [] } = {}) {
       problems.push(`screens/${file}: ${r.errors.join('; ')}`);
       continue;
     }
-    if (`${s.id}.json` !== file) problems.push(`screens/${file}: 파일 이름과 id(${s.id})가 다릅니다`);
+    if (`${s.id}.json` !== file) problems.push(`screens/${file}: ${t('파일 이름과 id({0})가 다릅니다', s.id)}`);
     screens.set(s.id, s);
   }
   const fileIds = new Set(files.map((f) => f.replace(/\.json$/, '')));
-  for (const id of inventoryIds) if (!fileIds.has(id)) problems.push(`${id}: inventory에는 있지만 분석 결과(screens/${id}.json)가 없습니다`);
-  for (const id of fileIds) if (inventory && !inventoryIds.has(id)) problems.push(`${id}: 분석 결과는 있지만 inventory에 없습니다`);
+  for (const id of inventoryIds) if (!fileIds.has(id)) problems.push(`${id}: ${t('inventory에는 있지만 분석 결과(screens/{0}.json)가 없습니다', id)}`);
+  for (const id of fileIds) if (inventory && !inventoryIds.has(id)) problems.push(`${id}: ${t('분석 결과는 있지만 inventory에 없습니다')}`);
 
   const allIds = new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
@@ -162,7 +163,7 @@ export async function runValidate(projectDir, { only = [] } = {}) {
   const mine = (p) => shared(p) || only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
   const result = only.length ? problems.filter(mine) : problems;
   for (const id of only) {
-    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: inventory와 분석 결과 어디에도 없는 화면 ID입니다`);
+    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: ${t('inventory와 분석 결과 어디에도 없는 화면 ID입니다')}`);
   }
   return { ok: result.length === 0, problems: result };
 }

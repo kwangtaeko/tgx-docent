@@ -4,6 +4,7 @@ import { join, posix } from 'node:path';
 import { detectorByName } from '../detectors/index.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { checkEvidence } from '../lib/evidence.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { normalizeRel } from '../lib/paths.mjs';
 import { validateInventory, validateInventoryAgent } from '../lib/schema.mjs';
 import { assignIds, childId } from '../lib/screen-id.mjs';
@@ -36,7 +37,7 @@ async function collectAgentEntries(projectDir, problems) {
   try {
     data = await readJsonIfExists(join(docentDir(projectDir), 'inventory.agent.json'));
   } catch (err) {
-    problems.push(`inventory.agent.json: JSON 형식 오류 (${err.message})`);
+    problems.push(`inventory.agent.json: ${t('JSON 형식 오류 ({0})', err.message)}`);
     return [];
   }
   if (!data) return [];
@@ -59,7 +60,7 @@ async function checkEntry(projectDir, label, entry, problems) {
   }
   for (const file of files) {
     if (!(await fileExists(join(projectDir, file)))) {
-      problems.push(`${label}: 파일 없음 ${file}`);
+      problems.push(`${label}: ${t('파일 없음 {0}', file)}`);
       return undefined;
     }
   }
@@ -84,11 +85,11 @@ export async function runInventory(projectDir) {
   const appDir = app ? join(projectDir, app) : projectDir;
   const inApp = (rel) => (app ? posix.join(app, rel) : rel);
   const appOk = !app || (await fileExists(appDir));
-  if (!appOk) problems.push(`config.yaml: app 폴더 ${app}이 없습니다`);
+  if (!appOk) problems.push(`config.yaml: ${t('app 폴더 {0}이 없습니다', app)}`);
   for (const name of appOk ? config.detectors : []) {
     const detector = detectorByName(name);
     if (!detector) {
-      problems.push(`config.yaml: 알 수 없는 감지기 ${name}`);
+      problems.push(`config.yaml: ${t('알 수 없는 감지기 {0}', name)}`);
       continue;
     }
     for (const w of (await detector.warnings?.(appDir)) ?? []) problems.push(`${name}: ${w}`);
@@ -114,7 +115,7 @@ export async function runInventory(projectDir) {
     if (!ids.has(route) || ids.get(route) === id) continue;
     const owner = [...ids].find(([r, x]) => x === id && r !== route);
     if (owner) {
-      problems.push(`config.yaml: idMap의 ${route} → ${id}는 ${owner[0]} 화면의 ID와 겹쳐 적용하지 않았습니다`);
+      problems.push(`config.yaml: ${t('idMap의 {0} → {1}는 {2} 화면의 ID와 겹쳐 적용하지 않았습니다', route, id, owner[0])}`);
       continue;
     }
     ids.set(route, id);
@@ -126,7 +127,7 @@ export async function runInventory(projectDir) {
     if (!ids.has(entry.parentRoute)) {
       // 제외 설정으로 빠진 부모는 문제로 보지 않는다
       const excluded = (include.length && !matchesAny(entry.parentRoute, include)) || matchesAny(entry.parentRoute, exclude);
-      if (!excluded) problems.push(`${label}: 부모 화면 ${entry.parentRoute} 없음`);
+      if (!excluded) problems.push(`${label}: ${t('부모 화면 {0} 없음', entry.parentRoute)}`);
       continue;
     }
     const files = await checkEntry(projectDir, label, entry, problems);
@@ -170,7 +171,7 @@ export async function runInventory(projectDir) {
 
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
-  if (!valid) throw new Error(`inventory.json 스키마 오류: ${errors.join('; ')}`);
+  if (!valid) throw new Error(t('inventory.json 스키마 오류: {0}', errors.join('; ')));
   await writeJson(join(docentDir(projectDir), 'inventory.json'), inventory);
   return { inventory, problems };
 }

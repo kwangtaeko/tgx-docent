@@ -3,6 +3,7 @@
 import { access, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { mediaPaths } from '../lib/media.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { docentDir, readJsonIfExists } from '../lib/workspace.mjs';
 import { runInventory } from './inventory.mjs';
 import { runPending } from './pending.mjs';
@@ -49,7 +50,7 @@ export async function runUpdate(projectDir) {
       if (reanalyze.some((x) => x.id === id)) continue;
       const s = await readJsonIfExists(join(dir, 'screens', `${id}.json`)).catch(() => undefined);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
-      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: '삭제된 화면 참조' });
+      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: t('삭제된 화면 참조') });
     }
   }
   const rescenario = await runScenarios(projectDir);

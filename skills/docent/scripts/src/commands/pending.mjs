@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { validateScreen } from '../lib/schema.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { hashFiles } from '../lib/source-hash.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { parseReview } from './review.mjs';
@@ -24,11 +25,11 @@ export async function runPending(projectDir) {
       screen = null;
     }
     if (screen === undefined) {
-      pending.push({ id, reason: '분석 결과 없음' });
+      pending.push({ id, reason: t('분석 결과 없음') });
       continue;
     }
     if (!validateScreen(screen).valid) {
-      pending.push({ id, reason: '분석 결과를 읽을 수 없음' });
+      pending.push({ id, reason: t('분석 결과를 읽을 수 없음') });
       continue;
     }
     let current;
@@ -38,11 +39,11 @@ export async function runPending(projectDir) {
       current = undefined;
     }
     if (current !== screen.sourceHash) {
-      pending.push({ id, reason: '소스 변경' });
+      pending.push({ id, reason: t('소스 변경') });
       continue;
     }
     const answered = [...answers].filter(([key, v]) => key.startsWith(`${id}|`) && v.checked && v.answer).length;
-    if (answered) pending.push({ id, reason: `확인 항목 답변 ${answered}건` });
+    if (answered) pending.push({ id, reason: t('확인 항목 답변 {0}건', answered) });
   }
   return pending;
 }

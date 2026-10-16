@@ -107,3 +107,17 @@ test('--app은 역슬래시도 받고, YAML에 따옴표로 쓴다. 설정이 �
   assert.equal((await loadConfig(dir)).app, 'apps/yes');
   assert.equal((await runInit(dir, { app: 'apps/other' })).appIgnored, true);
 });
+
+test('명령줄이 영어(DOCENT_LANG=en)면 config.yaml 기본 언어도 en, 주석도 영어', async () => {
+  const { setCliLanguage } = await import('../../skills/docent/scripts/src/lib/cli-text.mjs');
+  const dir = await project({ 'package.json': '{"dependencies":{"next":"15"}}' });
+  setCliLanguage('en');
+  try {
+    await runInit(dir);
+  } finally {
+    setCliLanguage('ko');
+  }
+  const yaml = await readFile(join(dir, '.docent', 'config.yaml'), 'utf8');
+  assert.match(yaml, /^language: en {2}# output language/m);
+  assert.equal((await loadConfig(dir)).language, 'en');
+});

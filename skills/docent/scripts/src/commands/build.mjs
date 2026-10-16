@@ -2,6 +2,7 @@
 import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { loadConfig } from '../lib/config.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { projectDate } from '../lib/project-date.mjs';
 import { docentDir, readJson } from '../lib/workspace.mjs';
 import { renderSite } from '../renderers/html.mjs';
@@ -83,7 +84,7 @@ const safeFileName = (name, language) => name.replace(/[\\/:*?"<>|]/g, '_').repl
 
 export async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
   const { ok, problems } = await runValidate(projectDir);
-  if (!ok) throw new Error(`검증에 실패해 빌드를 멈췄습니다:\n${problems.map((p) => `- ${p}`).join('\n')}`);
+  if (!ok) throw new Error(`${t('검증에 실패해 빌드를 멈췄습니다:')}\n${problems.map((p) => `- ${p}`).join('\n')}`);
 
   const config = await loadConfig(projectDir);
   const options = resolveOutputOptions(config, { preset, formats });
@@ -105,7 +106,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
   };
   if (options.preset === 'delivery') {
     const n = uncertainCount(screens);
-    if (n) warnings.push(`확인 필요 항목 ${n}건이 남아 있습니다(.docent/review.md). 납품 전에 확인하세요`);
+    if (n) warnings.push(t('확인 필요 항목 {0}건이 남아 있습니다(.docent/review.md). 납품 전에 확인하세요', n));
   }
 
   const outDir = join(dir, 'out');
@@ -146,11 +147,11 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
     try {
       const base = safeFileName(options.title, options.language);
       if (wants('pdf')) {
-        if (!browser) skipped.push({ format: 'pdf', reason: 'Playwright가 없어 PDF를 만들지 못했습니다(docent runtime install)' });
+        if (!browser) skipped.push({ format: 'pdf', reason: t('Playwright가 없어 PDF를 만들지 못했습니다(docent runtime install)') });
         else {
           await put(outDir, 'html/print.html', renderPrint(input), files);
           const { diagramsReady } = await renderPdf(join(outDir, 'html', 'print.html'), join(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
-          if (!diagramsReady && input.summary.workflows.length) warnings.push('PDF의 워크플로우 다이어그램이 준비되지 않아 Mermaid 원문이 들어갔을 수 있습니다');
+          if (!diagramsReady && input.summary.workflows.length) warnings.push(t('PDF의 워크플로우 다이어그램이 준비되지 않아 Mermaid 원문이 들어갔을 수 있습니다'));
           files.push(`${base}.pdf`);
         }
       }
@@ -159,9 +160,9 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
         if (browser) {
           diagrams = await renderDiagrams(browser, input, { assetsDir });
           const failed = diagrams.filter((d) => !d).length;
-          if (failed) warnings.push(`워크플로우 다이어그램 ${failed}개를 그리지 못해 단계 목록만 넣었습니다`);
+          if (failed) warnings.push(t('워크플로우 다이어그램 {0}개를 그리지 못해 단계 목록만 넣었습니다', failed));
         }
-        else if (input.summary.workflows.length) warnings.push('Playwright가 없어 PPT의 워크플로우 다이어그램 대신 단계 목록을 넣었습니다');
+        else if (input.summary.workflows.length) warnings.push(t('Playwright가 없어 PPT의 워크플로우 다이어그램 대신 단계 목록을 넣었습니다'));
         const buf = await renderPptx(input, { diagrams, mediaDir: join(dir, 'media') });
         await writeFile(join(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);

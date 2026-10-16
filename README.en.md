@@ -56,6 +56,7 @@ The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and 
 - docent does not change your project's files. It writes only to `.docent/`
 - docent runs install and start commands only after you approve them (`docent run approve`). It installs Playwright and Chromium for screenshots into `~/.cache/docent/runtime` only after you agree. Record with test accounts and test data
 - Requires Node.js 20.10 or later
+- Command-line messages follow `language` in `config.yaml`. Set `DOCENT_LANG=en` (or `ko`) to choose them yourself; running `init` with `DOCENT_LANG=en` also starts the outputs in English
 - Other agents (such as Codex) can copy `skills/docent/` and follow `SKILL.md`. They don't get the secret-file hook, so they rely on the rules in `SKILL.md` alone
 
 ## Development

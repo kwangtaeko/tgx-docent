@@ -776,13 +776,13 @@ var require_createNode = __commonJS({
     var defaultTagPrefix = "tag:yaml.org,2002:";
     function findTagObject(value, tagName, tags) {
       if (tagName) {
-        const match = tags.filter((t) => t.tag === tagName);
-        const tagObj = match.find((t) => !t.format) ?? match[0];
+        const match = tags.filter((t2) => t2.tag === tagName);
+        const tagObj = match.find((t2) => !t2.format) ?? match[0];
         if (!tagObj)
           throw new Error(`Tag ${tagName} not found`);
         return tagObj;
       }
-      return tags.find((t) => t.identify?.(value) && !t.format);
+      return tags.find((t2) => t2.identify?.(value) && !t2.format);
     }
     function createNode(value, tagName, ctx) {
       if (identity.isDocument(value))
@@ -1329,9 +1329,9 @@ ${indent}`) + "'";
         start = start.replace(/\n+/g, `$&${indent}`);
       }
       const indentSize = indent ? "2" : "1";
-      let header = (startWithSpace ? indentSize : "") + chomp;
+      let header2 = (startWithSpace ? indentSize : "") + chomp;
       if (comment) {
-        header += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
+        header2 += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
         if (onComment)
           onComment();
       }
@@ -1346,11 +1346,11 @@ ${indent}`) + "'";
         }
         const body = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent, foldFlowLines.FOLD_BLOCK, foldOptions);
         if (!literalFallback)
-          return `>${header}
+          return `>${header2}
 ${indent}${body}`;
       }
       value = value.replace(/\n+/g, `$&${indent}`);
-      return `|${header}
+      return `|${header2}
 ${indent}${start}${value}${end}`;
     }
     function plainString(item, ctx, onComment, onChompKeep) {
@@ -1409,10 +1409,10 @@ ${indent}`);
       let res = _stringify(type);
       if (res === null) {
         const { defaultKeyType, defaultStringType } = ctx.options;
-        const t = implicitKey && defaultKeyType || defaultStringType;
-        res = _stringify(t);
+        const t2 = implicitKey && defaultKeyType || defaultStringType;
+        res = _stringify(t2);
         if (res === null)
-          throw new Error(`Unsupported default string type ${t}`);
+          throw new Error(`Unsupported default string type ${t2}`);
       }
       return res;
     }
@@ -1472,24 +1472,24 @@ var require_stringify = __commonJS({
     }
     function getTagObject(tags, item) {
       if (item.tag) {
-        const match = tags.filter((t) => t.tag === item.tag);
+        const match = tags.filter((t2) => t2.tag === item.tag);
         if (match.length > 0)
-          return match.find((t) => t.format === item.format) ?? match[0];
+          return match.find((t2) => t2.format === item.format) ?? match[0];
       }
       let tagObj = void 0;
       let obj;
       if (identity.isScalar(item)) {
         obj = item.value;
-        let match = tags.filter((t) => t.identify?.(obj));
+        let match = tags.filter((t2) => t2.identify?.(obj));
         if (match.length > 1) {
-          const testMatch = match.filter((t) => t.test);
+          const testMatch = match.filter((t2) => t2.test);
           if (testMatch.length > 0)
             match = testMatch;
         }
-        tagObj = match.find((t) => t.format === item.format) ?? match.find((t) => !t.format);
+        tagObj = match.find((t2) => t2.format === item.format) ?? match.find((t2) => !t2.format);
       } else {
         obj = item;
-        tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
+        tagObj = tags.find((t2) => t2.nodeClass && obj instanceof t2.nodeClass);
       }
       if (!tagObj) {
         const name5 = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
@@ -4418,7 +4418,7 @@ var require_compose_collection = __commonJS({
       if (!tagToken || !tagName || tagName === "!" || tagName === YAMLMap.YAMLMap.tagName && expType === "map" || tagName === YAMLSeq.YAMLSeq.tagName && expType === "seq") {
         return resolveCollection(CN, ctx, token, onError, tagName);
       }
-      let tag = ctx.schema.tags.find((t) => t.tag === tagName && t.collection === expType);
+      let tag = ctx.schema.tags.find((t2) => t2.tag === tagName && t2.collection === expType);
       if (!tag) {
         const kt = ctx.schema.knownTags[tagName];
         if (kt?.collection === expType) {
@@ -4453,10 +4453,10 @@ var require_resolve_block_scalar = __commonJS({
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
       const start = scalar.offset;
-      const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
-      if (!header)
+      const header2 = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
+      if (!header2)
         return { value: "", type: null, comment: "", range: [start, start, start] };
-      const type = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
+      const type = header2.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
       const lines = scalar.source ? splitLines(scalar.source) : [];
       let chompStart = lines.length;
       for (let i = lines.length - 1; i >= 0; --i) {
@@ -4467,26 +4467,26 @@ var require_resolve_block_scalar = __commonJS({
           break;
       }
       if (chompStart === 0) {
-        const value2 = header.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
-        let end2 = start + header.length;
+        const value2 = header2.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
+        let end2 = start + header2.length;
         if (scalar.source)
           end2 += scalar.source.length;
-        return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
+        return { value: value2, type, comment: header2.comment, range: [start, end2, end2] };
       }
-      let trimIndent = scalar.indent + header.indent;
-      let offset = scalar.offset + header.length;
+      let trimIndent = scalar.indent + header2.indent;
+      let offset = scalar.offset + header2.length;
       let contentStart = 0;
       for (let i = 0; i < chompStart; ++i) {
         const [indent, content] = lines[i];
         if (content === "" || content === "\r") {
-          if (header.indent === 0 && indent.length > trimIndent)
+          if (header2.indent === 0 && indent.length > trimIndent)
             trimIndent = indent.length;
         } else {
           if (indent.length < trimIndent) {
             const message = "Block scalars with more-indented leading empty lines must use an explicit indentation indicator";
             onError(offset + indent.length, "MISSING_CHAR", message);
           }
-          if (header.indent === 0)
+          if (header2.indent === 0)
             trimIndent = indent.length;
           contentStart = i;
           if (trimIndent === 0 && !ctx.atRoot) {
@@ -4513,7 +4513,7 @@ var require_resolve_block_scalar = __commonJS({
         if (crlf)
           content = content.slice(0, -1);
         if (content && indent.length < trimIndent) {
-          const src = header.indent ? "explicit indentation indicator" : "first line";
+          const src = header2.indent ? "explicit indentation indicator" : "first line";
           const message = `Block scalar lines must not be less indented than their ${src}`;
           onError(offset - content.length - (crlf ? 2 : 1), "BAD_INDENT", message);
           indent = "";
@@ -4540,7 +4540,7 @@ var require_resolve_block_scalar = __commonJS({
           prevMoreIndented = false;
         }
       }
-      switch (header.chomp) {
+      switch (header2.chomp) {
         case "-":
           break;
         case "+":
@@ -4552,8 +4552,8 @@ var require_resolve_block_scalar = __commonJS({
         default:
           value += "\n";
       }
-      const end = start + header.length + scalar.source.length;
-      return { value, type, comment: header.comment, range: [start, end, end] };
+      const end = start + header2.length + scalar.source.length;
+      return { value, type, comment: header2.comment, range: [start, end, end] };
     }
     function parseBlockScalarHeader({ offset, props }, strict, onError) {
       if (props[0].type !== "block-scalar-header") {
@@ -5392,10 +5392,10 @@ var require_cst_scalar = __commonJS({
             type = "QUOTE_DOUBLE";
             break;
           case "block-scalar": {
-            const header = token.props[0];
-            if (header.type !== "block-scalar-header")
+            const header2 = token.props[0];
+            if (header2.type !== "block-scalar-header")
               throw new Error("Invalid block scalar header");
-            type = header.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
+            type = header2.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
             break;
           }
           default:
@@ -5427,10 +5427,10 @@ var require_cst_scalar = __commonJS({
       const head = source.substring(0, he);
       const body = source.substring(he + 1) + "\n";
       if (token.type === "block-scalar") {
-        const header = token.props[0];
-        if (header.type !== "block-scalar-header")
+        const header2 = token.props[0];
+        if (header2.type !== "block-scalar-header")
           throw new Error("Invalid block scalar header");
-        header.source = head;
+        header2.source = head;
         token.source = body;
       } else {
         const { offset } = token;
@@ -8880,7 +8880,7 @@ var require_dataType = __commonJS({
     exports.coerceAndCheckDataType = coerceAndCheckDataType;
     var COERCIBLE = /* @__PURE__ */ new Set(["string", "number", "integer", "boolean", "null"]);
     function coerceToTypes(types, coerceTypes) {
-      return coerceTypes ? types.filter((t) => COERCIBLE.has(t) || coerceTypes === "array" && t === "array") : [];
+      return coerceTypes ? types.filter((t2) => COERCIBLE.has(t2) || coerceTypes === "array" && t2 === "array") : [];
     }
     function coerceData(it, types, coerceTo) {
       const { gen, data, opts } = it;
@@ -8890,9 +8890,9 @@ var require_dataType = __commonJS({
         gen.if((0, codegen_1._)`${dataType} == 'object' && Array.isArray(${data}) && ${data}.length == 1`, () => gen.assign(data, (0, codegen_1._)`${data}[0]`).assign(dataType, (0, codegen_1._)`typeof ${data}`).if(checkDataTypes(types, data, opts.strictNumbers), () => gen.assign(coerced, data)));
       }
       gen.if((0, codegen_1._)`${coerced} !== undefined`);
-      for (const t of coerceTo) {
-        if (COERCIBLE.has(t) || t === "array" && opts.coerceTypes === "array") {
-          coerceSpecificType(t);
+      for (const t2 of coerceTo) {
+        if (COERCIBLE.has(t2) || t2 === "array" && opts.coerceTypes === "array") {
+          coerceSpecificType(t2);
         }
       }
       gen.else();
@@ -8902,8 +8902,8 @@ var require_dataType = __commonJS({
         gen.assign(data, coerced);
         assignParentData(it, coerced);
       });
-      function coerceSpecificType(t) {
-        switch (t) {
+      function coerceSpecificType(t2) {
+        switch (t2) {
           case "string":
             gen.elseIf((0, codegen_1._)`${dataType} == "number" || ${dataType} == "boolean"`).assign(coerced, (0, codegen_1._)`"" + ${data}`).elseIf((0, codegen_1._)`${data} === null`).assign(coerced, (0, codegen_1._)`""`);
             return;
@@ -8975,8 +8975,8 @@ var require_dataType = __commonJS({
       }
       if (types.number)
         delete types.integer;
-      for (const t in types)
-        cond = (0, codegen_1.and)(cond, checkDataType(t, data, strictNums, correct));
+      for (const t2 in types)
+        cond = (0, codegen_1.and)(cond, checkDataType(t2, data, strictNums, correct));
       return cond;
     }
     exports.checkDataTypes = checkDataTypes;
@@ -9891,9 +9891,9 @@ var require_validate = __commonJS({
         it.dataTypes = types;
         return;
       }
-      types.forEach((t) => {
-        if (!includesType(it.dataTypes, t)) {
-          strictTypesError(it, `type "${t}" not allowed by context "${it.dataTypes.join(",")}"`);
+      types.forEach((t2) => {
+        if (!includesType(it.dataTypes, t2)) {
+          strictTypesError(it, `type "${t2}" not allowed by context "${it.dataTypes.join(",")}"`);
         }
       });
       narrowSchemaTypes(it, types);
@@ -9909,7 +9909,7 @@ var require_validate = __commonJS({
         const rule = rules[keyword];
         if (typeof rule == "object" && (0, applicability_1.shouldUseRule)(it.schema, rule)) {
           const { type } = rule.definition;
-          if (type.length && !type.some((t) => hasApplicableType(ts, t))) {
+          if (type.length && !type.some((t2) => hasApplicableType(ts, t2))) {
             strictTypesError(it, `missing type "${type.join(",")}" for keyword "${keyword}"`);
           }
         }
@@ -9918,15 +9918,15 @@ var require_validate = __commonJS({
     function hasApplicableType(schTs, kwdT) {
       return schTs.includes(kwdT) || kwdT === "number" && schTs.includes("integer");
     }
-    function includesType(ts, t) {
-      return ts.includes(t) || t === "integer" && ts.includes("number");
+    function includesType(ts, t2) {
+      return ts.includes(t2) || t2 === "integer" && ts.includes("number");
     }
     function narrowSchemaTypes(it, withTypes) {
       const ts = [];
-      for (const t of it.dataTypes) {
-        if (includesType(withTypes, t))
-          ts.push(t);
-        else if (withTypes.includes("integer") && t === "number")
+      for (const t2 of it.dataTypes) {
+        if (includesType(withTypes, t2))
+          ts.push(t2);
+        else if (withTypes.includes("integer") && t2 === "number")
           ts.push("integer");
       }
       it.dataTypes = ts;
@@ -11934,7 +11934,7 @@ var require_core = __commonJS({
           type: (0, dataType_1.getJSONTypes)(def.type),
           schemaType: (0, dataType_1.getJSONTypes)(def.schemaType)
         };
-        (0, util_1.eachItem)(keyword, definition.type.length === 0 ? (k) => addRule.call(this, k, definition) : (k) => definition.type.forEach((t) => addRule.call(this, k, definition, t)));
+        (0, util_1.eachItem)(keyword, definition.type.length === 0 ? (k) => addRule.call(this, k, definition) : (k) => definition.type.forEach((t2) => addRule.call(this, k, definition, t2)));
         return this;
       }
       getKeyword(keyword) {
@@ -12133,7 +12133,7 @@ var require_core = __commonJS({
       if (dataType && post)
         throw new Error('keyword with "post" flag cannot have "type"');
       const { RULES } = this;
-      let ruleGroup = post ? RULES.post : RULES.rules.find(({ type: t }) => t === dataType);
+      let ruleGroup = post ? RULES.post : RULES.rules.find(({ type: t2 }) => t2 === dataType);
       if (!ruleGroup) {
         ruleGroup = { type: dataType, rules: [] };
         RULES.rules.push(ruleGroup);
@@ -12681,7 +12681,7 @@ var require_uniqueItems = __commonJS({
           gen.if((0, codegen_1._)`${i} > 1`, () => (canOptimize() ? loopN : loopN2)(i, j));
         }
         function canOptimize() {
-          return itemTypes.length > 0 && !itemTypes.some((t) => t === "object" || t === "array");
+          return itemTypes.length > 0 && !itemTypes.some((t2) => t2 === "object" || t2 === "array");
         }
         function loopN(i, j) {
           const item = gen.name("item");
@@ -20623,18 +20623,18 @@ var require_crc32 = __commonJS({
     }
     var crcTable = makeTable();
     function crc32(crc, buf, len, pos) {
-      var t = crcTable, end = pos + len;
+      var t2 = crcTable, end = pos + len;
       crc = crc ^ -1;
       for (var i = pos; i < end; i++) {
-        crc = crc >>> 8 ^ t[(crc ^ buf[i]) & 255];
+        crc = crc >>> 8 ^ t2[(crc ^ buf[i]) & 255];
       }
       return crc ^ -1;
     }
     function crc32str(crc, str, len, pos) {
-      var t = crcTable, end = pos + len;
+      var t2 = crcTable, end = pos + len;
       crc = crc ^ -1;
       for (var i = pos; i < end; i++) {
-        crc = crc >>> 8 ^ t[(crc ^ str.charCodeAt(i)) & 255];
+        crc = crc >>> 8 ^ t2[(crc ^ str.charCodeAt(i)) & 255];
       }
       return crc ^ -1;
     }
@@ -21239,9 +21239,9 @@ var require_trees = __commonJS({
       s.bi_buf = 0;
       s.bi_valid = 0;
     }
-    function copy_block(s, buf, len, header) {
+    function copy_block(s, buf, len, header2) {
       bi_windup(s);
-      if (header) {
+      if (header2) {
         put_short(s, len);
         put_short(s, ~len);
       }
@@ -21629,10 +21629,10 @@ var require_crc322 = __commonJS({
     }
     var crcTable = makeTable();
     function crc32(crc, buf, len, pos) {
-      var t = crcTable, end = pos + len;
+      var t2 = crcTable, end = pos + len;
       crc ^= -1;
       for (var i = pos; i < end; i++) {
-        crc = crc >>> 8 ^ t[(crc ^ buf[i]) & 255];
+        crc = crc >>> 8 ^ t2[(crc ^ buf[i]) & 255];
       }
       return crc ^ -1;
     }
@@ -22425,7 +22425,7 @@ var require_deflate = __commonJS({
             s.status = EXTRA_STATE;
           }
         } else {
-          var header = Z_DEFLATED + (s.w_bits - 8 << 4) << 8;
+          var header2 = Z_DEFLATED + (s.w_bits - 8 << 4) << 8;
           var level_flags = -1;
           if (s.strategy >= Z_HUFFMAN_ONLY || s.level < 2) {
             level_flags = 0;
@@ -22436,13 +22436,13 @@ var require_deflate = __commonJS({
           } else {
             level_flags = 3;
           }
-          header |= level_flags << 6;
+          header2 |= level_flags << 6;
           if (s.strstart !== 0) {
-            header |= PRESET_DICT;
+            header2 |= PRESET_DICT;
           }
-          header += 31 - header % 31;
+          header2 += 31 - header2 % 31;
           s.status = BUSY_STATE;
-          putShortMSB(s, header);
+          putShortMSB(s, header2);
           if (s.strstart !== 0) {
             putShortMSB(s, strm.adler >>> 16);
             putShortMSB(s, strm.adler & 65535);
@@ -25258,21 +25258,21 @@ var require_ZipFileWorker = __commonJS({
         decToHex(unicodeCommentExtraField.length, 2) + // content
         unicodeCommentExtraField;
       }
-      var header = "";
-      header += "\n\0";
-      header += decToHex(bitflag, 2);
-      header += compression.magic;
-      header += decToHex(dosTime, 2);
-      header += decToHex(dosDate, 2);
-      header += decToHex(dataInfo.crc32, 4);
-      header += decToHex(dataInfo.compressedSize, 4);
-      header += decToHex(dataInfo.uncompressedSize, 4);
-      header += decToHex(encodedFileName.length, 2);
-      header += decToHex(extraFields.length, 2);
-      var fileRecord = signature.LOCAL_FILE_HEADER + header + encodedFileName + extraFields;
+      var header2 = "";
+      header2 += "\n\0";
+      header2 += decToHex(bitflag, 2);
+      header2 += compression.magic;
+      header2 += decToHex(dosTime, 2);
+      header2 += decToHex(dosDate, 2);
+      header2 += decToHex(dataInfo.crc32, 4);
+      header2 += decToHex(dataInfo.compressedSize, 4);
+      header2 += decToHex(dataInfo.uncompressedSize, 4);
+      header2 += decToHex(encodedFileName.length, 2);
+      header2 += decToHex(extraFields.length, 2);
+      var fileRecord = signature.LOCAL_FILE_HEADER + header2 + encodedFileName + extraFields;
       var dirRecord = signature.CENTRAL_FILE_HEADER + // version made by (00: DOS)
       decToHex(versionMadeBy, 2) + // file header (common to file and central directory)
-      header + // file comment length
+      header2 + // file comment length
       decToHex(encodedComment.length, 2) + // disk number start
       "\0\0\0\0" + // external file attributes
       decToHex(extFileAttr, 4) + // relative offset of local header
@@ -27473,8 +27473,8 @@ var ko = {
   revisionHead: ["\uBC84\uC804", "\uB0A0\uC9DC", "\uC791\uC131\uC790", "\uB0B4\uC6A9"],
   noRoles: "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C",
   preview: "\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30",
-  demoAlt: (t) => `${t} \uC870\uC791 \uC608\uC2DC`,
-  shotAlt: (t) => `${t} \uD654\uBA74`,
+  demoAlt: (t2) => `${t2} \uC870\uC791 \uC608\uC2DC`,
+  shotAlt: (t2) => `${t2} \uD654\uBA74`,
   statScreens: "\uD654\uBA74",
   statWorkflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
   statRoles: "\uC5ED\uD560",
@@ -27482,7 +27482,7 @@ var ko = {
   roles: "\uC0AC\uC6A9\uC790 \uC5ED\uD560",
   menu: "\uBA54\uB274 \uAD6C\uC870",
   seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
-  childOf: (t) => `${t}\uC758 \uD558\uC704 \uD654\uBA74`,
+  childOf: (t2) => `${t2}\uC758 \uD558\uC704 \uD654\uBA74`,
   viewNote: "\uBA54\uB274\uB85C \uC804\uD658",
   messageHead: ["\uBB38\uAD6C", "\uB098\uC624\uB294 \uB54C"],
   totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
@@ -27542,8 +27542,8 @@ var en = {
   revisionHead: ["Version", "Date", "Author", "Changes"],
   noRoles: "No roles found",
   preview: "Screen previews",
-  demoAlt: (t) => `${t} walkthrough`,
-  shotAlt: (t) => `${t} screen`,
+  demoAlt: (t2) => `${t2} walkthrough`,
+  shotAlt: (t2) => `${t2} screen`,
   statScreens: "Screens",
   statWorkflows: "Workflows",
   statRoles: "Roles",
@@ -27551,7 +27551,7 @@ var en = {
   roles: "User roles",
   menu: "Menu structure",
   seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
-  childOf: (t) => `Inside ${t}`,
+  childOf: (t2) => `Inside ${t2}`,
   viewNote: "switched from the menu",
   messageHead: ["Message", "When"],
   totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
@@ -27589,18 +27589,283 @@ var en = {
 };
 var STRINGS = { ko, en };
 var languageOf = (input) => input?.options?.language ?? "ko";
-var stringsFor = (language) => typeof language === "string" && Object.hasOwn(STRINGS, language) ? STRINGS[language] : ko;
+var stringsFor = (language2) => typeof language2 === "string" && Object.hasOwn(STRINGS, language2) ? STRINGS[language2] : ko;
 var textOf = (input) => stringsFor(languageOf(input));
+
+// skills/docent/scripts/src/lib/cli-text/commands-a.mjs
+var commands_a_default = {
+  // commands/validate.mjs
+  "\uD30C\uC77C \uC5C6\uC74C": "File not found",
+  "JSON \uD615\uC2DD \uC624\uB958 ({0})": "Invalid JSON ({0})",
+  "\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}": "Parent screen does not exist: {0}",
+  '"{0}"\uC758 {1}\uAC00 \uC5C6\uB294 \uD654\uBA74 {2}': '{1} of "{0}" points to a screen that does not exist: {2}',
+  "\uC18C\uC2A4\uAC00 \uBC14\uB00C\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uBD84\uC11D\uD558\uC138\uC694": "Source has changed. Analyze it again",
+  "\uD55C \uC904 \uC18C\uAC1C": "One-liner",
+  '"{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': '"{0}" refers to a screen that does not exist: {1}',
+  '"{0}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4': 'All screens backing "{0}" have low confidence',
+  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': 'Workflow "{0}" refers to screens that do not exist: {1}',
+  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4': 'Workflow "{0}" must move between at least 2 screens',
+  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Workflow "{0}": no screen action links {1} \u2192 {2}',
+  "\uD30C\uC77C \uC774\uB984\uACFC screenId({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match screenId ({0})",
+  "\uC5C6\uB294 \uD654\uBA74 {0}": "Screen does not exist: {0}",
+  "\uB514\uB809\uD130\uB9AC \uC5C6\uC74C": "Directory not found",
+  "\uD30C\uC77C \uC774\uB984\uACFC id({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match id ({0})",
+  "inventory\uC5D0\uB294 \uC788\uC9C0\uB9CC \uBD84\uC11D \uACB0\uACFC(screens/{0}.json)\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "In inventory but has no analysis result (screens/{0}.json)",
+  "\uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Has an analysis result but is not in inventory",
+  "inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4": "Screen ID not found in inventory or analysis results",
+  // commands/review.mjs (review.md)
+  "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9": "# Review items",
+  "> docent\uAC00 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4. \uB2F5\uC744 \uC801\uACE0 \uCCB4\uD06C\uD55C \uB4A4 `/docent-analyze`\uB97C \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74 \uBC18\uC601\uB429\uB2C8\uB2E4.": "> Things docent could not confirm from the source alone. Write an answer, check the box, and run `/docent-analyze` again to apply it.",
+  " \uB2F5:": " Answer:",
+  "\uBAA9\uC801 \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {0} ({1})": "Purpose \u2014 low confidence: {0} ({1})",
+  "\uC5ED\uD560 {0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C ({1})": "Role {0} \u2014 low confidence ({1})",
+  "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: \uC785\uB825 \uD56D\uBAA9 ({1})": "{0} \u2014 low confidence: input field ({1})",
+  "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {1} ({2})": "{0} \u2014 low confidence: {1} ({2})",
+  "\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: {0}": "Path not in the screen list: {0}",
+  "\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: {0} ({1})": "Screen not reachable by links in the app: {0} ({1})",
+  "\uACBD\uB85C \uC5C6\uC74C": "no path",
+  "{0} \uCEA1\uCC98 \uC2E4\uD328: {1} (media/fail/{0}.png)": "{0} capture failed: {1} (media/fail/{0}.png)",
+  "{0} \uB179\uD654 \uC2E4\uD328: {1}{2} (media/fail/{0}.png)": "{0} recording failed: {1}{2} (media/fail/{0}.png)",
+  "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ": "step {0} \u2014 ",
+  "## \uCEA1\uCC98\xB7\uB179\uD654 \uC2E4\uD328": "## Capture and recording failures",
+  "## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870": "## Running app check",
+  "\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No review items.",
+  // commands/pending.mjs
+  "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C": "No analysis result",
+  "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C": "Analysis result is unreadable",
+  "\uC18C\uC2A4 \uBCC0\uACBD": "Source changed",
+  "\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 {0}\uAC74": "{0} review item(s) answered",
+  // commands/update.mjs
+  "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870": "Refers to a removed screen",
+  // commands/scenarios.mjs
+  "\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694": "Capture path needed",
+  "GIF \uB300\uC0C1": "GIF target",
+  "\uB0A1\uC74C": "Outdated",
+  // commands/inventory.mjs
+  "\uD30C\uC77C \uC5C6\uC74C {0}": "File not found: {0}",
+  "app \uD3F4\uB354 {0}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "app folder not found: {0}",
+  "\uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 {0}": "Unknown detector: {0}",
+  "idMap\uC758 {0} \u2192 {1}\uB294 {2} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4": "idMap {0} \u2192 {1} not applied: the ID is already used by screen {2}",
+  "\uBD80\uBAA8 \uD654\uBA74 {0} \uC5C6\uC74C": "Parent screen not found: {0}",
+  "inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: {0}": "inventory.json schema error: {0}",
+  // commands/init.mjs (.gitignore, config.yaml)
+  "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "# docent: do not commit login sessions, outputs or captures (they may show real data)",
+  "--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: {0}": "--app must be a folder inside the project: {0}",
+  "--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "--app folder not found: {0}",
+  "# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694": "# docent settings \u2014 see the comments below and references/run-guide.md in the docent skill for each field",
+  "language: {0}  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)": "language: {0}  # output language: ko Korean | en English (set before screen analysis)",
+  "# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)": "# app folder to document in a monorepo (relative to the project root)",
+  "# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)": "# date: 2026-01-01  # date shown on outputs (default: last commit date)",
+  "# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):": "# apps that need login (write environment variable names only, never values):",
+  "#     - label: \uC544\uC774\uB514": "#     - label: Username",
+  "#     - label: \uBE44\uBC00\uBC88\uD638": "#     - label: Password",
+  "#   submit: \uB85C\uADF8\uC778": "#   submit: Log in",
+  "# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):": "# elements to blur before capture and recording (CSS selectors):",
+  "# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):": "# outputs (preset: delivery | handover | portfolio, formats: html readme pdf pptx):",
+  "#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate": "#   theme: indigo  # color theme: indigo | blue | emerald | rose | slate",
+  "#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC": "#   title: User Manual",
+  '#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)': '#   projectName: ""  # name shown on outputs (empty: product name or package.json name)',
+  '#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }': '#     - { version: "1.0", date: "2026-10-14", author: "", note: "Initial version" }',
+  "# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):": "# screens to make GIFs for (default: screens with button actions):",
+  // commands/build.mjs
+  "\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:": "Build stopped because validation failed:",
+  "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694": "{0} review item(s) remain (.docent/review.md). Check them before delivery",
+  "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)": "PDF not built: Playwright is not installed (docent runtime install)",
+  "PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4": "Workflow diagrams in the PDF were not ready; the PDF may contain raw Mermaid text",
+  "\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Could not draw {0} workflow diagram(s); added step lists instead",
+  "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT"
+};
+
+// skills/docent/scripts/src/lib/cli-text/commands-b.mjs
+var commands_b_default = {
+  // commands/auth.mjs
+  "config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "config.yaml has no auth settings (loginPath, fields, submit)",
+  "\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for login: {0}",
+  "\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694": "Login failed: after login the browser stayed on {1} instead of {0}. Check the account environment variables ({2})",
+  "\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 ": "Log in in the browser, then press Enter here\u2026 ",
+  // commands/capture.mjs
+  "\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Cannot open: {0}",
+  "\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694": "Login required \u2014 save the login state with docent auth login",
+  "\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Redirected to another screen ({0}) \u2014 no permission or conditions not met",
+  "\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}": "Setup step {0} failed: {1}",
+  "\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4": "The scenario needs a concrete path",
+  "\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Not captured: setup steps use environment variable values (accounts, etc.)",
+  // commands/crawl.mjs
+  "\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694": "Only the login screen was visited. The login state seems to have expired \u2014 log in again with docent auth login",
+  // commands/record.mjs
+  "\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No scenario",
+  "\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No steps to show",
+  "\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "No GIF made: some steps enter environment variable values (accounts, etc.)",
+  "\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4": "The scenario is stale",
+  "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}": "Step {0} \u2014 {1}",
+  "GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694": "The GIF is over 2MB. Reduce the scenario steps",
+  // commands/run.mjs
+  ".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694": ".docent/run.json not found. Set up the run plan first",
+  ".docent/run.json \uD615\uC2DD \uC624\uB958: {0}": ".docent/run.json format error: {0}",
+  "\uC124\uCE58: {0}": "Install: {0}",
+  "\uC2E4\uD589: {0}": "Start: {0}",
+  "\uC815\uB9AC: {0}": "Stop: {0}",
+  "\uC704\uCE58: {0}": "Directory: {0}",
+  "\uD658\uACBD: {0}={1}": "Env: {0}={1}",
+  "{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694": "{0} is not responding. Start the app and try again",
+  "\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for the run: {0}",
+  "\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694": "An app is already starting (pid {0}). Wait for it to finish or run docent run stop",
+  ".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:": "The commands in .docent/run.json are not yet approved on this computer. Show the commands below to the user, get their consent, then run `docent run approve`:",
+  "\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})": "Install command failed: {0} (exit {1})",
+  "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4": "The app exited while starting",
+  "\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)": "Health check timed out ({0}s)",
+  "{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:": "{0}. Last lines of .docent/run.log:",
+  // commands/runtime.mjs
+  "{0} \uC2E4\uD328 (exit {1})": "{0} failed (exit {1})",
+  // lib/media.mjs
+  "{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4": "Could not acquire the lock on {0}",
+  // lib/playwright.mjs
+  "\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).": "Playwright, needed for capture and recording, is not installed. With the user's consent, install it with `docent runtime install` (downloads playwright@{1} and Chromium into {0}).",
+  "Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.": "Chromium not found. Install it with `docent runtime install` (or npx playwright install chromium)."
+};
+
+// skills/docent/scripts/src/lib/cli-text/lib.mjs
+var lib_default = {
+  // lib/steps.mjs — 시나리오 단계 실패 이유
+  "\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}": "Environment variable not set: {0}",
+  "{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "{0} not found",
+  "{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694": "Found {1} matches for {0}. Use nth to pick one",
+  "{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "Element #{1} of {0} not found",
+  '\uC785\uB825 \uD56D\uBAA9 "{0}"': 'Input field "{0}"',
+  '\uC120\uD0DD \uD56D\uBAA9 "{0}"': 'Select field "{0}"',
+  '\uCCB4\uD06C \uD56D\uBAA9 "{0}"': 'Checkbox "{0}"',
+  '{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Clicked {0} "{1}" but no new window opened',
+  '\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Text "{0}" did not appear',
+  "\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}": "Unknown step: {0}",
+  "{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328": "Step {0} failed",
+  // lib/evidence.mjs
+  "\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: {0}": "Invalid evidence format: {0}",
+  "project root \uBC16\uC758 \uACBD\uB85C: {0}": "Path outside project root: {0}",
+  "\uD30C\uC77C \uC5C6\uC74C: {0}": "File not found: {0}",
+  "{0}\uC5D0 {1} \uC5C6\uC74C": "{1} not found in {0}",
+  "{0}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: {1}-{2} (\uC804\uCCB4 {3}\uC904)": "Invalid line range in {0}: {1}-{2} (file has {3} lines)",
+  '{0} \uADFC\uCC98(\xB1{1}\uC904)\uC5D0 "{2}" \uC5C6\uC74C': '"{2}" not found near {0} (\xB1{1} lines)',
+  // lib/config.mjs
+  "config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
+  "config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
+  "\uAC1D\uCCB4": "an object",
+  "\uBAA9\uB85D": "a list",
+  "\uBB38\uC790\uC5F4": "a string",
+  "\uC591\uC758 \uC815\uC218": "a positive integer",
+  "config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: app must be a folder path inside the project ({0})",
+  "config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: language must be one of {0} ({1})",
+  ".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}": "Invalid .docent/config.yaml: {0}",
+  // lib/output-options.mjs
+  '\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown preset "{0}" \u2014 use one of {1}',
+  '\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "{0}" \u2014 {1} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694': 'Unknown format "{0}" \u2014 choose from {1}',
+  "\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 {0} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694": "No formats to build \u2014 choose from {0}",
+  "config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: output.revisions must be a list",
+  "config.yaml: output.revisions[{0}]\uC758 {1} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4": "config.yaml: output.revisions[{0}].{1} is missing or not a string",
+  '\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown theme "{0}" \u2014 use one of {1}',
+  // lib/paths.mjs, lib/source-hash.mjs
+  "\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}": "Not a project-relative path: {0}",
+  "\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: {0} ({1})": "Failed to compute source hash: {0} ({1})",
+  // detectors/react-router.mjs
+  "{0}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 {1}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)": "No route files found in {1}, which flatRoutes() in {0} points to \u2014 use route-explorer to find screens (references/stacks/js-routers.md)"
+};
+
+// skills/docent/scripts/src/lib/cli-text/main.mjs
+var main_default = {
+  // 사용법
+  "\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]": "Usage: docent <command> [--project <dir>]",
+  "\uBA85\uB839:": "Commands:",
+  "  init [--app <\uD3F4\uB354>]": "  init [--app <dir>]",
+  "                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)": "                 Detect the project and create .docent/config.yaml (in a monorepo, the app folder to document)",
+  "  inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "  inventory      Build the screen list (.docent/inventory.json)",
+  "  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)": "  update         Show follow-up work after code changes (new screens, removal candidates, re-analysis, scenarios, re-capture)",
+  "  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4": "  pending        List screens to re-analyze (no result, source changed, review item answered)",
+  "  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)": "  validate [ID\u2026] Check analysis results for schema, evidence and links (only the given screen IDs, if any)",
+  "  review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4": "  review         Collect review items (.docent/review.md)",
+  "                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "                 Build outputs into .docent/out/",
+  "  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4": "  hash <file\u2026>   Compute the sourceHash value for a screen JSON",
+  "  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)": "  run approve    Approve the run.json commands the user agreed to, on this computer (.docent/.run-approved)",
+  "  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778": "  run start [--install] | stop | status  Start, stop or check the target app as set in .docent/run.json",
+  "  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)": "  crawl          Follow links in the running app and compare with the screen list (.docent/crawl.json)",
+  "  scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)": "  scenarios      List screens that need a scenario written or rewritten (capture path needed, GIF target, outdated)",
+  "  capture [id\u2026]  \uD654\uBA74 \uCEA1\uCC98(.docent/media/img)": "  capture [id\u2026]  Capture screens (.docent/media/img)",
+  "  record [id\u2026]   \uC870\uC791 GIF \uB179\uD654(.docent/media/gif)": "  record [id\u2026]   Record interaction GIFs (.docent/media/gif)",
+  "  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)": "  auth login | save  Save the login state (login: auth in config.yaml and environment variables, save: log in yourself in a browser)",
+  "  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)": "  runtime status|install  Check or install Playwright for capture (after the user agrees)",
+  "  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)": "  session start  Start an analysis session (blocks reading secret files)",
+  "  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC": "  session end    End the analysis session",
+  // init
+  "\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>": "Found several apps in this monorepo. Pick the app to document and run again: docent init --app <dir>",
+  "\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)": "screen app (no detector)",
+  ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.": "Created .docent/config.yaml.",
+  ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.": ".docent/config.yaml already exists; left unchanged.",
+  "--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694.": "--app was ignored. To change the app folder, edit app in .docent/config.yaml.",
+  "\uC571 \uD3F4\uB354: {0}": "App folder: {0}",
+  "\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}": "Detected frameworks: {0}",
+  "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)": "none (the agent will search for screens)",
+  "\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)": "This is a desktop app ({0}): screen analysis and outputs come from source only; capture and GIF recording are not supported (run and capture steps are skipped)",
+  // inventory · update
+  "\uD654\uBA74 {0}\uAC1C (page {1}, \uD558\uC704 \uD654\uBA74 {2})": "{0} screens (page {1}, sub-screens {2})",
+  "({0}\uC758 \uD558\uC704 \uD654\uBA74)": "(sub-screen of {0})",
+  "\uC81C\uC678\uD55C \uD56D\uBAA9:": "Excluded:",
+  "\uC5C6\uC74C": "none",
+  "\uC0C8 \uD654\uBA74": "New screens",
+  "\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)": "Removal candidates (not deleted automatically)",
+  "\uB2E4\uC2DC \uBD84\uC11D": "Re-analyze",
+  "\uC2DC\uB098\uB9AC\uC624 \uC791\uC131": "Write scenario",
+  "\uB2E4\uC2DC \uCEA1\uCC98": "Re-capture",
+  // pending · validate · review · build
+  "\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens to re-analyze.",
+  "\uAC80\uC99D \uD1B5\uACFC: {0}": "Validation passed: {0}",
+  "\uAC80\uC99D \uD1B5\uACFC": "Validation passed",
+  "\uBB38\uC81C {0}\uAC74:": "{0} problems:",
+  "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74 \u2192 .docent/review.md": "{0} review items \u2192 .docent/review.md",
+  "\uC0B0\uCD9C\uBB3C {0}\uAC1C \u2192 .docent/out/": "{0} outputs \u2192 .docent/out/",
+  "\uACBD\uACE0: {0}": "Warning: {0}",
+  "\uAC74\uB108\uB700({0}): {1}": "Skipped ({0}): {1}",
+  // run
+  "\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:": "Approved these commands:",
+  "\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}": "Using the app that is already responding: {0}",
+  "\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}": "Started the app: {0}",
+  "\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4.": "Stopped the app.",
+  "docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No app started by docent.",
+  "\uC751\uB2F5 \uC911": "responding",
+  "\uC751\uB2F5 \uC5C6\uC74C": "not responding",
+  ".docent/run.json \uC5C6\uC74C": "No .docent/run.json",
+  // crawl · scenarios · capture · record
+  "\uBC29\uBB38 {0}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C {1}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 {2}\uAC1C \u2192 .docent/crawl.json": "Visited {0}, paths not in the list {1}, unreached screens {2} \u2192 .docent/crawl.json",
+  "- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: {0}": "- Not in the list: {0}",
+  "- \uB3C4\uB2EC \uBABB \uD568: {0}": "- Unreached: {0}",
+  "\uC2DC\uB098\uB9AC\uC624\uB97C \uC4F8 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens need a scenario.",
+  "\uCEA1\uCC98 {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/img": "Captured {0}, failed {1}, skipped {2} \u2192 .docent/media/img",
+  "- \uC2E4\uD328 {0}: {1}": "- Failed {0}: {1}",
+  "- \uAC74\uB108\uB700 {0}: {1}": "- Skipped {0}: {1}",
+  "GIF {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/gif": "Recorded {0} GIFs, failed {1}, skipped {2} \u2192 .docent/media/gif",
+  // auth · runtime
+  "\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: {0}": "Saved the login state: {0}",
+  "Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)": "Playwright not found \u2014 install location: {0} (docent runtime install)"
+};
+
+// skills/docent/scripts/src/lib/cli-text.mjs
+var EN = { ...main_default, ...commands_a_default, ...commands_b_default, ...lib_default };
+var language = "ko";
+function setCliLanguage(value) {
+  language = value === "en" ? "en" : "ko";
+}
+var cliLanguage = () => language;
+function t(text, ...args) {
+  const template = language === "en" && Object.hasOwn(EN, text) ? EN[text] : text;
+  return template.replace(/\{(\d+)\}/g, (whole, i) => Number(i) < args.length ? String(args[Number(i)]) : whole);
+}
 
 // skills/docent/scripts/src/lib/paths.mjs
 import { posix } from "node:path";
 function normalizeRel(p) {
   if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
   }
   const n = posix.normalize(p);
   if (n === "." || n === ".." || n.startsWith("../")) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
   }
   return n.replace(/\/$/, "");
 }
@@ -27638,12 +27903,11 @@ var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : v
 function checkConfig(config) {
   const fail = (path, kind) => {
     const code = kind.charCodeAt(kind.length - 1) - 44032;
-    const copula = code >= 0 && code % 28 ? "\uC774\uC5B4\uC57C" : "\uC5EC\uC57C";
-    throw new Error(`config.yaml: ${path}\uB294 ${kind}${copula} \uD569\uB2C8\uB2E4`);
+    throw new Error(code >= 0 && code % 28 ? t("config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4", path, kind) : t("config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4", path, kind));
   };
-  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, "\uAC1D\uCCB4");
+  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, t("\uAC1D\uCCB4"));
   if (typeof config.output.formats === "string") config.output.formats = [config.output.formats];
-  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, "\uBAA9\uB85D");
+  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, t("\uBAA9\uB85D"));
   for (const path of STRING_KEYS) {
     const value = get(config, path);
     if (value === void 0) continue;
@@ -27651,18 +27915,18 @@ function checkConfig(config) {
       const [head, key] = path.includes(".") ? path.split(".") : [void 0, path];
       if (head) config[head][key] = String(value);
       else config[key] = String(value);
-    } else if (typeof value !== "string") fail(path, "\uBB38\uC790\uC5F4");
+    } else if (typeof value !== "string") fail(path, t("\uBB38\uC790\uC5F4"));
   }
   if (config.app) {
     try {
       config.app = normalizeRel(config.app.replace(/\\/g, "/"));
     } catch {
-      throw new Error(`config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.app})`);
+      throw new Error(t("config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})", config.app));
     }
   }
-  if (!LANGUAGES.includes(config.language)) throw new Error(`config.yaml: language\uB294 ${LANGUAGES.join(", ")} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.language})`);
+  if (!LANGUAGES.includes(config.language)) throw new Error(t("config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", LANGUAGES.join(", "), config.language));
   const n = config.analyze.concurrency;
-  if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", "\uC591\uC758 \uC815\uC218");
+  if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", t("\uC591\uC758 \uC815\uC218"));
   return config;
 }
 async function loadConfig(projectDir) {
@@ -27678,7 +27942,7 @@ async function loadConfig(projectDir) {
   try {
     data = (0, import_yaml.parse)(text);
   } catch (err) {
-    throw new Error(`.docent/config.yaml \uD615\uC2DD \uC624\uB958: ${err.message}`);
+    throw new Error(t(".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}", err.message));
   }
   return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
 }
@@ -27733,7 +27997,7 @@ async function requirePlaywright() {
   const found = await findPlaywright();
   if (!found) {
     throw new PlaywrightMissing(
-      `\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 \`docent runtime install\`\uB85C \uC124\uCE58\uD558\uC138\uC694 (${runtimeDir()}\uC5D0 playwright@${PLAYWRIGHT_VERSION}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).`
+      t("\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).", runtimeDir(), PLAYWRIGHT_VERSION)
     );
   }
   return found.module;
@@ -27744,7 +28008,7 @@ async function launchBrowser(options = {}) {
     return await chromium.launch(options);
   } catch (err) {
     if (/Executable doesn't exist|browserType\.launch/.test(err.message)) {
-      throw new PlaywrightMissing(`Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \`docent runtime install\`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.
+      throw new PlaywrightMissing(t("Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.") + `
 ${err.message.split("\n")[0]}`);
     }
     throw err;
@@ -28621,9 +28885,9 @@ var validateScenario = compile(scenario_schema_default);
 var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function loadRun(projectDir) {
   const run2 = await readJsonIfExists(join4(docentDir(projectDir), "run.json"));
-  if (!run2) throw new Error(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694");
+  if (!run2) throw new Error(t(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694"));
   const { valid, errors } = validateRun(run2);
-  if (!valid) throw new Error(`.docent/run.json \uD615\uC2DD \uC624\uB958: ${errors.join("; ")}`);
+  if (!valid) throw new Error(t(".docent/run.json \uD615\uC2DD \uC624\uB958: {0}", errors.join("; ")));
   return run2;
 }
 var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
@@ -28636,11 +28900,11 @@ function commandsHash(run2) {
 }
 function describeCommands(run2) {
   return [
-    ...(run2.install ?? []).map((c) => `\uC124\uCE58: ${c}`),
-    `\uC2E4\uD589: ${run2.start}`,
-    ...run2.stop !== void 0 ? [`\uC815\uB9AC: ${run2.stop}`] : [],
-    `\uC704\uCE58: ${run2.cwd ?? "."}`,
-    ...Object.entries(run2.env ?? {}).map(([k, v]) => `\uD658\uACBD: ${k}=${v}`)
+    ...(run2.install ?? []).map((c) => t("\uC124\uCE58: {0}", c)),
+    t("\uC2E4\uD589: {0}", run2.start),
+    ...run2.stop !== void 0 ? [t("\uC815\uB9AC: {0}", run2.stop)] : [],
+    t("\uC704\uCE58: {0}", run2.cwd ?? "."),
+    ...Object.entries(run2.env ?? {}).map(([k, v]) => t("\uD658\uACBD: {0}={1}", k, v))
   ].join("\n");
 }
 async function runApprove(projectDir) {
@@ -28725,14 +28989,14 @@ function childEnv(run2) {
 async function runStart(projectDir, { install = false } = {}) {
   const run2 = await loadRun(projectDir);
   if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
-  if (run2.mode === "url") throw new Error(`${run2.baseUrl}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694`);
+  if (run2.mode === "url") throw new Error(t("{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694", run2.baseUrl));
   const missing = (run2.envNames ?? []).filter((name5) => !process.env[name5]);
-  if (missing.length) throw new Error(`\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  if (missing.length) throw new Error(t("\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
   const booting = await readPid(projectDir);
-  if (booting) throw new Error(`\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid ${booting}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694`);
+  if (booting) throw new Error(t("\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694", booting));
   if (!await approved(projectDir, run2)) {
     throw new Error(
-      `.docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 \`docent run approve\`\uB97C \uC2E4\uD589\uD558\uC138\uC694:
+      t(".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:") + `
 ${describeCommands(run2)}`
     );
   }
@@ -28740,7 +29004,7 @@ ${describeCommands(run2)}`
   if (install) {
     for (const command of run2.install ?? []) {
       const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
-      if (r.status !== 0) throw new Error(`\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: ${command} (exit ${r.status})`);
+      if (r.status !== 0) throw new Error(t("\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})", command, r.status));
     }
   }
   const fd = openSync(logFile(projectDir), "w");
@@ -28758,10 +29022,10 @@ ${describeCommands(run2)}`
     if (exited) break;
     await sleep(1e3);
   }
-  const reason = exited ? "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4" : `\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC(${run2.healthcheck?.timeoutSec ?? 120}\uCD08)`;
+  const reason = exited ? t("\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4") : t("\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)", run2.healthcheck?.timeoutSec ?? 120);
   killGroup(child.pid, "SIGKILL");
   await rm(pidFile(projectDir), { force: true });
-  throw new Error(`${reason}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:
+  throw new Error(t("{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:", reason) + `
 ${await logTail(projectDir, run2)}`);
 }
 async function runStop(projectDir) {
@@ -28821,10 +29085,10 @@ function loggedInPath(path, loginPath, successPath) {
 async function authLogin(projectDir) {
   const { auth } = await loadConfig(projectDir);
   if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
-    throw new Error("config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4");
+    throw new Error(t("config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"));
   }
   const missing = auth.fields.filter((f) => !process.env[f.env]).map((f) => f.env);
-  if (missing.length) throw new Error(`\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${missing.join(", ")}`);
+  if (missing.length) throw new Error(t("\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
   const run2 = await loadRun(projectDir);
   const browser = await launchBrowser();
   try {
@@ -28841,7 +29105,7 @@ async function authLogin(projectDir) {
     const path = new URL(page2.url()).pathname;
     const success = auth.successPath ?? "/";
     if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
-      throw new Error(`\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 ${success}\uAC00 \uC544\uB2C8\uB77C ${path}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218(${auth.fields.map((f) => f.env).join(", ")})\uB97C \uD655\uC778\uD558\uC138\uC694`);
+      throw new Error(t("\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694", success, path, auth.fields.map((f) => f.env).join(", ")));
     }
     await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
     await context.storageState({ path: statePath(projectDir) });
@@ -28858,7 +29122,7 @@ async function authSave(projectDir) {
     const page2 = await context.newPage();
     await page2.goto(run2.baseUrl);
     const rl = createInterface({ input: process.stdin, output: process.stdout });
-    await rl.question("\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 ");
+    await rl.question(t("\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 "));
     rl.close();
     await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
     await context.storageState({ path: statePath(projectDir) });
@@ -28956,7 +29220,7 @@ function parseEvidence(s) {
     return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
   }
   if (file && SYMBOL.test(loc)) return { file, symbol: loc };
-  throw new Error(`\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: ${s}`);
+  throw new Error(t("\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: {0}", s));
 }
 function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -28971,19 +29235,19 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   const rootPath = resolve2(rootDir);
   const target = resolve2(rootPath, ev.file);
   if (ev.file.includes("\\") || isAbsolute(ev.file) || !target.startsWith(rootPath + sep)) {
-    return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
+    return { ok: false, reason: t("project root \uBC16\uC758 \uACBD\uB85C: {0}", ev.file) };
   }
   try {
     const [realRoot, realTarget] = await Promise.all([realpath(rootPath), realpath(target)]);
-    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: `project root \uBC16\uC758 \uACBD\uB85C: ${ev.file}` };
+    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: t("project root \uBC16\uC758 \uACBD\uB85C: {0}", ev.file) };
   } catch {
-    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
+    return { ok: false, reason: t("\uD30C\uC77C \uC5C6\uC74C: {0}", ev.file) };
   }
   let lines;
   try {
     lines = (await readFile4(target, "utf8")).split(/\r\n|\r|\n/);
   } catch {
-    return { ok: false, reason: `\uD30C\uC77C \uC5C6\uC74C: ${ev.file}` };
+    return { ok: false, reason: t("\uD30C\uC77C \uC5C6\uC74C: {0}", ev.file) };
   }
   if (lines.at(-1) === "") lines.pop();
   let window2;
@@ -28991,24 +29255,24 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
     const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
     const hits = lines.flatMap((line2, i) => pattern.test(line2) ? [i] : []);
     if (hits.length === 0) {
-      return { ok: false, reason: `${ev.file}\uC5D0 ${ev.symbol} \uC5C6\uC74C` };
+      return { ok: false, reason: t("{0}\uC5D0 {1} \uC5C6\uC74C", ev.file, ev.symbol) };
     }
     window2 = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
   } else {
     const { startLine, endLine } = ev;
     if (startLine < 1 || startLine > endLine || endLine > lines.length) {
-      return { ok: false, reason: `${ev.file}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: ${startLine}-${endLine} (\uC804\uCCB4 ${lines.length}\uC904)` };
+      return { ok: false, reason: t("{0}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: {1}-{2} (\uC804\uCCB4 {3}\uC904)", ev.file, startLine, endLine, lines.length) };
     }
     window2 = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
-  const squash = (t) => t.replace(/\s+/g, " ").trim();
+  const squash = (t2) => t2.replace(/\s+/g, " ").trim();
   const joined = squash(window2.join(" "));
   const found = (text) => {
     if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text))) return true;
     return matchesWithPlaceholders(squash(text), joined);
   };
   if (opts.expectText !== void 0 && !found(opts.expectText)) {
-    return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
+    return { ok: false, reason: t('{0} \uADFC\uCC98(\xB1{1}\uC904)\uC5D0 "{2}" \uC5C6\uC74C', evidence, TEXT_WINDOW, opts.expectText) };
   }
   return { ok: true };
 }
@@ -29057,30 +29321,30 @@ var themeOf = (input) => themeByName(input?.options?.theme);
 var rgb = (hex2) => [0, 2, 4].map((i) => parseInt(hex2.slice(i, i + 2), 16)).join(", ");
 var rgba = (hex2, a) => `rgba(${rgb(hex2)}, ${a})`;
 function themeCss(name5) {
-  const t = themeByName(name5);
-  const hero = `radial-gradient(600px 320px at 100% 0%, ${rgba(t.glow[1], 0.55)}, transparent 62%), radial-gradient(520px 300px at 0% 100%, ${rgba(t.accent2, 0.4)}, transparent 60%), linear-gradient(135deg, #${t.hero[0]} 0%, #${t.hero[1]} 48%, #${t.hero[2]} 100%)`;
+  const t2 = themeByName(name5);
+  const hero = `radial-gradient(600px 320px at 100% 0%, ${rgba(t2.glow[1], 0.55)}, transparent 62%), radial-gradient(520px 300px at 0% 100%, ${rgba(t2.accent2, 0.4)}, transparent 60%), linear-gradient(135deg, #${t2.hero[0]} 0%, #${t2.hero[1]} 48%, #${t2.hero[2]} 100%)`;
   return `
 /* \uD14C\uB9C8: ${isTheme(name5) ? name5 : DEFAULT_THEME} */
 :root {
-  --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; --accent-2: #${t.accent2};
-  --glow-1: ${rgba(t.glow[0], 0.16)}; --glow-2: ${rgba(t.glow[1], 0.1)};
-  --hero-bg: ${hero}; --hero-shadow: ${rgba(t.accent, 0.55)};
+  --accent: #${t2.accent}; --accent-soft: ${rgba(t2.accent, 0.08)}; --accent-2: #${t2.accent2};
+  --glow-1: ${rgba(t2.glow[0], 0.16)}; --glow-2: ${rgba(t2.glow[1], 0.1)};
+  --hero-bg: ${hero}; --hero-shadow: ${rgba(t2.accent, 0.55)};
 }
 @media (prefers-color-scheme: dark) {
-  :root { --accent: #${t.accentDark}; --accent-soft: ${rgba(t.accentDark, 0.12)}; --glow-1: ${rgba(t.glow[0], 0.22)}; --glow-2: ${rgba(t.glow[1], 0.12)}; }
+  :root { --accent: #${t2.accentDark}; --accent-soft: ${rgba(t2.accentDark, 0.12)}; --glow-1: ${rgba(t2.glow[0], 0.22)}; --glow-2: ${rgba(t2.glow[1], 0.12)}; }
 }
 @media print {
-  :root { --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; }
+  :root { --accent: #${t2.accent}; --accent-soft: ${rgba(t2.accent, 0.08)}; }
 }
 `;
 }
 function mermaidInit(name5) {
-  const t = themeByName(name5);
+  const t2 = themeByName(name5);
   return `(() => {
   const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   return { startOnLoad: true, theme: 'base', themeVariables: dark
-    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t.ink}', primaryTextColor: '#${t.onInk}', primaryBorderColor: '#${t.accent}', lineColor: '#8b8b98', background: '#0e0e11' }
-    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t.soft}', primaryTextColor: '#${t.ink}', primaryBorderColor: '#${t.accentDark}', lineColor: '#9a9aa6', background: '#ffffff' } };
+    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t2.ink}', primaryTextColor: '#${t2.onInk}', primaryBorderColor: '#${t2.accent}', lineColor: '#8b8b98', background: '#0e0e11' }
+    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t2.soft}', primaryTextColor: '#${t2.ink}', primaryBorderColor: '#${t2.accentDark}', lineColor: '#9a9aa6', background: '#ffffff' } };
 })()`;
 }
 
@@ -33481,11 +33745,11 @@ var ImageSizingXml = {
   crop: function(imgSize, boxDim) {
     const l = boxDim.x;
     const r = imgSize.w - (boxDim.x + boxDim.w);
-    const t = boxDim.y;
+    const t2 = boxDim.y;
     const b = imgSize.h - (boxDim.y + boxDim.h);
     const lPerc = Math.round(1e5 * (l / imgSize.w));
     const rPerc = Math.round(1e5 * (r / imgSize.w));
-    const tPerc = Math.round(1e5 * (t / imgSize.h));
+    const tPerc = Math.round(1e5 * (t2 / imgSize.h));
     const bPerc = Math.round(1e5 * (b / imgSize.h));
     return `<a:srcRect l="${lPerc}" r="${rPerc}" t="${tPerc}" b="${bPerc}"/><a:stretch/>`;
   }
@@ -35108,9 +35372,9 @@ var low = (x, T) => x.confidence === "low" ? T.flagPrefix : "";
 var BG_W = 1333;
 var BG_H = 750;
 var hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
-function backdropSpec(kind, t) {
-  if (kind === "cover") return { base: t.hero, glows: [[1, 0, 0.6, 0.75, t.glow[1], 0.55], [0, 1, 0.55, 0.7, t.accent2, 0.4]], dots: false };
-  return { base: ["F6F6FB"], glows: [[0.06, -0.14, 0.75, 0.75, t.glow[0], 0.16], [0.97, -0.1, 0.62, 0.68, t.glow[1], 0.1], [0.5, 1.15, 0.7, 0.6, "0EA5E9", 0.08]], dots: true };
+function backdropSpec(kind, t2) {
+  if (kind === "cover") return { base: t2.hero, glows: [[1, 0, 0.6, 0.75, t2.glow[1], 0.55], [0, 1, 0.55, 0.7, t2.accent2, 0.4]], dots: false };
+  return { base: ["F6F6FB"], glows: [[0.06, -0.14, 0.75, 0.75, t2.glow[0], 0.16], [0.97, -0.1, 0.62, 0.68, t2.glow[1], 0.1], [0.5, 1.15, 0.7, 0.6, "0EA5E9", 0.08]], dots: true };
 }
 var backdropCache = /* @__PURE__ */ new Map();
 function backdrop(kind, theme = DEFAULT_THEME) {
@@ -35121,10 +35385,10 @@ function backdrop(kind, theme = DEFAULT_THEME) {
   const png = new import_pngjs.PNG({ width: BG_W, height: BG_H });
   for (let y = 0; y < BG_H; y++) {
     for (let x = 0; x < BG_W; x++) {
-      let t = stops.length === 1 ? 0 : Math.min(1, Math.max(0, (x / BG_W + y / BG_H) / 2)) * (stops.length - 1);
-      const k = Math.min(stops.length - 2, Math.floor(t));
-      t -= Math.max(0, k);
-      let [r, g, b] = stops.length === 1 ? stops[0] : stops[k].map((v, i) => v + (stops[k + 1][i] - v) * t);
+      let t2 = stops.length === 1 ? 0 : Math.min(1, Math.max(0, (x / BG_W + y / BG_H) / 2)) * (stops.length - 1);
+      const k = Math.min(stops.length - 2, Math.floor(t2));
+      t2 -= Math.max(0, k);
+      let [r, g, b] = stops.length === 1 ? stops[0] : stops[k].map((v, i) => v + (stops[k + 1][i] - v) * t2);
       for (const [cx, cy, rx, ry, color, alpha] of glows) {
         const d = Math.hypot((x / BG_W - cx) / rx, (y / BG_H - cy) / ry);
         const a = alpha * Math.max(0, 1 - d / 0.65) ** 1.5;
@@ -35326,17 +35590,17 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
         slide.addShape("roundRect", { ...box, rectRadius: 0.1, line: { color: C.line, dashType: "dash" }, fill: { color: C.soft } });
         slide.addText(T.noShot, { ...box, align: "center", valign: "middle", fontFace: FONT, fontSize: 16, color: C.muted });
       }
-      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
+      const header2 = T.tableHead.map((t2) => ({ text: t2, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
       const body = (chunk.length ? chunk : [["", T.noRows, ""]]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? P.accent : P.accent2 } }, ...rest]);
-      slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 }, valign: "top" });
+      slide.addTable([header2, ...body], { x: 6.8, y: 1.5, w: 6, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 }, valign: "top" });
     });
   }
   if (preset === "delivery") {
     const slide = addSlide();
     title(slide, P, T.revisions);
-    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
+    const header2 = T.revisionHead.map((t2) => ({ text: t2, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
     const rows = revisionRows(input).map((r) => [r.version, r.date, r.author, r.note]);
-    slide.addTable([header, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 } });
+    slide.addTable([header2, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 } });
   }
   return Buffer.from(await pptx.write({ outputType: "nodebuffer" }));
 }
@@ -35406,29 +35670,29 @@ var REVISION_FIELDS = ["version", "date", "author", "note"];
 function resolveOutputOptions(config, cli = {}) {
   const output = config.output ?? {};
   const preset = cli.preset ?? output.preset ?? "handover";
-  if (!PRESETS.includes(preset)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "${preset}" \u2014 ${PRESETS.join(", ")} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694`);
+  if (!PRESETS.includes(preset)) throw new Error(t('\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694', preset, PRESETS.join(", ")));
   const requested = cli.formats ?? output.formats ?? ["html", "readme"];
   for (const f of requested) {
-    if (!FORMATS.includes(f)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "${f}" \u2014 ${FORMATS.join(", ")} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694`);
+    if (!FORMATS.includes(f)) throw new Error(t('\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "{0}" \u2014 {1} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694', f, FORMATS.join(", ")));
   }
   const formats = FORMATS.filter((f) => requested.includes(f));
-  if (!formats.length) throw new Error(`\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 ${FORMATS.join(", ")} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694`);
+  if (!formats.length) throw new Error(t("\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 {0} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694", FORMATS.join(", ")));
   const revisions = output.revisions ?? [];
-  if (!Array.isArray(revisions)) throw new Error("config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4");
+  if (!Array.isArray(revisions)) throw new Error(t("config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4"));
   revisions.forEach((r, i) => {
     for (const field of REVISION_FIELDS) {
-      if (typeof r?.[field] !== "string") throw new Error(`config.yaml: output.revisions[${i}]\uC758 ${field} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4`);
+      if (typeof r?.[field] !== "string") throw new Error(t("config.yaml: output.revisions[{0}]\uC758 {1} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4", i, field));
     }
   });
-  const language = config.language ?? "ko";
+  const language2 = config.language ?? "ko";
   const theme = output.theme ?? DEFAULT_THEME;
-  if (!isTheme(theme)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "${theme}" \u2014 ${Object.keys(THEMES).join(", ")} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694`);
+  if (!isTheme(theme)) throw new Error(t('\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694', theme, Object.keys(THEMES).join(", ")));
   return {
     preset,
     formats,
-    language,
+    language: language2,
     theme,
-    title: String(output.title ?? stringsFor(language).defaultTitle),
+    title: String(output.title ?? stringsFor(language2).defaultTitle),
     organization: String(output.organization ?? ""),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]])))
   };
@@ -35449,7 +35713,7 @@ async function hashFiles(rootDir, relPaths) {
     try {
       content = await readFile6(join9(rootDir, rel), "utf8");
     } catch (err) {
-      throw new Error(`\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: ${rel} (${err.code ?? err.message})`);
+      throw new Error(t("\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: {0} ({1})", rel, err.code ?? err.message));
     }
     hash.update(rel).update("\0").update(content.replace(/\r\n?/g, "\n")).update("\0");
   }
@@ -35461,7 +35725,7 @@ async function load(path, label, problems) {
   try {
     return await readJson(path);
   } catch (err) {
-    problems.push(`${label}: ${err.code === "ENOENT" ? "\uD30C\uC77C \uC5C6\uC74C" : `JSON \uD615\uC2DD \uC624\uB958 (${err.message})`}`);
+    problems.push(`${label}: ${err.code === "ENOENT" ? t("\uD30C\uC77C \uC5C6\uC74C") : t("JSON \uD615\uC2DD \uC624\uB958 ({0})", err.message)}`);
     return void 0;
   }
 }
@@ -35482,15 +35746,15 @@ async function checkScreen(projectDir, s, ids, problems) {
     const r = await checkEvidence(projectDir, ev, text === void 0 ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
-  if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: \uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 ${s.parentId}`);
+  if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t("\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}", s.parentId)}`);
   for (const a of s.actions) {
     for (const key of ["navigatesTo", "opens"]) {
-      if (a[key] && !ids.has(a[key])) problems.push(`${s.id}: "${a.label}"\uC758 ${key}\uAC00 \uC5C6\uB294 \uD654\uBA74 ${a[key]}`);
+      if (a[key] && !ids.has(a[key])) problems.push(`${s.id}: ${t('"{0}"\uC758 {1}\uAC00 \uC5C6\uB294 \uD654\uBA74 {2}', a.label, key, a[key])}`);
     }
   }
   try {
     if (s.sourceHash !== await hashFiles(projectDir, s.readFiles)) {
-      problems.push(`${s.id}: \uC18C\uC2A4\uAC00 \uBC14\uB00C\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uBD84\uC11D\uD558\uC138\uC694`);
+      problems.push(`${s.id}: ${t("\uC18C\uC2A4\uAC00 \uBC14\uB00C\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uBD84\uC11D\uD558\uC138\uC694")}`);
     }
   } catch (err) {
     problems.push(`${s.id}: ${err.message}`);
@@ -35504,25 +35768,25 @@ function checkSummary(summary, screens, known, problems) {
   const exists4 = (id) => known.has(id);
   const loaded = (id) => screens.has(id);
   const supported = (ids) => ids.some((id) => !loaded(id) || screens.get(id).purpose.confidence !== "low");
-  const claims = [["\uD55C \uC904 \uC18C\uAC1C", summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
+  const claims = [[t("\uD55C \uC904 \uC18C\uAC1C"), summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
-    for (const id of claim.screens) if (!exists4(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
-    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4`);
+    for (const id of claim.screens) if (!exists4(id)) problems.push(`summary.json: ${t('"{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}', label, id)}`);
+    if (!supported(claim.screens)) problems.push(`summary.json: ${t('"{0}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4', label)}`);
   }
   for (const wf of summary.workflows) {
     const missing = wf.steps.filter((id) => !exists4(id));
     if (missing.length) {
-      problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${missing.join(", ")}`);
+      problems.push(`summary.json: ${t('\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}', wf.name, missing.join(", "))}`);
       continue;
     }
     if (new Set(wf.steps).size < 2) {
-      problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4`);
+      problems.push(`summary.json: ${t('\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4', wf.name)}`);
       continue;
     }
     for (let i = 0; i + 1 < wf.steps.length; i++) {
       const [a, b] = [wf.steps[i], wf.steps[i + 1]];
       if (!loaded(a) || !loaded(b)) continue;
-      if (!hasEdge(screens, a, b)) problems.push(`summary.json: \uC6CC\uD06C\uD50C\uB85C\uC6B0 "${wf.name}"\uC758 ${a} \u2192 ${b} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4`);
+      if (!hasEdge(screens, a, b)) problems.push(`summary.json: ${t('\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', wf.name, a, b)}`);
     }
   }
 }
@@ -35542,8 +35806,8 @@ async function checkScenarios(projectDir, dir, ids, problems) {
       problems.push(`${label}: ${r.errors.join("; ")}`);
       continue;
     }
-    if (`${sc.screenId}.json` !== file) problems.push(`${label}: \uD30C\uC77C \uC774\uB984\uACFC screenId(${sc.screenId})\uAC00 \uB2E4\uB985\uB2C8\uB2E4`);
-    if (!ids.has(sc.screenId)) problems.push(`${label}: \uC5C6\uB294 \uD654\uBA74 ${sc.screenId}`);
+    if (`${sc.screenId}.json` !== file) problems.push(`${label}: ${t("\uD30C\uC77C \uC774\uB984\uACFC screenId({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4", sc.screenId)}`);
+    if (!ids.has(sc.screenId)) problems.push(`${label}: ${t("\uC5C6\uB294 \uD654\uBA74 {0}", sc.screenId)}`);
     for (const step of [...sc.setup, ...sc.steps]) {
       const text = step.label ?? step.text;
       const res = await checkEvidence(projectDir, step.evidence, text === void 0 ? {} : { expectText: text });
@@ -35565,7 +35829,7 @@ async function runValidate(projectDir, { only = [] } = {}) {
   try {
     files = (await readdir(join10(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
-    problems.push("screens/: \uB514\uB809\uD130\uB9AC \uC5C6\uC74C");
+    problems.push(`screens/: ${t("\uB514\uB809\uD130\uB9AC \uC5C6\uC74C")}`);
   }
   for (const file of files) {
     const s = await load(join10(dir, "screens", file), `screens/${file}`, problems);
@@ -35575,12 +35839,12 @@ async function runValidate(projectDir, { only = [] } = {}) {
       problems.push(`screens/${file}: ${r.errors.join("; ")}`);
       continue;
     }
-    if (`${s.id}.json` !== file) problems.push(`screens/${file}: \uD30C\uC77C \uC774\uB984\uACFC id(${s.id})\uAC00 \uB2E4\uB985\uB2C8\uB2E4`);
+    if (`${s.id}.json` !== file) problems.push(`screens/${file}: ${t("\uD30C\uC77C \uC774\uB984\uACFC id({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4", s.id)}`);
     screens.set(s.id, s);
   }
   const fileIds = new Set(files.map((f) => f.replace(/\.json$/, "")));
-  for (const id of inventoryIds) if (!fileIds.has(id)) problems.push(`${id}: inventory\uC5D0\uB294 \uC788\uC9C0\uB9CC \uBD84\uC11D \uACB0\uACFC(screens/${id}.json)\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4`);
-  for (const id of fileIds) if (inventory && !inventoryIds.has(id)) problems.push(`${id}: \uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4`);
+  for (const id of inventoryIds) if (!fileIds.has(id)) problems.push(`${id}: ${t("inventory\uC5D0\uB294 \uC788\uC9C0\uB9CC \uBD84\uC11D \uACB0\uACFC(screens/{0}.json)\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4", id)}`);
+  for (const id of fileIds) if (inventory && !inventoryIds.has(id)) problems.push(`${id}: ${t("\uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4")}`);
   const allIds = /* @__PURE__ */ new Set([...inventoryIds, ...fileIds]);
   for (const s of screens.values()) await checkScreen(projectDir, s, allIds, problems);
   await checkScenarios(projectDir, dir, allIds, problems);
@@ -35594,7 +35858,7 @@ async function runValidate(projectDir, { only = [] } = {}) {
   const mine = (p) => shared(p) || only.some((id) => p.startsWith(`${id}:`) || p.startsWith(`screens/${id}.json:`) || p.startsWith(`scenarios/${id}.json:`));
   const result = only.length ? problems.filter(mine) : problems;
   for (const id of only) {
-    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4`);
+    if (!inventoryIds.has(id) && !fileIds.has(id)) result.push(`${id}: ${t("inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4")}`);
   }
   return { ok: result.length === 0, problems: result };
 }
@@ -35653,10 +35917,10 @@ function uncertainCount(screens) {
   }
   return n;
 }
-var safeFileName = (name5, language) => name5.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || stringsFor(language).defaultFileName;
+var safeFileName = (name5, language2) => name5.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || stringsFor(language2).defaultFileName;
 async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
   const { ok, problems } = await runValidate(projectDir);
-  if (!ok) throw new Error(`\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:
+  if (!ok) throw new Error(`${t("\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:")}
 ${problems.map((p) => `- ${p}`).join("\n")}`);
   const config = await loadConfig(projectDir);
   const options = resolveOutputOptions(config, { preset, formats });
@@ -35678,7 +35942,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   };
   if (options.preset === "delivery") {
     const n = uncertainCount(screens);
-    if (n) warnings2.push(`\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 ${n}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694`);
+    if (n) warnings2.push(t("\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694", n));
   }
   const outDir = join11(dir, "out");
   await rm2(outDir, { recursive: true, force: true });
@@ -35715,11 +35979,11 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
     try {
       const base = safeFileName(options.title, options.language);
       if (wants("pdf")) {
-        if (!browser) skipped.push({ format: "pdf", reason: "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)" });
+        if (!browser) skipped.push({ format: "pdf", reason: t("Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)") });
         else {
           await put(outDir, "html/print.html", renderPrint(input), files);
           const { diagramsReady } = await renderPdf(join11(outDir, "html", "print.html"), join11(outDir, `${base}.pdf`), { title: options.title, date: input.date, browser });
-          if (!diagramsReady && input.summary.workflows.length) warnings2.push("PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4");
+          if (!diagramsReady && input.summary.workflows.length) warnings2.push(t("PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4"));
           files.push(`${base}.pdf`);
         }
       }
@@ -35728,8 +35992,8 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
         if (browser) {
           diagrams = await renderDiagrams(browser, input, { assetsDir });
           const failed = diagrams.filter((d) => !d).length;
-          if (failed) warnings2.push(`\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 ${failed}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4`);
-        } else if (input.summary.workflows.length) warnings2.push("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4");
+          if (failed) warnings2.push(t("\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4", failed));
+        } else if (input.summary.workflows.length) warnings2.push(t("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4"));
         const buf = await renderPptx(input, { diagrams, mediaDir: join11(dir, "media") });
         await writeFile3(join11(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);
@@ -35788,7 +36052,7 @@ async function withLock(path, fn) {
         }
       } catch {
       }
-      if (Date.now() > deadline) throw new Error(`${path} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4`);
+      if (Date.now() > deadline) throw new Error(t("{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4", path));
       await sleep2(50);
     }
   }
@@ -35821,7 +36085,7 @@ var StepError = class extends Error {
 };
 function substitute(value, env) {
   return value.replace(VAR, (_, name5) => {
-    if (env[name5] === void 0) throw new StepError(`\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: ${name5}`);
+    if (env[name5] === void 0) throw new StepError(t("\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}", name5));
     return env[name5];
   });
 }
@@ -35829,10 +36093,10 @@ async function single(locator, describe, timeoutMs) {
   try {
     await locator.first().waitFor({ state: "visible", timeout: timeoutMs });
   } catch {
-    throw new StepError(`${describe}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4`);
+    throw new StepError(t("{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe));
   }
   const count = await locator.count();
-  if (count !== 1) throw new StepError(`${describe}\uC774(\uAC00) ${count}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694`);
+  if (count !== 1) throw new StepError(t("{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694", describe, count));
   return locator;
 }
 var markSeq = 0;
@@ -35872,7 +36136,7 @@ async function pick(locator, nth, describe, timeoutMs) {
   try {
     await el.waitFor({ state: "visible", timeout: timeoutMs });
   } catch {
-    throw new StepError(`${describe}\uC758 ${nth}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4`);
+    throw new StepError(t("{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe, nth));
   }
   return el;
 }
@@ -35880,16 +36144,16 @@ async function runStep(page2, step, env, timeoutMs) {
   switch (step.do) {
     case "fill": {
       const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uC785\uB825 \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC785\uB825 \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
       return el.fill(value, { timeout: timeoutMs });
     }
     case "select": {
       const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uC120\uD0DD \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC120\uD0DD \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
       return el.selectOption({ label: value }, { timeout: timeoutMs });
     }
     case "check": {
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, `\uCCB4\uD06C \uD56D\uBAA9 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uCCB4\uD06C \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
       return el.check({ timeout: timeoutMs });
     }
     case "click": {
@@ -35910,7 +36174,7 @@ async function runStep(page2, step, env, timeoutMs) {
       try {
         popup = await opened;
       } catch {
-        throw new StepError(`${step.role} "${step.label}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4`);
+        throw new StepError(t('{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.role, step.label));
       }
       await popup.waitForLoadState("load", { timeout: timeoutMs * 3 }).catch(() => {
       });
@@ -35920,7 +36184,7 @@ async function runStep(page2, step, env, timeoutMs) {
       try {
         await page2.getByText(step.text, { exact: false }).first().waitFor({ state: "visible", timeout: timeoutMs });
       } catch {
-        throw new StepError(`\uBB38\uAD6C "${step.text}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4`);
+        throw new StepError(t('\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.text));
       }
       return void 0;
     case "wait":
@@ -35928,7 +36192,7 @@ async function runStep(page2, step, env, timeoutMs) {
     case "goto":
       return page2.goto(new URL(step.path, page2.url()).href, { timeout: timeoutMs * 3 });
     default:
-      throw new StepError(`\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: ${step.do}`);
+      throw new StepError(t("\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}", step.do));
   }
 }
 async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage, openers = [] } = {}) {
@@ -35961,7 +36225,7 @@ async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onSt
           continue;
         }
       }
-      const reason = err instanceof StepError ? err.message : `${steps[index].do} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328`;
+      const reason = err instanceof StepError ? err.message : t("{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328", steps[index].do);
       return { ok: false, index, reason };
     }
     if (onStep) await onStep(index);
@@ -36027,18 +36291,18 @@ async function openScreen(page2, { baseUrl, path, setup, loginPath, onPage }) {
   try {
     response = await page2.goto(new URL(path, baseUrl).href, { waitUntil: "load", timeout: 3e4 });
   } catch (err) {
-    return `\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: ${err.message.split("\n")[0]}`;
+    return t("\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", err.message.split("\n")[0]);
   }
   const landed = new URL(page2.url()).pathname;
-  if (landed === loginPath && path.split("?")[0] !== loginPath) return "\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694";
+  if (landed === loginPath && path.split("?")[0] !== loginPath) return t("\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694");
   if (response && response.status() >= 400) return `HTTP ${response.status()}`;
   const trim = (p) => p.length > 1 ? p.replace(/\/+$/, "") : p;
-  if (trim(landed) !== trim(path.split("?")[0])) return `\uB2E4\uB978 \uD654\uBA74(${landed})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4`;
+  if (trim(landed) !== trim(path.split("?")[0])) return t("\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4", landed);
   await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
   });
   if (setup?.length) {
     const r = await runSteps(page2, setup, { onPage });
-    if (!r.ok) return `\uC900\uBE44 \uB2E8\uACC4 ${r.index + 1}\uBC88\uC9F8 \uC2E4\uD328: ${r.reason}`;
+    if (!r.ok) return t("\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}", r.index + 1, r.reason);
   }
   return void 0;
 }
@@ -36061,11 +36325,11 @@ async function runCapture(projectDir, ids) {
       const scenario = await loadScenario(projectDir, screen.id);
       const path = scenario?.path ?? staticPath(screen.route);
       if (!path || screen.kind !== "page" && !scenario) {
-        result.skipped.push({ id: screen.id, reason: "\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4" });
+        result.skipped.push({ id: screen.id, reason: t("\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4") });
         continue;
       }
       if (scenario && usesEnvValue(scenario.setup)) {
-        result.skipped.push({ id: screen.id, reason: "\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4" });
+        result.skipped.push({ id: screen.id, reason: t("\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
         continue;
       }
       const page2 = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
@@ -36198,7 +36462,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const warnings2 = [];
   const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
   if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
-    warnings2.push("\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694");
+    warnings2.push(t("\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694"));
   }
   return { visited, unmatched, unreached, warnings: warnings2 };
 }
@@ -36269,10 +36533,10 @@ async function runScenarios(projectDir) {
     if (!screen) continue;
     const scenario = await readJsonIfExists(join15(dir, "scenarios", `${entry.id}.json`)).catch(() => void 0);
     if (!scenario) {
-      if (needsPath(entry)) list.push({ id: entry.id, reason: "\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694" });
-      else if (gif.has(entry.id)) list.push({ id: entry.id, reason: "GIF \uB300\uC0C1" });
+      if (needsPath(entry)) list.push({ id: entry.id, reason: t("\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694") });
+      else if (gif.has(entry.id)) list.push({ id: entry.id, reason: t("GIF \uB300\uC0C1") });
     } else if (isStale(scenario, screen)) {
-      list.push({ id: entry.id, reason: "\uB0A1\uC74C" });
+      list.push({ id: entry.id, reason: t("\uB0A1\uC74C") });
     }
   }
   return list;
@@ -36344,20 +36608,20 @@ async function runRecord(projectDir, ids) {
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
       if (!scenario) {
-        result.skipped.push({ id, reason: "\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4" });
+        result.skipped.push({ id, reason: t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4") });
         continue;
       }
       if (!scenario.steps.length) {
-        result.skipped.push({ id, reason: "\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4" });
+        result.skipped.push({ id, reason: t("\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4") });
         continue;
       }
       if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
-        result.skipped.push({ id, reason: "\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4" });
+        result.skipped.push({ id, reason: t("\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
         continue;
       }
       const screen = await loadScreen(projectDir, id);
       if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
-        result.skipped.push({ id, reason: "\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4" });
+        result.skipped.push({ id, reason: t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4") });
         continue;
       }
       const page2 = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
@@ -36376,13 +36640,13 @@ async function runRecord(projectDir, ids) {
           await start.screenshot({ path: paths.fail(id) }).catch(() => {
           });
           await recordFailure(projectDir, { id, kind: "record", step: stepResult.index, reason: stepResult.reason });
-          result.failed.push({ id, reason: `${stepResult.index + 1}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ${stepResult.reason}` });
+          result.failed.push({ id, reason: t("{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}", stepResult.index + 1, stepResult.reason) });
           continue;
         }
         let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
         if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
         if (gif.length > GIF_MAX_BYTES) {
-          const reason = "GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694";
+          const reason = t("GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694");
           await recordFailure(projectDir, { id, kind: "record", reason });
           result.failed.push({ id, reason });
           continue;
@@ -36496,7 +36760,7 @@ async function loadAliases(projectDir, extra = []) {
       ...Object.entries(paths).map(([pattern, targets]) => ({
         prefix: pattern.replace(/\*$/, ""),
         wildcard: pattern.endsWith("*"),
-        targets: targets.map((t) => posix2.join(baseUrl, t))
+        targets: targets.map((t2) => posix2.join(baseUrl, t2))
       })),
       ...extra
     ];
@@ -36873,9 +37137,9 @@ function parseJsxRoutes(source) {
 var CONFIG_CALLS = /* @__PURE__ */ new Set(["route", "index", "layout", "prefix"]);
 function parseRouteConfig(source) {
   const tokens = tokenize(source);
-  let start = tokens.findIndex((t, k) => t.v === "export" && tokens[k + 1]?.v === "default");
+  let start = tokens.findIndex((t2, k) => t2.v === "export" && tokens[k + 1]?.v === "default");
   start = start < 0 ? 0 : start + 2;
-  const open = tokens.findIndex((t, k) => k >= start && isP(t, "["));
+  const open = tokens.findIndex((t2, k) => k >= start && isP(t2, "["));
   return open < 0 ? [] : parseConfigArray(tokens, open);
 }
 function parseConfigArray(tokens, i) {
@@ -37182,7 +37446,7 @@ async function warnings(projectDir) {
   const calls = flatRoutesCalls(await readFile11(join20(projectDir, config), "utf8"));
   if (!calls.length || (await listScreens2(projectDir)).length) return [];
   const dirs = calls.map((c) => `${posix4.join(posix4.dirname(config), c.dir)}/`).join(", ");
-  return [`${config}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 ${dirs}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
+  return [t("{0}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 {1}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)", config, dirs)];
 }
 async function listScreens2(projectDir) {
   const aliases = await loadAliases(projectDir);
@@ -37404,51 +37668,52 @@ async function findWorkspaceApps(projectDir) {
 
 // skills/docent/scripts/src/commands/init.mjs
 var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid", ".run-approved"];
-var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4";
+var gitignoreHeader = () => t("# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4");
 function configYaml(detectors, app) {
-  const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
-  return `# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694
-language: ko  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)
-${app ? `# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)
-app: ${JSON.stringify(app)}
-` : ""}# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)
-detectors:
-${list}
-screens:
-  include: []
-  exclude: []
-  idMap: {}
-analyze:
-  concurrency: 4
-# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):
-# auth:
-#   loginPath: /login
-#   fields:
-#     - label: \uC544\uC774\uB514
-#       env: DOCENT_USER
-#     - label: \uBE44\uBC00\uBC88\uD638
-#       env: DOCENT_PASSWORD
-#   submit: \uB85C\uADF8\uC778
-#   successPath: /
-# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):
-# mask:
-#   selectors: [".phone", "td.ssn"]
-# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):
-# output:
-#   preset: handover
-#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate
-#   formats: [html, readme]
-#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC
-#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)
-#   organization: ""
-#   revisions:
-#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }
-# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):
-# gif:
-#   screens:
-#     include: []
-#     exclude: []
-`.replace("detectors:\n  []", "detectors: []");
+  const list = detectors.length ? ["detectors:", ...detectors.map((d) => `  - ${d}`)] : ["detectors: []"];
+  return [
+    t("# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694"),
+    // 명령줄이 영어(DOCENT_LANG=en)면 산출물 기본 언어도 영어로
+    t("language: {0}  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)", cliLanguage()),
+    ...app ? [t("# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)"), `app: ${JSON.stringify(app)}`] : [],
+    t("# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)"),
+    ...list,
+    "screens:",
+    "  include: []",
+    "  exclude: []",
+    "  idMap: {}",
+    "analyze:",
+    "  concurrency: 4",
+    t("# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):"),
+    "# auth:",
+    "#   loginPath: /login",
+    "#   fields:",
+    t("#     - label: \uC544\uC774\uB514"),
+    "#       env: DOCENT_USER",
+    t("#     - label: \uBE44\uBC00\uBC88\uD638"),
+    "#       env: DOCENT_PASSWORD",
+    t("#   submit: \uB85C\uADF8\uC778"),
+    "#   successPath: /",
+    t("# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):"),
+    "# mask:",
+    '#   selectors: [".phone", "td.ssn"]',
+    t("# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):"),
+    "# output:",
+    "#   preset: handover",
+    t("#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate"),
+    "#   formats: [html, readme]",
+    t("#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC"),
+    t('#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)'),
+    '#   organization: ""',
+    "#   revisions:",
+    t('#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }'),
+    t("# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):"),
+    "# gif:",
+    "#   screens:",
+    "#     include: []",
+    "#     exclude: []",
+    ""
+  ].join("\n");
 }
 async function exists2(path) {
   try {
@@ -37463,7 +37728,7 @@ async function runInit(projectDir, { app } = {}) {
   await mkdir5(dir, { recursive: true });
   const ignorePath = join24(dir, ".gitignore");
   if (!await exists2(ignorePath)) {
-    await writeFile5(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
+    await writeFile5(ignorePath, [gitignoreHeader(), ...IGNORE_LINES, ""].join("\n"));
   } else {
     const current = await readFile15(ignorePath, "utf8");
     const have = new Set(current.split(/\r?\n/));
@@ -37480,9 +37745,9 @@ async function runInit(projectDir, { app } = {}) {
     try {
       rel = normalizeRel(app.replace(/\\/g, "/"));
     } catch {
-      throw new Error(`--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: ${app}`);
+      throw new Error(t("--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: {0}", app));
     }
-    if (!await isDir(join24(projectDir, rel))) throw new Error(`--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${rel}`);
+    if (!await isDir(join24(projectDir, rel))) throw new Error(t("--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", rel));
     const detectors2 = await detect5(join24(projectDir, rel));
     await writeFile5(configPath, configYaml(detectors2, rel));
     return withDesktop({ created: true, detectors: detectors2, app: rel }, await desktopKind(join24(projectDir, rel)));
@@ -37578,7 +37843,7 @@ async function collectAgentEntries(projectDir, problems) {
   try {
     data = await readJsonIfExists(join25(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
-    problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
+    problems.push(`inventory.agent.json: ${t("JSON \uD615\uC2DD \uC624\uB958 ({0})", err.message)}`);
     return [];
   }
   if (!data) return [];
@@ -37599,7 +37864,7 @@ async function checkEntry(projectDir, label, entry, problems) {
   }
   for (const file of files) {
     if (!await fileExists(join25(projectDir, file))) {
-      problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
+      problems.push(`${label}: ${t("\uD30C\uC77C \uC5C6\uC74C {0}", file)}`);
       return void 0;
     }
   }
@@ -37621,11 +37886,11 @@ async function runInventory(projectDir) {
   const appDir = app ? join25(projectDir, app) : projectDir;
   const inApp = (rel) => app ? posix8.join(app, rel) : rel;
   const appOk = !app || await fileExists(appDir);
-  if (!appOk) problems.push(`config.yaml: app \uD3F4\uB354 ${app}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4`);
+  if (!appOk) problems.push(`config.yaml: ${t("app \uD3F4\uB354 {0}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4", app)}`);
   for (const name5 of appOk ? config.detectors : []) {
     const detector = detectorByName(name5);
     if (!detector) {
-      problems.push(`config.yaml: \uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 ${name5}`);
+      problems.push(`config.yaml: ${t("\uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 {0}", name5)}`);
       continue;
     }
     for (const w of await detector.warnings?.(appDir) ?? []) problems.push(`${name5}: ${w}`);
@@ -37648,7 +37913,7 @@ async function runInventory(projectDir) {
     if (!ids.has(route) || ids.get(route) === id) continue;
     const owner = [...ids].find(([r, x]) => x === id && r !== route);
     if (owner) {
-      problems.push(`config.yaml: idMap\uC758 ${route} \u2192 ${id}\uB294 ${owner[0]} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4`);
+      problems.push(`config.yaml: ${t("idMap\uC758 {0} \u2192 {1}\uB294 {2} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4", route, id, owner[0])}`);
       continue;
     }
     ids.set(route, id);
@@ -37658,7 +37923,7 @@ async function runInventory(projectDir) {
     const label = entry.name;
     if (!ids.has(entry.parentRoute)) {
       const excluded = include.length && !matchesAny(entry.parentRoute, include) || matchesAny(entry.parentRoute, exclude);
-      if (!excluded) problems.push(`${label}: \uBD80\uBAA8 \uD654\uBA74 ${entry.parentRoute} \uC5C6\uC74C`);
+      if (!excluded) problems.push(`${label}: ${t("\uBD80\uBAA8 \uD654\uBA74 {0} \uC5C6\uC74C", entry.parentRoute)}`);
       continue;
     }
     const files = await checkEntry(projectDir, label, entry, problems);
@@ -37697,7 +37962,7 @@ async function runInventory(projectDir) {
   }
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
-  if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
+  if (!valid) throw new Error(t("inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: {0}", errors.join("; ")));
   await writeJson(join25(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
@@ -37709,48 +37974,49 @@ import { join as join27 } from "node:path";
 // skills/docent/scripts/src/commands/review.mjs
 import { readFile as readFile16, writeFile as writeFile6 } from "node:fs/promises";
 import { join as join26 } from "node:path";
-var HEADER = [
-  "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
+var header = () => [
+  t("# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9"),
   "",
-  "> docent\uAC00 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4. \uB2F5\uC744 \uC801\uACE0 \uCCB4\uD06C\uD55C \uB4A4 `/docent-analyze`\uB97C \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74 \uBC18\uC601\uB429\uB2C8\uB2E4.",
+  t("> docent\uAC00 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4. \uB2F5\uC744 \uC801\uACE0 \uCCB4\uD06C\uD55C \uB4A4 `/docent-analyze`\uB97C \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74 \uBC18\uC601\uB429\uB2C8\uB2E4."),
   ""
 ];
 var LINE = /^- \[([ xX])\] (.*?)\s*<!-- key: (.+?) -->\s*$/;
-var ANSWER = " \uB2F5:";
+var answerMark = () => t(" \uB2F5:");
+var ANSWER_MARKS = [" \uB2F5:", " Answer:"];
 function parseReview(text) {
   const previous = /* @__PURE__ */ new Map();
   for (const line2 of text.split(/\r?\n/)) {
     const m = LINE.exec(line2);
     if (!m) continue;
-    const i = m[2].indexOf(ANSWER);
-    previous.set(m[3], { checked: m[1] !== " ", answer: i >= 0 ? m[2].slice(i + ANSWER.length).trim() : "" });
+    const found = ANSWER_MARKS.map((mark) => [m[2].indexOf(mark), mark]).filter(([i]) => i >= 0).sort((a, b) => a[0] - b[0])[0];
+    previous.set(m[3], { checked: m[1] !== " ", answer: found ? m[2].slice(found[0] + found[1].length).trim() : "" });
   }
   return previous;
 }
 function items(s) {
   const out = [];
   const low2 = (x) => x.confidence === "low";
-  if (low2(s.purpose)) out.push([`purpose`, `\uBAA9\uC801 \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: ${s.purpose.value} (${s.purpose.evidence})`]);
-  s.roles.forEach((r, i) => low2(r) && out.push([`roles[${i}]`, `\uC5ED\uD560 ${r.value} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C (${r.evidence})`]));
-  s.fields.forEach((f, i) => low2(f) && out.push([`fields[${i}]`, `${f.label} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: \uC785\uB825 \uD56D\uBAA9 (${f.evidence})`]));
-  s.actions.forEach((a, i) => low2(a) && out.push([`actions[${i}]`, `${a.label} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: ${a.effect} (${a.evidence})`]));
+  if (low2(s.purpose)) out.push([`purpose`, t("\uBAA9\uC801 \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {0} ({1})", s.purpose.value, s.purpose.evidence)]);
+  s.roles.forEach((r, i) => low2(r) && out.push([`roles[${i}]`, t("\uC5ED\uD560 {0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C ({1})", r.value, r.evidence)]));
+  s.fields.forEach((f, i) => low2(f) && out.push([`fields[${i}]`, t("{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: \uC785\uB825 \uD56D\uBAA9 ({1})", f.label, f.evidence)]));
+  s.actions.forEach((a, i) => low2(a) && out.push([`actions[${i}]`, t("{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {1} ({2})", a.label, a.effect, a.evidence)]));
   s.unknowns.forEach((u, i) => out.push([`unknowns[${i}]`, u]));
   return out;
 }
 function line(key, text, previous) {
   const prev = previous.get(key);
-  const answer = prev?.answer ? `${ANSWER} ${prev.answer}` : "";
+  const answer = prev?.answer ? `${answerMark()} ${prev.answer}` : "";
   return `- [${prev?.checked ? "x" : " "}] ${text}${answer} <!-- key: ${key} -->`;
 }
 function crawlItems(crawl, routes) {
   if (!crawl) return [];
   return [
-    ...crawl.unmatched.map((p) => [`crawl|unmatched|${p}`, `\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: ${p}`]),
-    ...crawl.unreached.map((id) => [`crawl|unreached|${id}`, `\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: ${id} (${routes.get(id) ?? "\uACBD\uB85C \uC5C6\uC74C"})`])
+    ...crawl.unmatched.map((p) => [`crawl|unmatched|${p}`, t("\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: {0}", p)]),
+    ...crawl.unreached.map((id) => [`crawl|unreached|${id}`, t("\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: {0} ({1})", id, routes.get(id) ?? t("\uACBD\uB85C \uC5C6\uC74C"))])
   ];
 }
 function renderReview(screens, previous, extra = {}) {
-  const lines = [...HEADER];
+  const lines = header();
   let count = 0;
   for (const s of screens) {
     const list = items(s);
@@ -37764,22 +38030,22 @@ function renderReview(screens, previous, extra = {}) {
   }
   const media = (extra.failures ?? []).map((f) => [
     `media|${f.kind}|${f.id}`,
-    f.kind === "capture" ? `${f.id} \uCEA1\uCC98 \uC2E4\uD328: ${f.reason} (media/fail/${f.id}.png)` : `${f.id} \uB179\uD654 \uC2E4\uD328: ${f.step !== void 0 ? `${f.step + 1}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ` : ""}${f.reason} (media/fail/${f.id}.png)`
+    f.kind === "capture" ? t("{0} \uCEA1\uCC98 \uC2E4\uD328: {1} (media/fail/{0}.png)", f.id, f.reason) : t("{0} \uB179\uD654 \uC2E4\uD328: {1}{2} (media/fail/{0}.png)", f.id, f.step !== void 0 ? t("{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ", f.step + 1) : "", f.reason)
   ]);
   if (media.length) {
-    lines.push("## \uCEA1\uCC98\xB7\uB179\uD654 \uC2E4\uD328", "");
+    lines.push(t("## \uCEA1\uCC98\xB7\uB179\uD654 \uC2E4\uD328"), "");
     for (const [key, text] of media) lines.push(line(key, text, previous));
     count += media.length;
     lines.push("");
   }
   const crawl = crawlItems(extra.crawl, extra.routes ?? /* @__PURE__ */ new Map());
   if (crawl.length) {
-    lines.push("## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870", "");
+    lines.push(t("## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870"), "");
     for (const [key, text] of crawl) lines.push(line(key, text, previous));
     count += crawl.length;
     lines.push("");
   }
-  if (!count) lines.push("\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.", "");
+  if (!count) lines.push(t("\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."), "");
   return lines.join("\n");
 }
 async function runReview(projectDir) {
@@ -37824,11 +38090,11 @@ async function runPending(projectDir) {
       screen = null;
     }
     if (screen === void 0) {
-      pending.push({ id, reason: "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C" });
+      pending.push({ id, reason: t("\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C") });
       continue;
     }
     if (!validateScreen(screen).valid) {
-      pending.push({ id, reason: "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C" });
+      pending.push({ id, reason: t("\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C") });
       continue;
     }
     let current;
@@ -37838,11 +38104,11 @@ async function runPending(projectDir) {
       current = void 0;
     }
     if (current !== screen.sourceHash) {
-      pending.push({ id, reason: "\uC18C\uC2A4 \uBCC0\uACBD" });
+      pending.push({ id, reason: t("\uC18C\uC2A4 \uBCC0\uACBD") });
       continue;
     }
     const answered = [...answers].filter(([key, v]) => key.startsWith(`${id}|`) && v.checked && v.answer).length;
-    if (answered) pending.push({ id, reason: `\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 ${answered}\uAC74` });
+    if (answered) pending.push({ id, reason: t("\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 {0}\uAC74", answered) });
   }
   return pending;
 }
@@ -37868,7 +38134,7 @@ async function runtimeStatus() {
 }
 function run(command, args) {
   const r = spawnSync2(command, args, { stdio: "inherit", shell: process.platform === "win32" });
-  if (r.status !== 0) throw new Error(`${command} ${args.join(" ")} \uC2E4\uD328 (exit ${r.status})`);
+  if (r.status !== 0) throw new Error(t("{0} \uC2E4\uD328 (exit {1})", `${command} ${args.join(" ")}`, r.status));
 }
 async function runtimeInstall() {
   const dir = runtimeDir();
@@ -37917,7 +38183,7 @@ async function runUpdate(projectDir) {
       if (reanalyze.some((x) => x.id === id)) continue;
       const s = await readJsonIfExists(join30(dir, "screens", `${id}.json`)).catch(() => void 0);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
-      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870" });
+      if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: t("\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870") });
     }
   }
   const rescenario = await runScenarios(projectDir);
@@ -37927,29 +38193,31 @@ async function runUpdate(projectDir) {
 }
 
 // skills/docent/scripts/src/docent.mjs
-var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]
-
-\uBA85\uB839:
-  init [--app <\uD3F4\uB354>]
-                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)
-  inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
-  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)
-  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4
-  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)
-  review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4
-  build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]
-                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
-  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4
-  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)
-  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778
-  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)
-  scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)
-  capture [id\u2026]  \uD654\uBA74 \uCEA1\uCC98(.docent/media/img)
-  record [id\u2026]   \uC870\uC791 GIF \uB179\uD654(.docent/media/gif)
-  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)
-  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
-  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
-  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
+var usage = () => [
+  t("\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]"),
+  "",
+  t("\uBA85\uB839:"),
+  t("  init [--app <\uD3F4\uB354>]"),
+  t("                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)"),
+  t("  inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4"),
+  t("  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)"),
+  t("  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4"),
+  t("  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)"),
+  t("  review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4"),
+  "  build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]",
+  t("                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4"),
+  t("  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4"),
+  t("  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)"),
+  t("  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778"),
+  t("  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)"),
+  t("  scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)"),
+  t("  capture [id\u2026]  \uD654\uBA74 \uCEA1\uCC98(.docent/media/img)"),
+  t("  record [id\u2026]   \uC870\uC791 GIF \uB179\uD654(.docent/media/gif)"),
+  t("  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)"),
+  t("  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)"),
+  t("  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)"),
+  t("  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC")
+].join("\n");
 var ASSETS_DIR = join31(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
@@ -37967,57 +38235,63 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
 async function main() {
   const { args, project } = parseArgs(process.argv.slice(2));
   const [command, sub] = args;
+  let configLanguage = "ko";
+  try {
+    configLanguage = (await loadConfig(project)).language;
+  } catch {
+  }
+  setCliLanguage(process.env.DOCENT_LANG ?? configLanguage);
   switch (command) {
     case "init": {
       const at = args.indexOf("--app");
       const r = await runInit(project, at > 0 ? { app: args[at + 1] ?? "" } : {});
       if (r.apps) {
-        console.log("\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>");
-        for (const a of r.apps) console.log(`- ${a.dir}	${[...a.detectors, ...a.desktop ? [a.desktop] : []].join(", ") || "\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)"}`);
+        console.log(t("\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>"));
+        for (const a of r.apps) console.log(`- ${a.dir}	${[...a.detectors, ...a.desktop ? [a.desktop] : []].join(", ") || t("\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)")}`);
         return 0;
       }
-      console.log(r.created ? ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4." : ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.");
-      if (r.appIgnored) console.log("--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694.");
-      if (r.app) console.log(`\uC571 \uD3F4\uB354: ${r.app}`);
-      console.log(`\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: ${r.detectors.length ? r.detectors.join(", ") : "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)"}`);
-      if (r.desktop) console.log(`\uB370\uC2A4\uD06C\uD1B1 \uC571(${r.desktop})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)`);
+      console.log(r.created ? t(".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.") : t(".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4."));
+      if (r.appIgnored) console.log(t("--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694."));
+      if (r.app) console.log(t("\uC571 \uD3F4\uB354: {0}", r.app));
+      console.log(t("\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}", r.detectors.length ? r.detectors.join(", ") : t("\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)")));
+      if (r.desktop) console.log(t("\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)", r.desktop));
       return 0;
     }
     case "inventory": {
       const { inventory, problems } = await runInventory(project);
       const pages = inventory.screens.filter((s) => s.kind === "page").length;
-      console.log(`\uD654\uBA74 ${inventory.screens.length}\uAC1C (page ${pages}, \uD558\uC704 \uD654\uBA74 ${inventory.screens.length - pages})`);
-      for (const s of inventory.screens) console.log(`- ${s.id}	${s.route ?? `(${s.parentId}\uC758 \uD558\uC704 \uD654\uBA74)`}	${s.source}`);
-      listProblems("\uC81C\uC678\uD55C \uD56D\uBAA9:", problems);
+      console.log(t("\uD654\uBA74 {0}\uAC1C (page {1}, \uD558\uC704 \uD654\uBA74 {2})", inventory.screens.length, pages, inventory.screens.length - pages));
+      for (const s of inventory.screens) console.log(`- ${s.id}	${s.route ?? t("({0}\uC758 \uD558\uC704 \uD654\uBA74)", s.parentId)}	${s.source}`);
+      listProblems(t("\uC81C\uC678\uD55C \uD56D\uBAA9:"), problems);
       return 0;
     }
     case "update": {
       const r = await runUpdate(project);
-      const show = (title2, list) => console.log(`${title2}: ${list.length ? list.join(", ") : "\uC5C6\uC74C"}`);
-      show("\uC0C8 \uD654\uBA74", r.added);
-      show("\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)", r.removed);
-      show("\uB2E4\uC2DC \uBD84\uC11D", r.reanalyze.map((x) => `${x.id}(${x.reason})`));
-      show("\uC2DC\uB098\uB9AC\uC624 \uC791\uC131", r.rescenario.map((x) => `${x.id}(${x.reason})`));
-      show("\uB2E4\uC2DC \uCEA1\uCC98", r.recapture);
-      listProblems("\uC81C\uC678\uD55C \uD56D\uBAA9:", r.problems);
+      const show = (title2, list) => console.log(`${title2}: ${list.length ? list.join(", ") : t("\uC5C6\uC74C")}`);
+      show(t("\uC0C8 \uD654\uBA74"), r.added);
+      show(t("\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)"), r.removed);
+      show(t("\uB2E4\uC2DC \uBD84\uC11D"), r.reanalyze.map((x) => `${x.id}(${x.reason})`));
+      show(t("\uC2DC\uB098\uB9AC\uC624 \uC791\uC131"), r.rescenario.map((x) => `${x.id}(${x.reason})`));
+      show(t("\uB2E4\uC2DC \uCEA1\uCC98"), r.recapture);
+      listProblems(t("\uC81C\uC678\uD55C \uD56D\uBAA9:"), r.problems);
       return 0;
     }
     case "pending": {
       const list = await runPending(project);
-      if (!list.length) console.log("\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      if (!list.length) console.log(t("\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
       for (const { id, reason } of list) console.log(`${id}	${reason}`);
       return 0;
     }
     case "validate": {
       const only = args.slice(1).filter((a) => !a.startsWith("--"));
       const { ok, problems } = await runValidate(project, { only });
-      if (ok) console.log(only.length ? `\uAC80\uC99D \uD1B5\uACFC: ${only.join(", ")}` : "\uAC80\uC99D \uD1B5\uACFC");
-      else listProblems(`\uBB38\uC81C ${problems.length}\uAC74:`, problems);
+      if (ok) console.log(only.length ? t("\uAC80\uC99D \uD1B5\uACFC: {0}", only.join(", ")) : t("\uAC80\uC99D \uD1B5\uACFC"));
+      else listProblems(t("\uBB38\uC81C {0}\uAC74:", problems.length), problems);
       return ok ? 0 : 1;
     }
     case "review": {
       const { items: items2 } = await runReview(project);
-      console.log(`\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 ${items2}\uAC74 \u2192 .docent/review.md`);
+      console.log(t("\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74 \u2192 .docent/review.md", items2));
       return 0;
     }
     case "build": {
@@ -38027,10 +38301,10 @@ async function main() {
       };
       const formats = flag2("--format")?.split(",").map((f) => f.trim()).filter(Boolean);
       const r = await runBuild(project, { assetsDir: ASSETS_DIR, preset: flag2("--preset"), formats });
-      console.log(`\uC0B0\uCD9C\uBB3C ${r.files.length}\uAC1C \u2192 .docent/out/`);
+      console.log(t("\uC0B0\uCD9C\uBB3C {0}\uAC1C \u2192 .docent/out/", r.files.length));
       for (const f of r.files.filter((f2) => !f2.startsWith("html/") || f2 === "html/index.html")) console.log(`- ${f}`);
-      for (const w of r.warnings) console.log(`\uACBD\uACE0: ${w}`);
-      for (const k of r.skipped) console.log(`\uAC74\uB108\uB700(${k.format}): ${k.reason}`);
+      for (const w of r.warnings) console.log(t("\uACBD\uACE0: {0}", w));
+      for (const k of r.skipped) console.log(t("\uAC74\uB108\uB700({0}): {1}", k.format, k.reason));
       return 0;
     }
     case "hash": {
@@ -38042,66 +38316,66 @@ async function main() {
     case "run": {
       if (sub === "approve") {
         const r = await runApprove(project);
-        console.log(`\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:
+        console.log(`${t("\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:")}
 ${r.commands}`);
         return 0;
       }
       if (sub === "start") {
         const r = await runStart(project, { install: args.includes("--install") });
-        console.log(r.reused ? `\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: ${r.baseUrl}` : `\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: ${r.baseUrl}`);
+        console.log(r.reused ? t("\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}", r.baseUrl) : t("\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}", r.baseUrl));
         return 0;
       }
       if (sub === "stop") {
         const r = await runStop(project);
-        console.log(r.stopped ? "\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4." : "docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        console.log(r.stopped ? t("\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4.") : t("docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
         return 0;
       }
       if (sub === "status") {
         const r = await runStatus(project);
-        console.log(r.configured ? `${r.baseUrl} \u2014 ${r.up ? "\uC751\uB2F5 \uC911" : "\uC751\uB2F5 \uC5C6\uC74C"}${r.pid ? ` (pid ${r.pid})` : ""}` : ".docent/run.json \uC5C6\uC74C");
+        console.log(r.configured ? `${r.baseUrl} \u2014 ${r.up ? t("\uC751\uB2F5 \uC911") : t("\uC751\uB2F5 \uC5C6\uC74C")}${r.pid ? ` (pid ${r.pid})` : ""}` : t(".docent/run.json \uC5C6\uC74C"));
         return 0;
       }
       break;
     }
     case "crawl": {
       const r = await runCrawl(project);
-      console.log(`\uBC29\uBB38 ${r.visited.length}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C ${r.unmatched.length}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 ${r.unreached.length}\uAC1C \u2192 .docent/crawl.json`);
-      for (const p of r.unmatched) console.log(`- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: ${p}`);
-      for (const id of r.unreached) console.log(`- \uB3C4\uB2EC \uBABB \uD568: ${id}`);
-      for (const w of r.warnings) console.log(`\uACBD\uACE0: ${w}`);
+      console.log(t("\uBC29\uBB38 {0}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C {1}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 {2}\uAC1C \u2192 .docent/crawl.json", r.visited.length, r.unmatched.length, r.unreached.length));
+      for (const p of r.unmatched) console.log(t("- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: {0}", p));
+      for (const id of r.unreached) console.log(t("- \uB3C4\uB2EC \uBABB \uD568: {0}", id));
+      for (const w of r.warnings) console.log(t("\uACBD\uACE0: {0}", w));
       return 0;
     }
     case "scenarios": {
       const list = await runScenarios(project);
-      if (!list.length) console.log("\uC2DC\uB098\uB9AC\uC624\uB97C \uC4F8 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      if (!list.length) console.log(t("\uC2DC\uB098\uB9AC\uC624\uB97C \uC4F8 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
       for (const { id, reason } of list) console.log(`${id}	${reason}`);
       return 0;
     }
     case "capture": {
       const r = await runCapture(project, args.slice(1));
-      console.log(`\uCEA1\uCC98 ${r.captured.length}\uAC1C, \uC2E4\uD328 ${r.failed.length}\uAC1C, \uAC74\uB108\uB700 ${r.skipped.length}\uAC1C \u2192 .docent/media/img`);
-      for (const f of r.failed) console.log(`- \uC2E4\uD328 ${f.id}: ${f.reason}`);
-      for (const f of r.skipped) console.log(`- \uAC74\uB108\uB700 ${f.id}: ${f.reason}`);
+      console.log(t("\uCEA1\uCC98 {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/img", r.captured.length, r.failed.length, r.skipped.length));
+      for (const f of r.failed) console.log(t("- \uC2E4\uD328 {0}: {1}", f.id, f.reason));
+      for (const f of r.skipped) console.log(t("- \uAC74\uB108\uB700 {0}: {1}", f.id, f.reason));
       return 0;
     }
     case "record": {
       const r = await runRecord(project, args.slice(1));
-      console.log(`GIF ${r.recorded.length}\uAC1C, \uC2E4\uD328 ${r.failed.length}\uAC1C, \uAC74\uB108\uB700 ${r.skipped.length}\uAC1C \u2192 .docent/media/gif`);
-      for (const f of r.failed) console.log(`- \uC2E4\uD328 ${f.id}: ${f.reason}`);
-      for (const f of r.skipped) console.log(`- \uAC74\uB108\uB700 ${f.id}: ${f.reason}`);
+      console.log(t("GIF {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/gif", r.recorded.length, r.failed.length, r.skipped.length));
+      for (const f of r.failed) console.log(t("- \uC2E4\uD328 {0}: {1}", f.id, f.reason));
+      for (const f of r.skipped) console.log(t("- \uAC74\uB108\uB700 {0}: {1}", f.id, f.reason));
       return 0;
     }
     case "auth": {
       if (sub !== "login" && sub !== "save") break;
       const r = sub === "login" ? await authLogin(project) : await authSave(project);
-      console.log(`\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: ${r.statePath}`);
+      console.log(t("\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: {0}", r.statePath));
       return 0;
     }
     case "runtime": {
       if (sub !== "status" && sub !== "install") break;
       const r = sub === "install" ? await runtimeInstall() : await runtimeStatus();
       if (!r.installed) {
-        console.log(`Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: ${r.dir} (docent runtime install)`);
+        console.log(t("Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)", r.dir));
         return 3;
       }
       console.log(`Playwright ${r.version} (${r.from}: ${r.dir})`);
@@ -38118,7 +38392,7 @@ ${r.commands}`);
       }
       break;
   }
-  console.error(USAGE);
+  console.error(usage());
   return 2;
 }
 main().then(

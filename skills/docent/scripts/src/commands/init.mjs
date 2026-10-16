@@ -4,55 +4,59 @@ import { join } from 'node:path';
 import { DETECTORS } from '../detectors/index.mjs';
 import { isDir } from '../detectors/shared.mjs';
 import { loadConfig } from '../lib/config.mjs';
+import { cliLanguage, t } from '../lib/cli-text.mjs';
 import { normalizeRel } from '../lib/paths.mjs';
 import { desktopKind, findWorkspaceApps } from '../lib/workspaces.mjs';
 import { docentDir } from '../lib/workspace.mjs';
 
 const IGNORE_LINES = ['auth/', 'out/', 'media/', '.session', 'run.log', '.run-pid', '.run-approved'];
-const GITIGNORE_HEADER = '# docent: 로그인 세션·산출물·캡처(실데이터가 찍힐 수 있음)는 커밋하지 않습니다';
+const gitignoreHeader = () => t('# docent: 로그인 세션·산출물·캡처(실데이터가 찍힐 수 있음)는 커밋하지 않습니다');
 
 function configYaml(detectors, app) {
-  const list = detectors.length ? detectors.map((d) => `  - ${d}`).join('\n') : '  []';
-  return `# docent 설정 — 각 항목 설명은 아래 주석과 docent 스킬의 references/run-guide.md를 참고하세요
-language: ko  # 산출물 언어: ko 한국어 | en 영어 (화면 분석 전에 정합니다)
-${app ? `# 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준)\napp: ${JSON.stringify(app)}\n` : ''}# date: 2026-01-01  # 산출물에 찍을 날짜 (없으면 마지막 커밋 날짜)
-detectors:
-${list}
-screens:
-  include: []
-  exclude: []
-  idMap: {}
-analyze:
-  concurrency: 4
-# 로그인이 필요한 앱(값은 적지 말고 환경변수 이름만):
-# auth:
-#   loginPath: /login
-#   fields:
-#     - label: 아이디
-#       env: DOCENT_USER
-#     - label: 비밀번호
-#       env: DOCENT_PASSWORD
-#   submit: 로그인
-#   successPath: /
-# 캡처·녹화 전에 흐리게 처리할 요소(CSS 선택자):
-# mask:
-#   selectors: [".phone", "td.ssn"]
-# 산출물(preset: delivery 납품 | handover 인수인계 | portfolio 포트폴리오, formats: html readme pdf pptx):
-# output:
-#   preset: handover
-#   theme: indigo  # 색 테마: indigo | blue | emerald | rose | slate
-#   formats: [html, readme]
-#   title: 사용자 매뉴얼
-#   projectName: ""  # 산출물에 보일 이름(비우면 제품 이름·package.json name)
-#   organization: ""
-#   revisions:
-#     - { version: "1.0", date: "2026-10-14", author: "", note: "최초 작성" }
-# GIF를 만들 화면(기본: 버튼 동작이 있는 화면):
-# gif:
-#   screens:
-#     include: []
-#     exclude: []
-`.replace('detectors:\n  []', 'detectors: []');
+  const list = detectors.length ? ['detectors:', ...detectors.map((d) => `  - ${d}`)] : ['detectors: []'];
+  return [
+    t('# docent 설정 — 각 항목 설명은 아래 주석과 docent 스킬의 references/run-guide.md를 참고하세요'),
+    // 명령줄이 영어(DOCENT_LANG=en)면 산출물 기본 언어도 영어로
+    t('language: {0}  # 산출물 언어: ko 한국어 | en 영어 (화면 분석 전에 정합니다)', cliLanguage()),
+    ...(app ? [t('# 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준)'), `app: ${JSON.stringify(app)}`] : []),
+    t('# date: 2026-01-01  # 산출물에 찍을 날짜 (없으면 마지막 커밋 날짜)'),
+    ...list,
+    'screens:',
+    '  include: []',
+    '  exclude: []',
+    '  idMap: {}',
+    'analyze:',
+    '  concurrency: 4',
+    t('# 로그인이 필요한 앱(값은 적지 말고 환경변수 이름만):'),
+    '# auth:',
+    '#   loginPath: /login',
+    '#   fields:',
+    t('#     - label: 아이디'),
+    '#       env: DOCENT_USER',
+    t('#     - label: 비밀번호'),
+    '#       env: DOCENT_PASSWORD',
+    t('#   submit: 로그인'),
+    '#   successPath: /',
+    t('# 캡처·녹화 전에 흐리게 처리할 요소(CSS 선택자):'),
+    '# mask:',
+    '#   selectors: [".phone", "td.ssn"]',
+    t('# 산출물(preset: delivery 납품 | handover 인수인계 | portfolio 포트폴리오, formats: html readme pdf pptx):'),
+    '# output:',
+    '#   preset: handover',
+    t('#   theme: indigo  # 색 테마: indigo | blue | emerald | rose | slate'),
+    '#   formats: [html, readme]',
+    t('#   title: 사용자 매뉴얼'),
+    t('#   projectName: ""  # 산출물에 보일 이름(비우면 제품 이름·package.json name)'),
+    '#   organization: ""',
+    '#   revisions:',
+    t('#     - { version: "1.0", date: "2026-10-14", author: "", note: "최초 작성" }'),
+    t('# GIF를 만들 화면(기본: 버튼 동작이 있는 화면):'),
+    '# gif:',
+    '#   screens:',
+    '#     include: []',
+    '#     exclude: []',
+    '',
+  ].join('\n');
 }
 
 async function exists(path) {
@@ -70,7 +74,7 @@ export async function runInit(projectDir, { app } = {}) {
   await mkdir(dir, { recursive: true });
   const ignorePath = join(dir, '.gitignore');
   if (!(await exists(ignorePath))) {
-    await writeFile(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ''].join('\n'));
+    await writeFile(ignorePath, [gitignoreHeader(), ...IGNORE_LINES, ''].join('\n'));
   } else {
     // 예전 버전이 만든 .gitignore에는 빠진 줄만 덧붙인다
     const current = await readFile(ignorePath, 'utf8');
@@ -90,9 +94,9 @@ export async function runInit(projectDir, { app } = {}) {
     try {
       rel = normalizeRel(app.replace(/\\/g, '/'));
     } catch {
-      throw new Error(`--app은 프로젝트 안의 폴더여야 합니다: ${app}`);
+      throw new Error(t('--app은 프로젝트 안의 폴더여야 합니다: {0}', app));
     }
-    if (!(await isDir(join(projectDir, rel)))) throw new Error(`--app 폴더가 없습니다: ${rel}`);
+    if (!(await isDir(join(projectDir, rel)))) throw new Error(t('--app 폴더가 없습니다: {0}', rel));
     const detectors = await detect(join(projectDir, rel));
     await writeFile(configPath, configYaml(detectors, rel));
     return withDesktop({ created: true, detectors, app: rel }, await desktopKind(join(projectDir, rel)));

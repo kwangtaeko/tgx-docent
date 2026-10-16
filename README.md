@@ -56,6 +56,7 @@ npm·pnpm·yarn, docker compose, Maven·Gradle, Django·Flask 실행 계획을 �
 - 대상 프로젝트의 파일은 고치지 않고 `.docent/`에만 씁니다
 - 설치·실행 명령은 사용자 동의(`docent run approve`) 없이 실행하지 않습니다. 캡처용 Playwright·Chromium도 동의 후 `~/.cache/docent/runtime`에 설치합니다. 녹화는 테스트 계정·테스트 데이터로 하세요
 - Node.js 20.10 이상이 필요합니다
+- 명령줄 안내 문구는 `config.yaml`의 `language`를 따릅니다. 환경변수 `DOCENT_LANG=en`(또는 `ko`)으로 따로 정할 수 있고, `DOCENT_LANG=en`으로 `init`하면 산출물 언어도 영어로 시작합니다
 - 다른 에이전트(Codex 등)는 `skills/docent/` 폴더를 복사해 `SKILL.md`를 따르게 하면 됩니다. 이 경우 비밀 파일 차단 훅이 없으므로 `SKILL.md`의 규칙에만 의존합니다
 
 ## 개발

@@ -1,17 +1,20 @@
 // /docent review: 확신도 낮은 항목과 unknowns를 .docent/review.md로 모은다. (설계 문서 11장)
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { readFailures } from '../lib/media.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 
-const HEADER = [
-  '# 확인 필요 항목',
+const header = () => [
+  t('# 확인 필요 항목'),
   '',
-  '> docent가 소스만으로 확정하지 못한 내용입니다. 답을 적고 체크한 뒤 `/docent-analyze`를 다시 실행하면 반영됩니다.',
+  t('> docent가 소스만으로 확정하지 못한 내용입니다. 답을 적고 체크한 뒤 `/docent-analyze`를 다시 실행하면 반영됩니다.'),
   '',
 ];
 const LINE = /^- \[([ xX])\] (.*?)\s*<!-- key: (.+?) -->\s*$/;
-const ANSWER = ' 답:';
+// 답 표시: 쓸 때는 현재 언어로, 읽을 때는 두 언어 모두 알아본다(언어를 바꿔도 이전 답이 남게)
+const answerMark = () => t(' 답:');
+const ANSWER_MARKS = [' 답:', ' Answer:']; // t-skip: review.md에서 찾는 표시(두 언어 모두 읽는다)
 
 // 기존 review.md → key별 { checked, answer }
 export function parseReview(text) {
@@ -19,8 +22,8 @@ export function parseReview(text) {
   for (const line of text.split(/\r?\n/)) {
     const m = LINE.exec(line);
     if (!m) continue;
-    const i = m[2].indexOf(ANSWER);
-    previous.set(m[3], { checked: m[1] !== ' ', answer: i >= 0 ? m[2].slice(i + ANSWER.length).trim() : '' });
+    const found = ANSWER_MARKS.map((mark) => [m[2].indexOf(mark), mark]).filter(([i]) => i >= 0).sort((a, b) => a[0] - b[0])[0];
+    previous.set(m[3], { checked: m[1] !== ' ', answer: found ? m[2].slice(found[0] + found[1].length).trim() : '' });
   }
   return previous;
 }
@@ -28,17 +31,17 @@ export function parseReview(text) {
 function items(s) {
   const out = [];
   const low = (x) => x.confidence === 'low';
-  if (low(s.purpose)) out.push([`purpose`, `목적 — 확신도 낮음: ${s.purpose.value} (${s.purpose.evidence})`]);
-  s.roles.forEach((r, i) => low(r) && out.push([`roles[${i}]`, `역할 ${r.value} — 확신도 낮음 (${r.evidence})`]));
-  s.fields.forEach((f, i) => low(f) && out.push([`fields[${i}]`, `${f.label} — 확신도 낮음: 입력 항목 (${f.evidence})`]));
-  s.actions.forEach((a, i) => low(a) && out.push([`actions[${i}]`, `${a.label} — 확신도 낮음: ${a.effect} (${a.evidence})`]));
+  if (low(s.purpose)) out.push([`purpose`, t('목적 — 확신도 낮음: {0} ({1})', s.purpose.value, s.purpose.evidence)]);
+  s.roles.forEach((r, i) => low(r) && out.push([`roles[${i}]`, t('역할 {0} — 확신도 낮음 ({1})', r.value, r.evidence)]));
+  s.fields.forEach((f, i) => low(f) && out.push([`fields[${i}]`, t('{0} — 확신도 낮음: 입력 항목 ({1})', f.label, f.evidence)]));
+  s.actions.forEach((a, i) => low(a) && out.push([`actions[${i}]`, t('{0} — 확신도 낮음: {1} ({2})', a.label, a.effect, a.evidence)]));
   s.unknowns.forEach((u, i) => out.push([`unknowns[${i}]`, u]));
   return out;
 }
 
 function line(key, text, previous) {
   const prev = previous.get(key);
-  const answer = prev?.answer ? `${ANSWER} ${prev.answer}` : '';
+  const answer = prev?.answer ? `${answerMark()} ${prev.answer}` : '';
   return `- [${prev?.checked ? 'x' : ' '}] ${text}${answer} <!-- key: ${key} -->`;
 }
 
@@ -46,14 +49,14 @@ function line(key, text, previous) {
 function crawlItems(crawl, routes) {
   if (!crawl) return [];
   return [
-    ...crawl.unmatched.map((p) => [`crawl|unmatched|${p}`, `화면 목록에 없는 경로: ${p}`]),
-    ...crawl.unreached.map((id) => [`crawl|unreached|${id}`, `앱에서 링크로 도달하지 못한 화면: ${id} (${routes.get(id) ?? '경로 없음'})`]),
+    ...crawl.unmatched.map((p) => [`crawl|unmatched|${p}`, t('화면 목록에 없는 경로: {0}', p)]),
+    ...crawl.unreached.map((id) => [`crawl|unreached|${id}`, t('앱에서 링크로 도달하지 못한 화면: {0} ({1})', id, routes.get(id) ?? t('경로 없음'))]),
   ];
 }
 
 // screens: inventory 순서의 화면 JSON 배열, extra: { crawl, routes: Map<id, route>, failures }
 export function renderReview(screens, previous, extra = {}) {
-  const lines = [...HEADER];
+  const lines = header();
   let count = 0;
   for (const s of screens) {
     const list = items(s);
@@ -68,23 +71,23 @@ export function renderReview(screens, previous, extra = {}) {
   const media = (extra.failures ?? []).map((f) => [
     `media|${f.kind}|${f.id}`,
     f.kind === 'capture'
-      ? `${f.id} 캡처 실패: ${f.reason} (media/fail/${f.id}.png)`
-      : `${f.id} 녹화 실패: ${f.step !== undefined ? `${f.step + 1}번째 단계 — ` : ''}${f.reason} (media/fail/${f.id}.png)`,
+      ? t('{0} 캡처 실패: {1} (media/fail/{0}.png)', f.id, f.reason)
+      : t('{0} 녹화 실패: {1}{2} (media/fail/{0}.png)', f.id, f.step !== undefined ? t('{0}번째 단계 — ', f.step + 1) : '', f.reason),
   ]);
   if (media.length) {
-    lines.push('## 캡처·녹화 실패', '');
+    lines.push(t('## 캡처·녹화 실패'), '');
     for (const [key, text] of media) lines.push(line(key, text, previous));
     count += media.length;
     lines.push('');
   }
   const crawl = crawlItems(extra.crawl, extra.routes ?? new Map());
   if (crawl.length) {
-    lines.push('## 실행 중인 앱 대조', '');
+    lines.push(t('## 실행 중인 앱 대조'), '');
     for (const [key, text] of crawl) lines.push(line(key, text, previous));
     count += crawl.length;
     lines.push('');
   }
-  if (!count) lines.push('확인할 항목이 없습니다.', '');
+  if (!count) lines.push(t('확인할 항목이 없습니다.'), '');
   return lines.join('\n');
 }
 
