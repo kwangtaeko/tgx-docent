@@ -1,6 +1,6 @@
 // Vue 화면 감지기: Nuxt 파일 라우팅(pages/)과 Vue Router 라우트 선언. (설계 문서 6장 1번)
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { findImport, flattenRoutes, parseRouteObjects, toDocentPath } from './route-tree.mjs';
 import { byRoute, hasDependency, isDir, isFile, isTestFile, lineOf, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
@@ -8,10 +8,17 @@ export const name = 'vue';
 
 // create-vue·Nuxt가 기본으로 두는 별칭(tsconfig에 없을 때를 위해)
 const VUE_ALIASES = [{ prefix: '@/', wildcard: true, targets: ['src/*'] }];
-const NUXT_ALIASES = [
-  { prefix: '~/', wildcard: true, targets: ['*'] },
-  { prefix: '@/', wildcard: true, targets: ['*'] },
-];
+// ~/·@/는 srcDir, ~~/·@@/는 프로젝트 루트
+const nuxtAliases = (srcDir) => {
+  const src = srcDir ? `${srcDir}/*` : '*';
+  return [
+    { prefix: '~~/', wildcard: true, targets: ['*'] },
+    { prefix: '@@/', wildcard: true, targets: ['*'] },
+    { prefix: '~/', wildcard: true, targets: [src] },
+    { prefix: '@/', wildcard: true, targets: [src] },
+  ];
+};
+const NUXT_CONFIGS = ['nuxt.config.ts', 'nuxt.config.js', 'nuxt.config.mjs', 'nuxt.config.mts'];
 const SOURCE_EXT = /\.(ts|js|mjs)$/;
 
 export async function detect(projectDir) {
@@ -30,10 +37,37 @@ function pageRoute(pagesDir, file) {
   return '/' + parts.join('/');
 }
 
+// 프로젝트 안의 상대 경로만 받는다('./src/' → 'src'). 밖을 가리키거나 절대 경로면 undefined
+function relDir(value) {
+  if (value === undefined) return undefined;
+  const dir = posix.normalize(value.replace(/\\/g, '/')).replace(/^\.(\/|$)/, '').replace(/\/$/, '');
+  if (dir.startsWith('/') || dir === '..' || dir.startsWith('../') || /^[A-Za-z]:/.test(dir)) return undefined;
+  return dir;
+}
+
+// nuxt.config의 srcDir·dir.pages(문자열 리터럴만)
+export async function nuxtDirs(projectDir) {
+  for (const file of NUXT_CONFIGS) {
+    let source;
+    try {
+      source = await readFile(join(projectDir, file), 'utf8');
+    } catch {
+      continue;
+    }
+    const srcDir = relDir(/\bsrcDir\s*:\s*['"`]([^'"`]*)['"`]/.exec(source)?.[1]);
+    const pages = relDir(/\bdir\s*:\s*\{[^}]*?\bpages\s*:\s*['"`]([^'"`]+)['"`]/s.exec(source)?.[1]);
+    return { srcDir, pages };
+  }
+  return {};
+}
+
 async function nuxtScreens(projectDir) {
-  const pagesDir = (await isDir(join(projectDir, 'app', 'pages'))) ? 'app/pages' : 'pages';
+  const config = await nuxtDirs(projectDir);
+  // srcDir가 없으면 Nuxt 4 기본(app/)에 pages가 있는지 보고, 없으면 루트(Nuxt 3)
+  const srcDir = config.srcDir ?? ((await isDir(join(projectDir, 'app', config.pages ?? 'pages'))) ? 'app' : '');
+  const pagesDir = posix.join(srcDir || '.', config.pages ?? 'pages');
   if (!(await isDir(join(projectDir, pagesDir)))) return [];
-  const aliases = await loadAliases(projectDir, NUXT_ALIASES);
+  const aliases = await loadAliases(projectDir, nuxtAliases(srcDir));
   const files = (await walk(projectDir, pagesDir)).filter((f) => f.endsWith('.vue'));
   const dirs = new Set(files.map((f) => f.slice(0, f.lastIndexOf('/'))));
   const screens = [];

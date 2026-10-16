@@ -93,10 +93,12 @@ test('LICENSE가 MIT이고 plugin.json license와 같다', async () => {
   assert.match(license, /Copyright \(c\) 2026 kwangtaeko/);
 });
 
-test('CHANGELOG 맨 위 항목이 현재 버전', async () => {
+test('CHANGELOG 맨 위 버전 항목이 현재 버전(그 위에는 미배포 절만 올 수 있다)', async () => {
   const plugin = JSON.parse(await readFile('.claude-plugin/plugin.json', 'utf8'));
   const changelog = await readFile('CHANGELOG.md', 'utf8');
-  assert.equal(/^## (\S+)/m.exec(changelog)?.[1], plugin.version);
+  const headings = [...changelog.matchAll(/^## (\S+)/gm)].map((m) => m[1]);
+  const first = headings[0] === '미배포' ? headings[1] : headings[0];
+  assert.equal(first, plugin.version);
 });
 
 test('에이전트 지시에 실전 대상 사이트의 문구를 쓰지 않는다', async () => {

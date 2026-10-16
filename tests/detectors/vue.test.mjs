@@ -52,3 +52,45 @@ test('부모 .vue와 index.vue가 함께 있으면 /orders 하나, 두 파일 �
   });
   assert.deepEqual(await vue.listScreens(dir), [{ route: '/orders', files: ['pages/orders/index.vue', 'pages/orders.vue'], evidence: 'pages/orders/index.vue:1' }]);
 });
+
+test('nuxt.config의 srcDir 아래 pages를 읽고 ~/ 별칭을 srcDir로 푼다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"nuxt":"3"}}',
+    'nuxt.config.ts': "export default defineNuxtConfig({\n  srcDir: './src/',\n});\n",
+    'src/pages/index.vue': "<script setup>\nimport OrderForm from '~/components/OrderForm.vue';\nimport Shared from '~~/shared/Shared.vue';\n</script>\n<template><OrderForm /></template>\n",
+    'src/components/OrderForm.vue': '<template><form /></template>\n',
+    'shared/Shared.vue': '<template><p /></template>\n',
+    'pages/stale.vue': '<template><p>srcDir 밖이라 화면이 아님</p></template>\n',
+  });
+  assert.deepEqual(await vue.listScreens(dir), [
+    { route: '/', files: ['src/pages/index.vue', 'shared/Shared.vue', 'src/components/OrderForm.vue'], evidence: 'src/pages/index.vue:5' },
+  ]);
+});
+
+test('nuxt.config의 dir.pages로 바꾼 폴더 이름을 읽는다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"nuxt":"3"}}',
+    'nuxt.config.js': "export default {\n  dir: {\n    public: 'static',\n    pages: 'views',\n  },\n};\n",
+    'views/login.vue': '<template><p /></template>\n',
+  });
+  assert.deepEqual((await vue.listScreens(dir)).map((s) => s.route), ['/login']);
+});
+
+test('Nuxt 4에서 srcDir 없이 dir.pages만 바꾸면 app/ 아래에서 찾는다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"nuxt":"4"}}',
+    'nuxt.config.ts': "export default defineNuxtConfig({ dir: { pages: 'routes' } });\n",
+    'app/routes/index.vue': '<template><p /></template>\n',
+  });
+  assert.deepEqual((await vue.listScreens(dir)).map((s) => s.files[0]), ['app/routes/index.vue']);
+});
+
+test('프로젝트 밖을 가리키는 srcDir는 무시한다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"nuxt":"3"}}',
+    'nuxt.config.ts': "export default { srcDir: '../other' };\n",
+    'pages/index.vue': '<template><p /></template>\n',
+  });
+  assert.deepEqual(await vue.nuxtDirs(dir), { srcDir: undefined, pages: undefined });
+  assert.deepEqual((await vue.listScreens(dir)).map((s) => s.route), ['/']);
+});

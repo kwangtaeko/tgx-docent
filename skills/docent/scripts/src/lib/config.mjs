@@ -2,9 +2,12 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { normalizeRel } from './paths.mjs';
 
 export const DEFAULT_CONFIG = Object.freeze({
   language: 'ko',
+  // 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준). 비우면 루트
+  app: '',
   detectors: [],
   screens: { include: [], exclude: [], idMap: {} },
   secrets: { paths: ['.env', '.env.*', 'appsettings*.json', 'web.config', '*.pem', '*.key', '*.pfx', 'id_rsa*'] },
@@ -31,7 +34,7 @@ function merge(base, override) {
 
 const ARRAY_KEYS = ['detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
 const OBJECT_KEYS = ['screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
-const STRING_KEYS = ['language', 'output.preset', 'output.title', 'output.organization'];
+const STRING_KEYS = ['language', 'app', 'output.preset', 'output.title', 'output.organization'];
 
 const get = (obj, path) => path.split('.').reduce((o, k) => (isObject(o) ? o[k] : undefined), obj);
 
@@ -53,6 +56,13 @@ function checkConfig(config) {
       if (head) config[head][key] = String(value);
       else config[key] = String(value);
     } else if (typeof value !== 'string') fail(path, '문자열');
+  }
+  if (config.app) {
+    try {
+      config.app = normalizeRel(config.app);
+    } catch {
+      throw new Error(`config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 (${config.app})`);
+    }
   }
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', '양의 정수');

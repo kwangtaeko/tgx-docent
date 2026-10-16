@@ -137,3 +137,32 @@ test('idMap이 다른 화면 ID와 겹치면 적용하지 않고 문제로 알�
   assert.equal(inventory.screens.find((s) => s.route === '/orders').id, 'orders');
   assert.ok(problems.some((p) => p.includes('idMap') && p.includes('login')), problems.join('\n'));
 });
+
+test('config.app이 있으면 그 폴더에서 감지하고 경로에 폴더를 붙인다', async () => {
+  const { project } = await import('../helpers/project.mjs');
+  const dir = await project({
+    'package.json': '{"private":true,"workspaces":["apps/*"]}',
+    'apps/web/package.json': '{"dependencies":{"next":"15"}}',
+    'apps/web/app/page.tsx': 'export default function Home() {}\n',
+    'apps/web/app/orders/page.tsx': "import { List } from '../../components/List';\nexport default function Orders() {}\n",
+    'apps/web/components/List.tsx': 'export function List() {}\n',
+  });
+  assert.equal((await runInit(dir)).app, 'apps/web');
+  const { inventory, problems } = await runInventory(dir);
+  assert.deepEqual(problems, []);
+  assert.deepEqual(
+    inventory.screens.map(({ route, files, evidence }) => ({ route, files, evidence })),
+    [
+      { route: '/', files: ['apps/web/app/page.tsx'], evidence: 'apps/web/app/page.tsx:1' },
+      { route: '/orders', files: ['apps/web/app/orders/page.tsx', 'apps/web/components/List.tsx'], evidence: 'apps/web/app/orders/page.tsx:2' },
+    ],
+  );
+});
+
+test('config.app 폴더가 없으면 문제로 알린다', async () => {
+  const dir = await prepared();
+  await setConfig(dir, 'app: apps/none\ndetectors: [nextjs]\n');
+  const { inventory, problems } = await runInventory(dir);
+  assert.ok(problems.some((p) => /app 폴더 apps\/none/.test(p)), problems.join());
+  assert.equal(inventory.screens.filter((s) => s.source.startsWith('detector:')).length, 0);
+});

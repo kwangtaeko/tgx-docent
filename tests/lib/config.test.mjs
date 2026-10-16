@@ -66,3 +66,12 @@ test('문자열 항목에 숫자를 적어도 문자열로 받는다', async () 
   assert.equal(c.output.title, '2026');
   assert.equal(c.output.organization, '1234');
 });
+
+test('app은 프로젝트 안 상대 경로로 정리하고, 밖을 가리키면 오류', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'docent-cfg-'));
+  await mkdir(join(dir, '.docent'));
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'app: ./apps/web/\n');
+  assert.equal((await loadConfig(dir)).app, 'apps/web');
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'app: ../other\n');
+  await assert.rejects(loadConfig(dir), /app은 프로젝트 안의 폴더/);
+});

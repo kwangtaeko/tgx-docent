@@ -2,17 +2,20 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DETECTORS } from '../detectors/index.mjs';
+import { isDir } from '../detectors/shared.mjs';
 import { loadConfig } from '../lib/config.mjs';
+import { normalizeRel } from '../lib/paths.mjs';
+import { findWorkspaceApps } from '../lib/workspaces.mjs';
 import { docentDir } from '../lib/workspace.mjs';
 
 const IGNORE_LINES = ['auth/', 'out/', 'media/', '.session', 'run.log', '.run-pid', '.run-approved'];
 const GITIGNORE_HEADER = '# docent: 로그인 세션·산출물·캡처(실데이터가 찍힐 수 있음)는 커밋하지 않습니다';
 
-function configYaml(detectors) {
+function configYaml(detectors, app) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join('\n') : '  []';
   return `# docent 설정 — 항목 설명은 docent 설계 문서를 참고하세요
 language: ko
-# date: 2026-01-01  # 산출물에 찍을 날짜 (없으면 마지막 커밋 날짜)
+${app ? `# 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준)\napp: ${app}\n` : ''}# date: 2026-01-01  # 산출물에 찍을 날짜 (없으면 마지막 커밋 날짜)
 detectors:
 ${list}
 screens:
@@ -59,7 +62,8 @@ async function exists(path) {
   }
 }
 
-export async function runInit(projectDir) {
+// app: 모노레포에서 문서로 만들 앱 폴더(init --app)
+export async function runInit(projectDir, { app } = {}) {
   const dir = docentDir(projectDir);
   await mkdir(dir, { recursive: true });
   const ignorePath = join(dir, '.gitignore');
@@ -75,12 +79,37 @@ export async function runInit(projectDir) {
 
   const configPath = join(dir, 'config.yaml');
   if (await exists(configPath)) {
-    return { created: false, detectors: (await loadConfig(projectDir)).detectors };
+    const config = await loadConfig(projectDir);
+    return { created: false, detectors: config.detectors, ...(config.app ? { app: config.app } : {}) };
   }
-  const detectors = [];
-  for (const detector of DETECTORS) {
-    if (await detector.detect(projectDir)) detectors.push(detector.name);
+  if (app !== undefined) {
+    let rel;
+    try {
+      rel = normalizeRel(app);
+    } catch {
+      throw new Error(`--app은 프로젝트 안의 폴더여야 합니다: ${app}`);
+    }
+    if (!(await isDir(join(projectDir, rel)))) throw new Error(`--app 폴더가 없습니다: ${rel}`);
+    const detectors = await detect(join(projectDir, rel));
+    await writeFile(configPath, configYaml(detectors, rel));
+    return { created: true, detectors, app: rel };
+  }
+  const detectors = await detect(projectDir);
+  if (!detectors.length) {
+    // 루트에서 감지되지 않으면 모노레포의 하위 앱을 찾는다: 하나면 그 앱으로, 여럿이면 고르게 한다
+    const apps = await findWorkspaceApps(projectDir);
+    if (apps.length === 1) {
+      await writeFile(configPath, configYaml(apps[0].detectors, apps[0].dir));
+      return { created: true, detectors: apps[0].detectors, app: apps[0].dir };
+    }
+    if (apps.length > 1) return { created: false, detectors: [], apps };
   }
   await writeFile(configPath, configYaml(detectors));
   return { created: true, detectors };
+}
+
+async function detect(dir) {
+  const names = [];
+  for (const detector of DETECTORS) if (await detector.detect(dir)) names.push(detector.name);
+  return names;
 }

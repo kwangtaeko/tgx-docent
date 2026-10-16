@@ -40,7 +40,7 @@ When the code changes, `/docent-update` redoes only the screens that changed.
 
 | Stack | Screen list | Screenshots and GIFs |
 | --- | --- | --- |
-| Next.js (App and Pages Router), React Router (v6, v7), Vue Router and Nuxt, SvelteKit | detector (script) | starts the app, or uses a URL you give |
+| Next.js (App and Pages Router), React Router (v6, v7, `flatRoutes()`) and Remix v2, Vue Router and Nuxt, SvelteKit — including apps inside a monorepo | detector (script) | starts the app, or uses a URL you give |
 | Spring MVC (JSP, Thymeleaf), Django and Flask, PHP, other JS routers | agent exploration with per-stack hints (`skills/docent/references/stacks/`) | starts the app, or uses a URL you give |
 | ASP.NET WebForms | agent exploration with hints | URL only (needs IIS and Windows) |
 

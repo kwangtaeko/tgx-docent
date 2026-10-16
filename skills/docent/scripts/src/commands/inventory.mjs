@@ -1,6 +1,6 @@
 // /docent-inventory: 감지기 결과와 에이전트 후보를 합쳐 .docent/inventory.json을 만든다. (설계 문서 6장)
 import { access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { detectorByName } from '../detectors/index.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { checkEvidence } from '../lib/evidence.mjs';
@@ -79,15 +79,21 @@ export async function runInventory(projectDir) {
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
 
   const pages = new Map(); // route → entry
-  for (const name of config.detectors) {
+  // 모노레포: 감지기는 앱 폴더에서 돌리고, 돌려받은 경로 앞에 그 폴더를 붙여 프로젝트 루트 기준으로 맞춘다
+  const app = config.app;
+  const appDir = app ? join(projectDir, app) : projectDir;
+  const inApp = (rel) => (app ? posix.join(app, rel) : rel);
+  const appOk = !app || (await fileExists(appDir));
+  if (!appOk) problems.push(`config.yaml: app 폴더 ${app}이 없습니다`);
+  for (const name of appOk ? config.detectors : []) {
     const detector = detectorByName(name);
     if (!detector) {
       problems.push(`config.yaml: 알 수 없는 감지기 ${name}`);
       continue;
     }
-    for (const w of (await detector.warnings?.(projectDir)) ?? []) problems.push(`${name}: ${w}`);
-    for (const s of await detector.listScreens(projectDir)) {
-      if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: 'page', source: `detector:${name}` });
+    for (const w of (await detector.warnings?.(appDir)) ?? []) problems.push(`${name}: ${w}`);
+    for (const s of await detector.listScreens(appDir)) {
+      if (!pages.has(s.route)) pages.set(s.route, { ...s, files: s.files.map(inApp), evidence: inApp(s.evidence), kind: 'page', source: `detector:${name}` });
     }
   }
 

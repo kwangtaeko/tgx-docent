@@ -10,12 +10,14 @@ test('이름과 detect', async () => {
   assert.equal(reactRouter.name, 'react-router');
   assert.equal(await reactRouter.detect('fixtures/detectors/react-router'), true);
   assert.equal(await reactRouter.detect('fixtures/detectors/react-router-v7'), true);
+  assert.equal(await reactRouter.detect(await project({ 'package.json': '{"dependencies":{"@remix-run/react":"2"}}' })), true);
   assert.equal(await reactRouter.detect(await project({ 'package.json': '{"dependencies":{"next":"15"}}' })), false);
 });
 
 test('픽스처 결과가 기대값과 같다', async () => {
   assert.deepEqual(await reactRouter.listScreens('fixtures/detectors/react-router'), await expected('react-router'));
   assert.deepEqual(await reactRouter.listScreens('fixtures/detectors/react-router-v7'), await expected('react-router-v7'));
+  assert.deepEqual(await reactRouter.listScreens('fixtures/detectors/react-router-flat'), await expected('react-router-flat'));
 });
 
 const ROUTER = (eol) =>
@@ -61,14 +63,14 @@ test('감싸는 요소 안의 화면 파일을 files로', async () => {
   assert.deepEqual((await reactRouter.listScreens(dir))[0].files, ['src/Orders.tsx']);
 });
 
-test('flatRoutes()만 쓰는 v7 프로젝트는 경고한다', async () => {
+test('flatRoutes()가 가리키는 폴더에 라우트 파일이 없으면 경고한다', async () => {
   const dir = await project({
     'package.json': '{"dependencies":{"react-router":"7"}}',
-    'app/routes.ts': "import { flatRoutes } from '@react-router/fs-routes';\nexport default flatRoutes() satisfies RouteConfig;\n",
+    'app/routes.ts': "import { flatRoutes } from '@react-router/fs-routes';\nexport default flatRoutes({ rootDirectory: 'pages' }) satisfies RouteConfig;\n",
     'app/routes/_index.tsx': '',
   });
   assert.deepEqual(await reactRouter.listScreens(dir), []);
-  assert.ok((await reactRouter.warnings(dir)).some((w) => /flatRoutes/.test(w)));
+  assert.ok((await reactRouter.warnings(dir)).some((w) => /flatRoutes.*app\/pages/.test(w)));
   assert.deepEqual(await reactRouter.warnings('fixtures/detectors/react-router-v7'), []);
 });
 
@@ -84,4 +86,28 @@ test('감지기 경고는 inventory 문제 목록에 들어간다', async () => 
   await writeFile(join(dir, '.docent', 'config.yaml'), 'detectors: [react-router]\n');
   const { problems } = await runInventory(dir);
   assert.ok(problems.some((p) => /^react-router: .*flatRoutes/.test(p)), problems.join());
+});
+
+test('Remix v2는 routes.ts 없이 app/routes/ 파일 이름으로 화면을 찾는다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"@remix-run/react":"2"}}',
+    'app/routes/_index.tsx': 'export default function Index() {}\n',
+    'app/routes/posts.$slug.tsx': 'export default function Post() {}\n',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir)).map((s) => s.route), ['/', '/posts/[slug]']);
+  assert.deepEqual(await reactRouter.warnings(dir), []);
+});
+
+test('routes.ts의 route()와 flatRoutes()를 함께 쓰면 둘 다, 같은 경로는 route()가 먼저', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router":"7"}}',
+    'app/routes.ts': "export default [route('about', 'pages/about.tsx'), route('login', 'pages/login.tsx'), ...(await flatRoutes())] satisfies RouteConfig;\n",
+    'app/pages/about.tsx': 'export default function About() {}\n',
+    'app/pages/login.tsx': 'export default function Login() {}\n',
+    'app/routes/login.tsx': 'export default function FlatLogin() {}\n',
+    'app/routes/faq.tsx': 'export default function Faq() {}\n',
+  });
+  const screens = await reactRouter.listScreens(dir);
+  assert.deepEqual(screens.map((s) => s.route), ['/about', '/faq', '/login']);
+  assert.deepEqual(screens.find((s) => s.route === '/login').files, ['app/pages/login.tsx']);
 });

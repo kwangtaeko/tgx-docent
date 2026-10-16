@@ -40,7 +40,7 @@
 
 | 스택 | 화면 목록 | 캡처·GIF |
 | --- | --- | --- |
-| Next.js(App·Pages Router), React Router(v6·v7), Vue Router·Nuxt, SvelteKit | 감지기(스크립트) | 자동 실행 또는 주소 받기 |
+| Next.js(App·Pages Router), React Router(v6·v7, `flatRoutes()`)·Remix v2, Vue Router·Nuxt, SvelteKit — 모노레포 하위 앱 포함 | 감지기(스크립트) | 자동 실행 또는 주소 받기 |
 | Spring MVC(JSP·Thymeleaf), Django·Flask, PHP, 그 밖의 JS 라우터 | 에이전트 탐색 + 스택별 힌트(`skills/docent/references/stacks/`) | 자동 실행 또는 주소 받기 |
 | ASP.NET WebForms | 에이전트 탐색 + 힌트 | 주소 받기만(IIS·Windows 필요) |
 

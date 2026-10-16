@@ -7271,7 +7271,7 @@ var require_public_api = __commonJS({
       }
       return doc;
     }
-    function parse2(src, reviver, options) {
+    function parse3(src, reviver, options) {
       let _reviver = void 0;
       if (typeof reviver === "function") {
         _reviver = reviver;
@@ -7312,7 +7312,7 @@ var require_public_api = __commonJS({
         return value.toString(options);
       return new Document.Document(value, _replacer, options).toString(options);
     }
-    exports.parse = parse2;
+    exports.parse = parse3;
     exports.parseAllDocuments = parseAllDocuments;
     exports.parseDocument = parseDocument;
     exports.stringify = stringify;
@@ -11175,7 +11175,7 @@ var require_fast_uri = __commonJS({
         normalizeString(uri, options);
       } else if (typeof uri === "object") {
         uri = /** @type {T} */
-        parse2(serialize(uri, options), options);
+        parse3(serialize(uri, options), options);
       }
       return uri;
     }
@@ -11215,8 +11215,8 @@ var require_fast_uri = __commonJS({
     function resolveComponent(base, relative, options, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
-        base = parse2(serialize(base, options), options);
-        relative = parse2(serialize(relative, options), options);
+        base = parse3(serialize(base, options), options);
+        relative = parse3(serialize(relative, options), options);
       }
       options = options || {};
       if (!options.tolerant && relative.scheme) {
@@ -11515,7 +11515,7 @@ var require_fast_uri = __commonJS({
       }
       return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme };
     }
-    function parse2(uri, opts) {
+    function parse3(uri, opts) {
       return parseWithStatus(uri, opts).parsed;
     }
     function normalizeString(uri, opts) {
@@ -11552,7 +11552,7 @@ var require_fast_uri = __commonJS({
       resolveComponent,
       equal,
       serialize,
-      parse: parse2
+      parse: parse3
     };
     module.exports = fastUri;
     module.exports.default = fastUri;
@@ -13402,9 +13402,9 @@ var require_patternProperties = __commonJS({
       code(cxt) {
         const { gen, schema, data, parentSchema, it } = cxt;
         const { opts } = it;
-        const patterns = (0, code_1.allSchemaProperties)(schema);
-        const alwaysValidPatterns = patterns.filter((p) => (0, util_1.alwaysValidSchema)(it, schema[p]));
-        if (patterns.length === 0 || alwaysValidPatterns.length === patterns.length && (!it.opts.unevaluated || it.props === true)) {
+        const patterns2 = (0, code_1.allSchemaProperties)(schema);
+        const alwaysValidPatterns = patterns2.filter((p) => (0, util_1.alwaysValidSchema)(it, schema[p]));
+        if (patterns2.length === 0 || alwaysValidPatterns.length === patterns2.length && (!it.opts.unevaluated || it.props === true)) {
           return;
         }
         const checkProperties = opts.strictSchema && !opts.allowMatchingProperties && parentSchema.properties;
@@ -13415,7 +13415,7 @@ var require_patternProperties = __commonJS({
         const { props } = it;
         validatePatternProperties();
         function validatePatternProperties() {
-          for (const pat of patterns) {
+          for (const pat of patterns2) {
             if (checkProperties)
               checkMatchingProperties(pat);
             if (it.allErrors) {
@@ -16735,10 +16735,10 @@ var require_packer_sync = __commonJS({
 var require_png_sync = __commonJS({
   "node_modules/pngjs/lib/png-sync.js"(exports) {
     "use strict";
-    var parse2 = require_parser_sync();
+    var parse3 = require_parser_sync();
     var pack = require_packer_sync();
     exports.read = function(buffer, options) {
-      return parse2(buffer, options || {});
+      return parse3(buffer, options || {});
     };
     exports.write = function(png, options) {
       return pack(png, options);
@@ -17164,7 +17164,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join30(s) {
+      BufferList.prototype.join = function join32(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -26685,23 +26685,23 @@ var require_gifenc = __commonJS({
           return contents.slice(0, cursor);
         },
         writeByte(byte) {
-          expand(cursor + 1);
+          expand2(cursor + 1);
           contents[cursor] = byte;
           cursor++;
         },
         writeBytes(data, offset = 0, byteLength = data.length) {
-          expand(cursor + byteLength);
+          expand2(cursor + byteLength);
           for (let i = 0; i < byteLength; i++) {
             contents[cursor++] = data[i + offset];
           }
         },
         writeBytesView(data, offset = 0, byteLength = data.byteLength) {
-          expand(cursor + byteLength);
+          expand2(cursor + byteLength);
           contents.set(data.subarray(offset, offset + byteLength), cursor);
           cursor += byteLength;
         }
       };
-      function expand(newCapacity) {
+      function expand2(newCapacity) {
         var prevCapacity = contents.length;
         if (prevCapacity >= newCapacity)
           return;
@@ -27436,7 +27436,7 @@ var require_gifenc = __commonJS({
 });
 
 // skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join29, resolve as resolve3 } from "node:path";
+import { dirname as dirname4, join as join31, resolve as resolve3 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/auth.mjs
@@ -27448,8 +27448,25 @@ import { createInterface } from "node:readline/promises";
 var import_yaml = __toESM(require_dist(), 1);
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+
+// skills/docent/scripts/src/lib/paths.mjs
+import { posix } from "node:path";
+function normalizeRel(p) {
+  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
+    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+  }
+  const n = posix.normalize(p);
+  if (n === "." || n === ".." || n.startsWith("../")) {
+    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
+  }
+  return n.replace(/\/$/, "");
+}
+
+// skills/docent/scripts/src/lib/config.mjs
 var DEFAULT_CONFIG = Object.freeze({
   language: "ko",
+  // 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준). 비우면 루트
+  app: "",
   detectors: [],
   screens: { include: [], exclude: [], idMap: {} },
   secrets: { paths: [".env", ".env.*", "appsettings*.json", "web.config", "*.pem", "*.key", "*.pfx", "id_rsa*"] },
@@ -27472,7 +27489,7 @@ function merge(base, override) {
 }
 var ARRAY_KEYS = ["detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
 var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
-var STRING_KEYS = ["language", "output.preset", "output.title", "output.organization"];
+var STRING_KEYS = ["language", "app", "output.preset", "output.title", "output.organization"];
 var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
 function checkConfig(config) {
   const fail = (path, kind) => {
@@ -27490,6 +27507,13 @@ function checkConfig(config) {
       if (head) config[head][key] = String(value);
       else config[key] = String(value);
     } else if (typeof value !== "string") fail(path, "\uBB38\uC790\uC5F4");
+  }
+  if (config.app) {
+    try {
+      config.app = normalizeRel(config.app);
+    } catch {
+      throw new Error(`config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.app})`);
+    }
   }
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", "\uC591\uC758 \uC815\uC218");
@@ -27623,19 +27647,6 @@ function httpCheck(url, timeoutMs) {
     req.on("timeout", () => req.destroy(new Error("timeout")));
     req.on("error", () => resolve4({ ok: false }));
   });
-}
-
-// skills/docent/scripts/src/lib/paths.mjs
-import { posix } from "node:path";
-function normalizeRel(p) {
-  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
-  }
-  const n = posix.normalize(p);
-  if (n === "." || n === ".." || n.startsWith("../")) {
-    throw new Error(`\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: ${p}`);
-  }
-  return n.replace(/\/$/, "");
 }
 
 // skills/docent/scripts/src/lib/schema.mjs
@@ -36024,8 +36035,8 @@ async function runRecord(projectDir, ids) {
 }
 
 // skills/docent/scripts/src/commands/init.mjs
-import { access as access2, mkdir as mkdir5, readFile as readFile13, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join22 } from "node:path";
+import { access as access2, mkdir as mkdir5, readFile as readFile15, writeFile as writeFile5 } from "node:fs/promises";
+import { join as join24 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -36220,7 +36231,11 @@ __export(react_router_exports, {
   name: () => name2,
   warnings: () => warnings
 });
-import { readFile as readFile10 } from "node:fs/promises";
+import { readFile as readFile11 } from "node:fs/promises";
+import { join as join20, posix as posix4 } from "node:path";
+
+// skills/docent/scripts/src/detectors/flat-routes.mjs
+import { readFile as readFile10, readdir as readdir4 } from "node:fs/promises";
 import { join as join19, posix as posix3 } from "node:path";
 
 // skills/docent/scripts/src/detectors/route-tree.mjs
@@ -36589,16 +36604,126 @@ function findImport(source, name5) {
   return lazy?.[1];
 }
 
+// skills/docent/scripts/src/detectors/flat-routes.mjs
+var MODULE_EXT = /\.(tsx|ts|jsx|js)$/;
+function splitRouteName(name5) {
+  const segs = [];
+  let raw = "";
+  let text = "";
+  let escaped = false;
+  for (let i = 0; i < name5.length; i++) {
+    const c = name5[i];
+    if (c === "[") {
+      const end = name5.indexOf("]", i + 1);
+      if (end > i) {
+        raw += name5.slice(i, end + 1);
+        text += name5.slice(i + 1, end);
+        escaped = true;
+        i = end;
+        continue;
+      }
+    }
+    if (c === ".") {
+      segs.push({ raw, text, escaped });
+      raw = "";
+      text = "";
+      escaped = false;
+      continue;
+    }
+    raw += c;
+    text += c;
+  }
+  segs.push({ raw, text, escaped });
+  return segs;
+}
+function pathPart({ raw, text, escaped }) {
+  if (escaped) return raw.endsWith("_") ? text.slice(0, -1) : text;
+  if (raw === "_index") return void 0;
+  if (raw.startsWith("_")) return void 0;
+  const seg = raw.replace(/_$/, "");
+  if (seg === "$") return "*";
+  const optional = /^\((.*)\)$/.exec(seg);
+  if (optional) return optional[1].startsWith("$") ? `:${optional[1].slice(1)}?` : `${optional[1]}?`;
+  if (seg.startsWith("$")) return `:${seg.slice(1)}`;
+  return seg;
+}
+function flatRoutePath(name5) {
+  const parts = splitRouteName(name5).map(pathPart).filter((p) => p !== void 0);
+  return "/" + parts.join("/");
+}
+var isPathless = (name5) => {
+  const last = splitRouteName(name5).at(-1);
+  return !last.escaped && last.raw.startsWith("_");
+};
+async function routeModules(projectDir, routesDir) {
+  const modules = [];
+  for (const entry of await readdir4(join19(projectDir, routesDir), { withFileTypes: true })) {
+    if (entry.name.startsWith(".")) continue;
+    const rel = `${routesDir}/${entry.name}`;
+    if (entry.isFile() && MODULE_EXT.test(entry.name) && !entry.name.endsWith(".d.ts") && !isTestFile(rel)) {
+      modules.push({ name: entry.name.replace(MODULE_EXT, ""), file: rel });
+    } else if (entry.isDirectory()) {
+      for (const ext of ["tsx", "ts", "jsx", "js"]) {
+        if (await isFile(join19(projectDir, rel, `route.${ext}`))) {
+          modules.push({ name: entry.name, file: `${rel}/route.${ext}` });
+          break;
+        }
+      }
+    }
+  }
+  return modules.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+}
+async function flatRouteScreens(projectDir, routesDir) {
+  if (!await isDir(join19(projectDir, routesDir))) return [];
+  const aliases = await loadAliases(projectDir);
+  const modules = await routeModules(projectDir, routesDir);
+  const byName = new Map(modules.map((m) => [m.name, m]));
+  const parentOf = (name5) => {
+    let best;
+    for (const m of modules) if (name5.startsWith(`${m.name}.`) && (!best || m.name.length > best.name.length)) best = m;
+    return best;
+  };
+  const children = /* @__PURE__ */ new Map();
+  for (const m of modules) {
+    const p = parentOf(m.name);
+    if (p) children.set(p.name, [...children.get(p.name) ?? [], m]);
+  }
+  const ancestors = (m) => {
+    const out = [];
+    for (let p = parentOf(m.name); p; p = parentOf(p.name)) out.push(p.file);
+    return out;
+  };
+  const screens = /* @__PURE__ */ new Map();
+  for (const m of modules) {
+    const kids = children.get(m.name) ?? [];
+    if (kids.length) {
+      if (byName.has(`${m.name}._index`) || isPathless(m.name)) continue;
+    }
+    const route = toDocentPath(flatRoutePath(m.name));
+    if (route === void 0 || screens.has(route)) continue;
+    const source = await readFile10(join19(projectDir, m.file), "utf8");
+    const files = await screenFiles(projectDir, m.file, aliases);
+    for (const file of ancestors(m)) if (!files.includes(file)) files.push(file);
+    screens.set(route, { route, files, evidence: `${m.file}:${lineOf(source, /\bexport\s+default\b/)}` });
+  }
+  return [...screens.values()].sort(byRoute);
+}
+function flatRoutesDirectory(source) {
+  if (!/\bflatRoutes\s*\(/.test(source)) return void 0;
+  const m = /\bflatRoutes\s*\(\s*\{[^}]*\brootDirectory\s*:\s*['"]([^'"]+)['"]/.exec(source);
+  return posix3.normalize((m?.[1] ?? "routes").replace(/^\.\//, "").replace(/\/$/, ""));
+}
+
 // skills/docent/scripts/src/detectors/react-router.mjs
 var name2 = "react-router";
 var SOURCE_EXT = /\.(tsx|jsx|ts|js)$/;
 var ROUTER_HINT = /createBrowserRouter|createHashRouter|createMemoryRouter|useRoutes|<Route\b|RouteObject/;
 async function detect2(projectDir) {
-  return hasDependency(projectDir, ["react-router", "react-router-dom"]);
+  return hasDependency(projectDir, ["react-router", "react-router-dom", "@remix-run/react"]);
 }
 async function routeConfigFile(projectDir) {
   for (const file of ["app/routes.ts", "app/routes.js", "app/routes.tsx", "app/routes.jsx"]) {
-    if (await isFile(join19(projectDir, file))) return file;
+    if (await isFile(join20(projectDir, file))) return file;
   }
   return void 0;
 }
@@ -36606,11 +36731,15 @@ function add(screens, route, files, evidence) {
   if (route !== void 0 && !screens.has(route)) screens.set(route, { route, files, evidence });
 }
 async function fromRouteConfig(projectDir, file, aliases, screens) {
-  const source = await readFile10(join19(projectDir, file), "utf8");
+  const source = await readFile11(join20(projectDir, file), "utf8");
   for (const { path, node } of flattenRoutes(parseRouteConfig(source))) {
-    const target = posix3.join(posix3.dirname(file), node.component.importPath);
-    const files = await isFile(join19(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+    const target = posix4.join(posix4.dirname(file), node.component.importPath);
+    const files = await isFile(join20(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
     add(screens, toDocentPath(path), files, `${file}:${node.line}`);
+  }
+  const flatDir = flatRoutesDirectory(source);
+  if (flatDir) {
+    for (const s of await flatRouteScreens(projectDir, posix4.join(posix4.dirname(file), flatDir))) add(screens, s.route, s.files, s.evidence);
   }
 }
 async function componentFile(projectDir, file, source, component, aliases) {
@@ -36618,9 +36747,9 @@ async function componentFile(projectDir, file, source, component, aliases) {
   return spec ? resolveImport(projectDir, file, spec, aliases) : void 0;
 }
 async function fromCodeRouters(projectDir, aliases, screens) {
-  const root = await isDir(join19(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join20(projectDir, "src")) ? "src" : "";
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
-    const source = await readFile10(join19(projectDir, file), "utf8");
+    const source = await readFile11(join20(projectDir, file), "utf8");
     if (!ROUTER_HINT.test(source)) continue;
     const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];
     for (const { path, node } of routes) {
@@ -36633,15 +36762,17 @@ async function fromCodeRouters(projectDir, aliases, screens) {
 async function warnings(projectDir) {
   const config = await routeConfigFile(projectDir);
   if (!config) return [];
-  const source = await readFile10(join19(projectDir, config), "utf8");
-  if (!/\bflatRoutes\s*\(/.test(source) || (await listScreens2(projectDir)).length) return [];
-  return [`${config}\uC758 flatRoutes()\uB294 \uD30C\uC77C \uC774\uB984\uC73C\uB85C \uB77C\uC6B0\uD2B8\uB97C \uB9CC\uB4E4\uC5B4 \uAC10\uC9C0\uAE30\uAC00 \uC77D\uC9C0 \uBABB\uD569\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
+  const flatDir = flatRoutesDirectory(await readFile11(join20(projectDir, config), "utf8"));
+  if (!flatDir || (await listScreens2(projectDir)).length) return [];
+  const dir = posix4.join(posix4.dirname(config), flatDir);
+  return [`${config}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 ${dir}/\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
 }
 async function listScreens2(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = /* @__PURE__ */ new Map();
   const config = await routeConfigFile(projectDir);
   if (config) await fromRouteConfig(projectDir, config, aliases, screens);
+  else if (await hasDependency(projectDir, ["@remix-run/react"])) for (const s of await flatRouteScreens(projectDir, "app/routes")) add(screens, s.route, s.files, s.evidence);
   else await fromCodeRouters(projectDir, aliases, screens);
   return [...screens.values()].sort(byRoute);
 }
@@ -36653,8 +36784,8 @@ __export(sveltekit_exports, {
   listScreens: () => listScreens3,
   name: () => name3
 });
-import { readFile as readFile11 } from "node:fs/promises";
-import { join as join20, posix as posix4 } from "node:path";
+import { readFile as readFile12 } from "node:fs/promises";
+import { join as join21, posix as posix5 } from "node:path";
 var name3 = "sveltekit";
 var ROUTES = "src/routes";
 var LIB_ALIASES = [
@@ -36670,21 +36801,21 @@ function routeOf(file) {
   return "/" + parts.map((p) => p.replace(/^(\[{1,2}(?:\.\.\.)?[^\]=]+)=[^\]]+(\]{1,2})$/, "$1$2")).join("/");
 }
 async function listScreens3(projectDir) {
-  if (!await isDir(join20(projectDir, ROUTES))) return [];
+  if (!await isDir(join21(projectDir, ROUTES))) return [];
   const aliases = await loadAliases(projectDir, LIB_ALIASES);
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
-    if (!/^\+page(@[^/]*)?\.svelte$/.test(posix4.basename(file))) continue;
+    if (!/^\+page(@[^/]*)?\.svelte$/.test(posix5.basename(file))) continue;
     const route = routeOf(file);
     const segs = route.split("/").filter((s) => s && !/^\(.*\)$/.test(s));
     if (segs.length === 1 && /^\[\[?\.\.\./.test(segs[0])) continue;
     const [page2, ...imports] = await screenFiles(projectDir, file, aliases);
-    const dir = posix4.dirname(file);
+    const dir = posix5.dirname(file);
     for (const loader of LOADERS) {
       const path = `${dir}/${loader}`;
-      if (await isFile(join20(projectDir, path)) && !imports.includes(path)) imports.push(path);
+      if (await isFile(join21(projectDir, path)) && !imports.includes(path)) imports.push(path);
     }
-    const source = await readFile11(join20(projectDir, file), "utf8");
+    const source = await readFile12(join21(projectDir, file), "utf8");
     screens.push({ route, files: [page2, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
   }
   return screens.sort(byRoute);
@@ -36695,16 +36826,23 @@ var vue_exports = {};
 __export(vue_exports, {
   detect: () => detect4,
   listScreens: () => listScreens4,
-  name: () => name4
+  name: () => name4,
+  nuxtDirs: () => nuxtDirs
 });
-import { readFile as readFile12 } from "node:fs/promises";
-import { join as join21 } from "node:path";
+import { readFile as readFile13 } from "node:fs/promises";
+import { join as join22, posix as posix6 } from "node:path";
 var name4 = "vue";
 var VUE_ALIASES = [{ prefix: "@/", wildcard: true, targets: ["src/*"] }];
-var NUXT_ALIASES = [
-  { prefix: "~/", wildcard: true, targets: ["*"] },
-  { prefix: "@/", wildcard: true, targets: ["*"] }
-];
+var nuxtAliases = (srcDir) => {
+  const src = srcDir ? `${srcDir}/*` : "*";
+  return [
+    { prefix: "~~/", wildcard: true, targets: ["*"] },
+    { prefix: "@@/", wildcard: true, targets: ["*"] },
+    { prefix: "~/", wildcard: true, targets: [src] },
+    { prefix: "@/", wildcard: true, targets: [src] }
+  ];
+};
+var NUXT_CONFIGS = ["nuxt.config.ts", "nuxt.config.js", "nuxt.config.mjs", "nuxt.config.mts"];
 var SOURCE_EXT2 = /\.(ts|js|mjs)$/;
 async function detect4(projectDir) {
   return hasDependency(projectDir, ["vue-router", "nuxt"]);
@@ -36718,10 +36856,32 @@ function pageRoute(pagesDir, file) {
   if (parts.at(-1) === "index") parts.pop();
   return "/" + parts.join("/");
 }
+function relDir(value) {
+  if (value === void 0) return void 0;
+  const dir = posix6.normalize(value.replace(/\\/g, "/")).replace(/^\.(\/|$)/, "").replace(/\/$/, "");
+  if (dir.startsWith("/") || dir === ".." || dir.startsWith("../") || /^[A-Za-z]:/.test(dir)) return void 0;
+  return dir;
+}
+async function nuxtDirs(projectDir) {
+  for (const file of NUXT_CONFIGS) {
+    let source;
+    try {
+      source = await readFile13(join22(projectDir, file), "utf8");
+    } catch {
+      continue;
+    }
+    const srcDir = relDir(/\bsrcDir\s*:\s*['"`]([^'"`]*)['"`]/.exec(source)?.[1]);
+    const pages = relDir(/\bdir\s*:\s*\{[^}]*?\bpages\s*:\s*['"`]([^'"`]+)['"`]/s.exec(source)?.[1]);
+    return { srcDir, pages };
+  }
+  return {};
+}
 async function nuxtScreens(projectDir) {
-  const pagesDir = await isDir(join21(projectDir, "app", "pages")) ? "app/pages" : "pages";
-  if (!await isDir(join21(projectDir, pagesDir))) return [];
-  const aliases = await loadAliases(projectDir, NUXT_ALIASES);
+  const config = await nuxtDirs(projectDir);
+  const srcDir = config.srcDir ?? (await isDir(join22(projectDir, "app", config.pages ?? "pages")) ? "app" : "");
+  const pagesDir = posix6.join(srcDir || ".", config.pages ?? "pages");
+  if (!await isDir(join22(projectDir, pagesDir))) return [];
+  const aliases = await loadAliases(projectDir, nuxtAliases(srcDir));
   const files = (await walk(projectDir, pagesDir)).filter((f) => f.endsWith(".vue"));
   const dirs = new Set(files.map((f) => f.slice(0, f.lastIndexOf("/"))));
   const screens = [];
@@ -36729,7 +36889,7 @@ async function nuxtScreens(projectDir) {
     if (dirs.has(file.replace(/\.vue$/, ""))) continue;
     const route = pageRoute(pagesDir, file);
     if (isCatchAllOnly(route)) continue;
-    const source = await readFile12(join21(projectDir, file), "utf8");
+    const source = await readFile13(join22(projectDir, file), "utf8");
     const list = await screenFiles(projectDir, file, aliases);
     const parent = file.endsWith("/index.vue") ? `${file.slice(0, -"/index.vue".length)}.vue` : void 0;
     if (parent && files.includes(parent) && !list.includes(parent)) list.push(parent);
@@ -36739,17 +36899,17 @@ async function nuxtScreens(projectDir) {
 }
 async function routerScreens(projectDir) {
   const aliases = await loadAliases(projectDir, VUE_ALIASES);
-  const root = await isDir(join21(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join22(projectDir, "src")) ? "src" : "";
   const screens = /* @__PURE__ */ new Map();
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT2.test(f) && !isTestFile(f)).sort()) {
-    const source = await readFile12(join21(projectDir, file), "utf8");
+    const source = await readFile13(join22(projectDir, file), "utf8");
     if (!/createRouter\s*\(|RouteRecordRaw/.test(source) && !/(^|\/)router\//.test(file)) continue;
     for (const { path, node } of flattenRoutes(parseRouteObjects(source))) {
       const route = toDocentPath(path);
       if (route === void 0 || screens.has(route)) continue;
       const spec = node.component.importPath ?? findImport(source, node.component.name);
       const target = spec ? await resolveImport(projectDir, file, spec, aliases) : void 0;
-      const files = target && await isFile(join21(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+      const files = target && await isFile(join22(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
       screens.set(route, { route, files, evidence: `${file}:${node.line}` });
     }
   }
@@ -36766,14 +36926,56 @@ function detectorByName(name5) {
   return DETECTORS.find((d) => d.name === name5);
 }
 
+// skills/docent/scripts/src/lib/workspaces.mjs
+var import_yaml2 = __toESM(require_dist(), 1);
+import { readFile as readFile14, readdir as readdir5 } from "node:fs/promises";
+import { join as join23, posix as posix7 } from "node:path";
+var FALLBACK = ["apps/*", "packages/*"];
+async function patterns(projectDir) {
+  const pkg = await readJsonc(join23(projectDir, "package.json"));
+  const fromPkg = Array.isArray(pkg?.workspaces) ? pkg.workspaces : pkg?.workspaces?.packages;
+  let fromPnpm;
+  try {
+    fromPnpm = (0, import_yaml2.parse)(await readFile14(join23(projectDir, "pnpm-workspace.yaml"), "utf8"))?.packages;
+  } catch {
+  }
+  const list = [...Array.isArray(fromPkg) ? fromPkg : [], ...Array.isArray(fromPnpm) ? fromPnpm : []].filter((p) => typeof p === "string");
+  return list.length ? list : FALLBACK;
+}
+async function expand(projectDir, pattern) {
+  if (pattern.startsWith("!")) return [];
+  const clean = posix7.normalize(pattern.replace(/^\.\//, "")).replace(/\/$/, "");
+  if (clean.startsWith("..") || clean.startsWith("/")) return [];
+  const star = /^(.*?)\/?\*\*?$/.exec(clean);
+  if (!star) return await isDir(join23(projectDir, clean)) ? [clean] : [];
+  const base = star[1];
+  if (base.includes("*") || !await isDir(join23(projectDir, base))) return [];
+  const entries = await readdir5(join23(projectDir, base), { withFileTypes: true });
+  return entries.filter((e) => e.isDirectory() && !SKIP_DIRS.has(e.name)).map((e) => base ? `${base}/${e.name}` : e.name);
+}
+async function findWorkspaceApps(projectDir) {
+  const dirs = /* @__PURE__ */ new Set();
+  for (const pattern of await patterns(projectDir)) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
+  const apps = [];
+  for (const dir of [...dirs].sort()) {
+    if (!await isFile(join23(projectDir, dir, "package.json"))) continue;
+    const detectors = [];
+    for (const d of DETECTORS) if (await d.detect(join23(projectDir, dir))) detectors.push(d.name);
+    if (detectors.length) apps.push({ dir, detectors });
+  }
+  return apps;
+}
+
 // skills/docent/scripts/src/commands/init.mjs
 var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid", ".run-approved"];
 var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4";
-function configYaml(detectors) {
+function configYaml(detectors, app) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
   return `# docent \uC124\uC815 \u2014 \uD56D\uBAA9 \uC124\uBA85\uC740 docent \uC124\uACC4 \uBB38\uC11C\uB97C \uCC38\uACE0\uD558\uC138\uC694
 language: ko
-# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)
+${app ? `# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)
+app: ${app}
+` : ""}# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)
 detectors:
 ${list}
 screens:
@@ -36818,33 +37020,56 @@ async function exists2(path) {
     return false;
   }
 }
-async function runInit(projectDir) {
+async function runInit(projectDir, { app } = {}) {
   const dir = docentDir(projectDir);
   await mkdir5(dir, { recursive: true });
-  const ignorePath = join22(dir, ".gitignore");
+  const ignorePath = join24(dir, ".gitignore");
   if (!await exists2(ignorePath)) {
     await writeFile5(ignorePath, [GITIGNORE_HEADER, ...IGNORE_LINES, ""].join("\n"));
   } else {
-    const current = await readFile13(ignorePath, "utf8");
+    const current = await readFile15(ignorePath, "utf8");
     const have = new Set(current.split(/\r?\n/));
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
     if (missing.length) await writeFile5(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join22(dir, "config.yaml");
+  const configPath = join24(dir, "config.yaml");
   if (await exists2(configPath)) {
-    return { created: false, detectors: (await loadConfig(projectDir)).detectors };
+    const config = await loadConfig(projectDir);
+    return { created: false, detectors: config.detectors, ...config.app ? { app: config.app } : {} };
   }
-  const detectors = [];
-  for (const detector of DETECTORS) {
-    if (await detector.detect(projectDir)) detectors.push(detector.name);
+  if (app !== void 0) {
+    let rel;
+    try {
+      rel = normalizeRel(app);
+    } catch {
+      throw new Error(`--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: ${app}`);
+    }
+    if (!await isDir(join24(projectDir, rel))) throw new Error(`--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: ${rel}`);
+    const detectors2 = await detect5(join24(projectDir, rel));
+    await writeFile5(configPath, configYaml(detectors2, rel));
+    return { created: true, detectors: detectors2, app: rel };
+  }
+  const detectors = await detect5(projectDir);
+  if (!detectors.length) {
+    const apps = await findWorkspaceApps(projectDir);
+    if (apps.length === 1) {
+      await writeFile5(configPath, configYaml(apps[0].detectors, apps[0].dir));
+      return { created: true, detectors: apps[0].detectors, app: apps[0].dir };
+    }
+    if (apps.length > 1) return { created: false, detectors: [], apps };
   }
   await writeFile5(configPath, configYaml(detectors));
   return { created: true, detectors };
 }
+async function detect5(dir) {
+  const names = [];
+  for (const detector of DETECTORS) if (await detector.detect(dir)) names.push(detector.name);
+  return names;
+}
 
 // skills/docent/scripts/src/commands/inventory.mjs
 import { access as access3 } from "node:fs/promises";
-import { join as join23 } from "node:path";
+import { join as join25, posix as posix8 } from "node:path";
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash3 } from "node:crypto";
@@ -36912,7 +37137,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join23(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join25(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: JSON \uD615\uC2DD \uC624\uB958 (${err.message})`);
     return [];
@@ -36934,7 +37159,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join23(projectDir, file))) {
+    if (!await fileExists(join25(projectDir, file))) {
       problems.push(`${label}: \uD30C\uC77C \uC5C6\uC74C ${file}`);
       return void 0;
     }
@@ -36949,19 +37174,24 @@ async function checkEntry(projectDir, label, entry, problems) {
 async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
-  const previous = await readJsonIfExists(join23(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join25(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
-  for (const name5 of config.detectors) {
+  const app = config.app;
+  const appDir = app ? join25(projectDir, app) : projectDir;
+  const inApp = (rel) => app ? posix8.join(app, rel) : rel;
+  const appOk = !app || await fileExists(appDir);
+  if (!appOk) problems.push(`config.yaml: app \uD3F4\uB354 ${app}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4`);
+  for (const name5 of appOk ? config.detectors : []) {
     const detector = detectorByName(name5);
     if (!detector) {
       problems.push(`config.yaml: \uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 ${name5}`);
       continue;
     }
-    for (const w of await detector.warnings?.(projectDir) ?? []) problems.push(`${name5}: ${w}`);
-    for (const s of await detector.listScreens(projectDir)) {
-      if (!pages.has(s.route)) pages.set(s.route, { ...s, kind: "page", source: `detector:${name5}` });
+    for (const w of await detector.warnings?.(appDir) ?? []) problems.push(`${name5}: ${w}`);
+    for (const s of await detector.listScreens(appDir)) {
+      if (!pages.has(s.route)) pages.set(s.route, { ...s, files: s.files.map(inApp), evidence: inApp(s.evidence), kind: "page", source: `detector:${name5}` });
     }
   }
   const agentEntries = await collectAgentEntries(projectDir, problems);
@@ -37001,7 +37231,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join23(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join25(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -37029,17 +37259,17 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(`inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: ${errors.join("; ")}`);
-  await writeJson(join23(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join25(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
-import { readFile as readFile15 } from "node:fs/promises";
-import { join as join25 } from "node:path";
+import { readFile as readFile17 } from "node:fs/promises";
+import { join as join27 } from "node:path";
 
 // skills/docent/scripts/src/commands/review.mjs
-import { readFile as readFile14, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join24 } from "node:path";
+import { readFile as readFile16, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join26 } from "node:path";
 var HEADER = [
   "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9",
   "",
@@ -37115,21 +37345,21 @@ function renderReview(screens, previous, extra = {}) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join24(dir, "inventory.json"));
+  const inventory = await readJson(join26(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join24(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join26(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join24(dir, "review.md");
+  const path = join26(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
-    previous = parseReview(await readFile14(path, "utf8"));
+    previous = parseReview(await readFile16(path, "utf8"));
   } catch {
   }
-  const crawl = await readJsonIfExists(join24(dir, "crawl.json")).catch(() => void 0);
+  const crawl = await readJsonIfExists(join26(dir, "crawl.json")).catch(() => void 0);
   const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
   const failures = await readFailures(projectDir);
   const text = renderReview(screens, previous, { crawl, routes, failures });
@@ -37140,17 +37370,17 @@ async function runReview(projectDir) {
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join25(dir, "inventory.json"));
+  const inventory = await readJson(join27(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile15(join25(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile17(join27(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join25(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join27(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -37180,19 +37410,19 @@ async function runPending(projectDir) {
 
 // skills/docent/scripts/src/commands/session.mjs
 import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
-import { join as join26 } from "node:path";
+import { join as join28 } from "node:path";
 async function startSession(projectDir) {
   await mkdir6(docentDir(projectDir), { recursive: true });
-  await writeFile7(join26(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile7(join28(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm4(join26(docentDir(projectDir), ".session"), { force: true });
+  await rm4(join28(docentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join27 } from "node:path";
+import { join as join29 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -37205,13 +37435,13 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join27(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join29(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
 // skills/docent/scripts/src/commands/update.mjs
-import { access as access4, readdir as readdir4 } from "node:fs/promises";
-import { join as join28 } from "node:path";
+import { access as access4, readdir as readdir6 } from "node:fs/promises";
+import { join as join30 } from "node:path";
 async function exists3(path) {
   try {
     await access4(path);
@@ -37222,23 +37452,23 @@ async function exists3(path) {
 }
 async function idsIn(dir, ext) {
   try {
-    return (await readdir4(dir)).filter((n) => n.endsWith(ext)).map((n) => n.slice(0, -ext.length));
+    return (await readdir6(dir)).filter((n) => n.endsWith(ext)).map((n) => n.slice(0, -ext.length));
   } catch {
     return [];
   }
 }
 async function runUpdate(projectDir) {
   const dir = docentDir(projectDir);
-  const before = new Set((await readJsonIfExists(join28(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
+  const before = new Set((await readJsonIfExists(join30(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
   const { inventory, problems } = await runInventory(projectDir);
   const now = new Set(inventory.screens.map((s) => s.id));
   const added = [...now].filter((id) => !before.has(id)).sort();
   const media = mediaPaths(projectDir);
   const leftovers = /* @__PURE__ */ new Set([
-    ...await idsIn(join28(dir, "screens"), ".json"),
-    ...await idsIn(join28(dir, "scenarios"), ".json"),
-    ...await idsIn(join28(media.root, "img"), ".png"),
-    ...await idsIn(join28(media.root, "gif"), ".gif")
+    ...await idsIn(join30(dir, "screens"), ".json"),
+    ...await idsIn(join30(dir, "scenarios"), ".json"),
+    ...await idsIn(join30(media.root, "img"), ".png"),
+    ...await idsIn(join30(media.root, "gif"), ".gif")
   ]);
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
   const reanalyze = await runPending(projectDir);
@@ -37246,7 +37476,7 @@ async function runUpdate(projectDir) {
     const gone = new Set(removed);
     for (const { id } of inventory.screens) {
       if (reanalyze.some((x) => x.id === id)) continue;
-      const s = await readJsonIfExists(join28(dir, "screens", `${id}.json`)).catch(() => void 0);
+      const s = await readJsonIfExists(join30(dir, "screens", `${id}.json`)).catch(() => void 0);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
       if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870" });
     }
@@ -37261,7 +37491,8 @@ async function runUpdate(projectDir) {
 var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]
 
 \uBA85\uB839:
-  init           \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
+  init [--app <\uD3F4\uB354>]
+                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)
   inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4
   update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)
   pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4
@@ -37280,7 +37511,7 @@ var USAGE = `\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\
   runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)
   session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)
   session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC`;
-var ASSETS_DIR = join29(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join31(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -37299,8 +37530,15 @@ async function main() {
   const [command, sub] = args;
   switch (command) {
     case "init": {
-      const r = await runInit(project);
+      const at = args.indexOf("--app");
+      const r = await runInit(project, at > 0 ? { app: args[at + 1] ?? "" } : {});
+      if (r.apps) {
+        console.log("\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>");
+        for (const a of r.apps) console.log(`- ${a.dir}	${a.detectors.join(", ")}`);
+        return 0;
+      }
       console.log(r.created ? ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4." : ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.");
+      if (r.app) console.log(`\uC571 \uD3F4\uB354: ${r.app}`);
       console.log(`\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: ${r.detectors.length ? r.detectors.join(", ") : "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)"}`);
       return 0;
     }

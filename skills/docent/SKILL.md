@@ -48,7 +48,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 ### 1. 준비
 
-`$DOCENT init`. 감지기는 `nextjs`(App·Pages Router), `react-router`(v6 코드 라우터·v7 `app/routes.ts`), `vue`(Vue Router·Nuxt), `sveltekit`입니다. 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다(Spring·WebForms·Django·PHP 등은 `<SKILL_DIR>/references/stacks/`의 힌트로 찾습니다).
+`$DOCENT init`. 감지기는 `nextjs`(App·Pages Router), `react-router`(v6 코드 라우터·v7 `app/routes.ts`와 `flatRoutes()`·Remix v2 파일 이름 라우팅), `vue`(Vue Router·Nuxt, `srcDir`·`dir.pages` 포함), `sveltekit`입니다. 모노레포라 루트에서 감지되지 않으면 `init`이 워크스페이스(`package.json` workspaces, `pnpm-workspace.yaml`, `apps/*`·`packages/*`)에서 앱을 찾습니다. 하나면 `config.yaml`의 `app`으로 정하고, 여럿이면 후보 목록을 보여 주므로 어느 앱을 문서로 만들지 사용자에게 물어 `$DOCENT init --app <폴더>`로 다시 실행합니다(앱 하나당 `.docent` 하나, 앱을 바꾸려면 `app`을 고칩니다). 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다(Spring·WebForms·Django·PHP 등은 `<SKILL_DIR>/references/stacks/`의 힌트로 찾습니다).
 
 ### 2. 화면 목록
 

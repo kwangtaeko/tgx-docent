@@ -22,7 +22,8 @@ import { hashFiles } from './lib/source-hash.mjs';
 const USAGE = `사용법: docent <명령> [--project <디렉터리>]
 
 명령:
-  init           프로젝트를 파악해 .docent/config.yaml을 만듭니다
+  init [--app <폴더>]
+                 프로젝트를 파악해 .docent/config.yaml을 만듭니다(모노레포는 문서로 만들 앱 폴더)
   inventory      화면 목록(.docent/inventory.json)을 만듭니다
   update         코드가 바뀐 뒤 다시 할 일(새 화면·삭제 후보·재분석·시나리오·재캡처)
   pending        다시 분석할 화면(결과 없음·소스 변경·확인 항목 답변)을 보여 줍니다
@@ -64,8 +65,15 @@ async function main() {
   const [command, sub] = args;
   switch (command) {
     case 'init': {
-      const r = await runInit(project);
+      const at = args.indexOf('--app');
+      const r = await runInit(project, at > 0 ? { app: args[at + 1] ?? '' } : {});
+      if (r.apps) {
+        console.log('모노레포에서 앱을 여러 개 찾았습니다. 문서로 만들 앱을 골라 다시 실행하세요: docent init --app <폴더>');
+        for (const a of r.apps) console.log(`- ${a.dir}\t${a.detectors.join(', ')}`);
+        return 0;
+      }
       console.log(r.created ? '.docent/config.yaml을 만들었습니다.' : '.docent/config.yaml이 이미 있어 그대로 둡니다.');
+      if (r.app) console.log(`앱 폴더: ${r.app}`);
       console.log(`감지된 프레임워크: ${r.detectors.length ? r.detectors.join(', ') : '없음 (에이전트 탐색으로 화면을 찾습니다)'}`);
       return 0;
     }

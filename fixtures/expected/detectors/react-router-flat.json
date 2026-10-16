@@ -1,0 +1,85 @@
+[
+  {
+    "route": "/",
+    "files": [
+      "app/routes/_index.tsx"
+    ],
+    "evidence": "app/routes/_index.tsx:1"
+  },
+  {
+    "route": "/[[...lang]]/about",
+    "files": [
+      "app/routes/($lang).about.tsx"
+    ],
+    "evidence": "app/routes/($lang).about.tsx:1"
+  },
+  {
+    "route": "/login",
+    "files": [
+      "app/routes/login.tsx"
+    ],
+    "evidence": "app/routes/login.tsx:1"
+  },
+  {
+    "route": "/orders",
+    "files": [
+      "app/routes/orders._index.tsx",
+      "app/routes/orders.tsx"
+    ],
+    "evidence": "app/routes/orders._index.tsx:1"
+  },
+  {
+    "route": "/orders/[orderId]",
+    "files": [
+      "app/routes/orders.$orderId.tsx",
+      "app/routes/orders.tsx"
+    ],
+    "evidence": "app/routes/orders.$orderId.tsx:1"
+  },
+  {
+    "route": "/orders/new",
+    "files": [
+      "app/routes/orders_.new.tsx",
+      "app/components/OrderForm.tsx"
+    ],
+    "evidence": "app/routes/orders_.new.tsx:3"
+  },
+  {
+    "route": "/settings",
+    "files": [
+      "app/routes/settings/route.tsx",
+      "app/routes/settings/form.tsx"
+    ],
+    "evidence": "app/routes/settings/route.tsx:3"
+  },
+  {
+    "route": "/signup",
+    "files": [
+      "app/routes/_auth.signup.tsx",
+      "app/routes/_auth.tsx"
+    ],
+    "evidence": "app/routes/_auth.signup.tsx:1"
+  },
+  {
+    "route": "/sitemap.xml",
+    "files": [
+      "app/routes/sitemap[.]xml.tsx"
+    ],
+    "evidence": "app/routes/sitemap[.]xml.tsx:1"
+  },
+  {
+    "route": "/users",
+    "files": [
+      "app/routes/users.tsx"
+    ],
+    "evidence": "app/routes/users.tsx:3"
+  },
+  {
+    "route": "/users/[id]",
+    "files": [
+      "app/routes/users.$id.tsx",
+      "app/routes/users.tsx"
+    ],
+    "evidence": "app/routes/users.$id.tsx:1"
+  }
+]
