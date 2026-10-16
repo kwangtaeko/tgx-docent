@@ -117,3 +117,13 @@ test('세로로 긴 캡처는 위쪽만 잘라 넣는다', () => {
   const short = PNG.sync.write(new PNG({ width: 100, height: 100 }));
   assert.equal(cropForSlide(short, 6.0, 5.6), short);
 });
+
+test('HTML과 같은 색 토큰: 진한 표지·강조 막대·기능 카드·단계 칩', async () => {
+  const input = await loadGolden();
+  input.options = opts('handover');
+  const all = await slides(await renderPptx(input, { mediaDir: await emptyMedia() }));
+  assert.match(all[0], /1E1B4B/, '표지 배경');
+  assert.match(all[1], /4F46E5/, '제목 강조 막대');
+  assert.ok((all[1].match(/prstGeom prst="roundRect"/g) ?? []).length >= input.summary.features.length, '기능마다 카드');
+  assert.match(all[4], /EEF2FF/, '단계 칩');
+});
