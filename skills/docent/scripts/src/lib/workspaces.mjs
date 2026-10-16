@@ -1,11 +1,12 @@
-// 모노레포의 앱 후보 찾기: package.json workspaces, pnpm-workspace.yaml, 없으면 apps/*·packages/*.
+// 모노레포의 앱 후보 찾기: package.json workspaces, pnpm-workspace.yaml, 없으면 apps/*·packages/*와 루트 바로 아래 폴더(frontend/·web/ 등).
 import { readFile, readdir } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 import { parse } from 'yaml';
 import { DETECTORS } from '../detectors/index.mjs';
 import { isDir, isFile, readJsonc, SKIP_DIRS } from '../detectors/shared.mjs';
 
-const FALLBACK = ['apps/*', 'packages/*'];
+// 워크스페이스 설정 없이 frontend/·backend/처럼 나눈 저장소도 있다
+const FALLBACK = ['apps/*', 'packages/*', '*'];
 
 async function patterns(projectDir) {
   const pkg = await readJsonc(join(projectDir, 'package.json'));

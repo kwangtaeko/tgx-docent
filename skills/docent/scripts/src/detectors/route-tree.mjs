@@ -1,6 +1,8 @@
 // 코드로 선언된 라우트(React Router·Vue Router)를 읽는 작은 토크나이저와 파서.
 // 실행하지 않고 소스 글자만 본다. 경로가 문자열 리터럴이 아닌 라우트는 건너뛴다(에이전트 탐색이 메운다).
 
+import { t } from '../lib/cli-text.mjs';
+
 const REDIRECTS = new Set(['Navigate', 'Redirect']);
 const PUNCT3 = ['...'];
 const PUNCT2 = ['=>'];
@@ -190,7 +192,10 @@ function parseObject(tokens, i) {
           break;
         }
         case 'children':
-          if (isP(value[0], '[')) node.children = parseArrayOfObjects(tokens, start);
+          if (isP(value[0], '[')) {
+            node.children = parseArrayOfObjects(tokens, start);
+            node.spreads = spreadLines(tokens, start);
+          }
           break;
         case 'redirect':
           node.redirect = true;
@@ -207,6 +212,16 @@ function parseObject(tokens, i) {
   const routeKey = keys.has('path') || keys.has('index');
   const content = ['element', 'component', 'Component', 'lazy', 'children', 'redirect'].some((k) => keys.has(k));
   return { node, end: j, isRoute: routeKey && content };
+}
+
+// tokens[i] = '['. 배열 바로 안의 스프레드(...menuRoutes)가 있는 줄 — 소스 글자만으로는 펼칠 수 없다
+function spreadLines(tokens, i) {
+  const end = matching(tokens, i);
+  const lines = [];
+  for (let j = i + 1; j < end; j = valueEnd(tokens, j) + 1) {
+    if (isP(tokens[j], '...')) lines.push(tokens[j].line);
+  }
+  return lines;
 }
 
 // tokens[i] = '['. 배열 안의 라우트 객체
@@ -373,6 +388,28 @@ export function flattenRoutes(nodes, base = '/') {
     else if (node.component && !node.redirect) out.push({ path: full, node });
   }
   return out;
+}
+
+// 경로를 읽지 못한 라우트(변수 경로·스프레드로 붙인 자식)의 줄 번호. 감지기가 화면을 빠뜨렸을 수 있다는 신호
+export function unreadRoutes(nodes) {
+  const lines = [];
+  const visit = (list) => {
+    for (const node of list) {
+      if (node.dynamicPath) lines.push(node.line);
+      lines.push(...(node.spreads ?? []));
+      visit(node.children);
+    }
+  };
+  visit(nodes);
+  return [...new Set(lines)].sort((a, b) => a - b);
+}
+
+// [{ file, nodes }] → 경로를 읽지 못한 라우트가 있으면 위치를 담은 경고 하나(에이전트 탐색으로 메우게)
+export function unreadWarnings(routers) {
+  const places = routers.flatMap(({ file, nodes }) => unreadRoutes(nodes).map((line) => `${file}:${line}`));
+  if (!places.length) return [];
+  const shown = places.slice(0, 5).join(', ') + (places.length > 5 ? ` …(+${places.length - 5})` : '');
+  return [t('경로를 소스 글자만으로 읽을 수 없는 라우트(변수 경로·스프레드)가 있어 화면이 빠졌을 수 있습니다: {0} — route-explorer로 나머지 화면을 찾으세요(references/stacks/js-routers.md)', shown)];
 }
 
 // 라우터 표기 → docent 표기(:id → [id], * → [...splat]). 경로 전체가 catch-all 하나면(Not-found) undefined

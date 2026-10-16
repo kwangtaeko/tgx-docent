@@ -74,7 +74,7 @@ test('flatRoutes()가 가리키는 폴더에 라우트 파일이 없으면 경�
   assert.deepEqual(await reactRouter.warnings('fixtures/detectors/react-router-v7'), []);
 });
 
-test('감지기 경고는 inventory 문제 목록에 들어간다', async () => {
+test('감지기 경고는 inventory 경고 목록에 들어간다(제외한 항목과 따로)', async () => {
   const { runInventory } = await import('../../skills/docent/scripts/src/commands/inventory.mjs');
   const { mkdir, writeFile } = await import('node:fs/promises');
   const { join } = await import('node:path');
@@ -84,8 +84,51 @@ test('감지기 경고는 inventory 문제 목록에 들어간다', async () => 
   });
   await mkdir(join(dir, '.docent'));
   await writeFile(join(dir, '.docent', 'config.yaml'), 'detectors: [react-router]\n');
-  const { problems } = await runInventory(dir);
-  assert.ok(problems.some((p) => /^react-router: .*flatRoutes/.test(p)), problems.join());
+  const { problems, warnings } = await runInventory(dir);
+  assert.ok(warnings.some((p) => /^react-router: .*flatRoutes/.test(p)), warnings.join());
+  assert.ok(!problems.some((p) => /flatRoutes/.test(p)), problems.join());
+  // route-explorer가 화면을 더한 뒤에는 다시 알리지 않는다
+  await mkdir(join(dir, 'app', 'pages'));
+  await writeFile(join(dir, 'app', 'pages', 'home.tsx'), 'export default function Home() {}\n');
+  await writeFile(join(dir, '.docent', 'inventory.agent.json'), JSON.stringify({ screens: [{ route: '/', kind: 'page', files: ['app/pages/home.tsx'], evidence: 'app/pages/home.tsx:1' }] }));
+  const again = await runInventory(dir);
+  assert.deepEqual(again.warnings, []);
+  assert.deepEqual(again.inventory.screens.map((s) => s.route), ['/']);
+});
+
+test('변수 경로·스프레드로 붙인 라우트는 화면을 빠뜨렸을 수 있다고 경고한다(위치와 함께)', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router-dom":"7"}}',
+    'src/router.tsx': [
+      "import Shell from './Shell';",
+      "import Home from './Home';",
+      "const menuRoutes = Object.entries(MENU).map(([code, r]) => ({ path: r.path, element: <Page code={code} /> }));",
+      'export const router = createBrowserRouter([',
+      "  { path: '/', element: <Shell />, children: [",
+      '    { index: true, element: <Home /> },',
+      '    ...menuRoutes,',
+      '  ] },',
+      ']);',
+      '',
+    ].join('\n'),
+    'src/Shell.tsx': '',
+    'src/Home.tsx': '',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir)).map((s) => s.route), ['/']);
+  const [w, ...rest] = await reactRouter.warnings(dir, (p) => `web/${p}`);
+  assert.deepEqual(rest, []);
+  assert.match(w, /web\/src\/router\.tsx:3, web\/src\/router\.tsx:7 .*route-explorer/);
+  // 리터럴 경로만 있으면 경고 없음
+  assert.deepEqual(await reactRouter.warnings('fixtures/detectors/react-router'), []);
+});
+
+test('v7 routes.ts의 route()에 변수 경로가 있으면 경고한다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router":"7"}}',
+    'app/routes.ts': "export default [index('routes/home.tsx'), route(PATHS.about, 'routes/about.tsx')] satisfies RouteConfig;\n",
+    'app/routes/home.tsx': '',
+  });
+  assert.ok((await reactRouter.warnings(dir)).some((w) => /app\/routes\.ts:1/.test(w)));
 });
 
 test('Remix v2는 routes.ts 없이 app/routes/ 파일 이름으로 화면을 찾는다', async () => {

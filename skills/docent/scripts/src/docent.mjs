@@ -92,11 +92,12 @@ async function main() {
       return 0;
     }
     case 'inventory': {
-      const { inventory, problems } = await runInventory(project);
+      const { inventory, problems, warnings } = await runInventory(project);
       const pages = inventory.screens.filter((s) => s.kind === 'page').length;
       console.log(t('화면 {0}개 (page {1}, 하위 화면 {2})', inventory.screens.length, pages, inventory.screens.length - pages));
       for (const s of inventory.screens) console.log(`- ${s.id}\t${s.route ?? t('({0}의 하위 화면)', s.parentId)}\t${s.source}`);
       listProblems(t('제외한 항목:'), problems);
+      for (const w of warnings) console.log(t('경고: {0}', w));
       return 0;
     }
     case 'update': {
@@ -108,6 +109,7 @@ async function main() {
       show(t('시나리오 작성'), r.rescenario.map((x) => `${x.id}(${x.reason})`));
       show(t('다시 캡처'), r.recapture);
       listProblems(t('제외한 항목:'), r.problems);
+      for (const w of r.warnings) console.log(t('경고: {0}', w));
       return 0;
     }
     case 'pending': {

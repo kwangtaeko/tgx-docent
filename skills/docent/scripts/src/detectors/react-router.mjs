@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
 import { t } from '../lib/cli-text.mjs';
 import { flatRouteScreens, flatRoutesCalls, remixIgnoredRouteFiles } from './flat-routes.mjs';
-import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath } from './route-tree.mjs';
+import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath, unreadWarnings } from './route-tree.mjs';
 import { byRoute, hasDependency, isDir, isFile, isTestFile, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
 export const name = 'react-router';
@@ -46,13 +46,20 @@ async function componentFile(projectDir, file, source, component, aliases) {
   return spec ? resolveImport(projectDir, file, spec, aliases) : undefined;
 }
 
-async function fromCodeRouters(projectDir, aliases, screens) {
+// 코드 라우터 파일마다 → { file, source, trees: [객체 라우트, JSX 라우트] }
+async function codeRouters(projectDir) {
   const root = (await isDir(join(projectDir, 'src'))) ? 'src' : '';
+  const out = [];
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile(join(projectDir, file), 'utf8');
-    if (!ROUTER_HINT.test(source)) continue;
-    const routes = [...flattenRoutes(parseRouteObjects(source)), ...flattenRoutes(parseJsxRoutes(source))];
-    for (const { path, node } of routes) {
+    if (ROUTER_HINT.test(source)) out.push({ file, source, trees: [parseRouteObjects(source), parseJsxRoutes(source)] });
+  }
+  return out;
+}
+
+async function fromCodeRouters(projectDir, aliases, screens) {
+  for (const { file, source, trees } of await codeRouters(projectDir)) {
+    for (const { path, node } of trees.flatMap((tree) => flattenRoutes(tree))) {
       const target = await componentFile(projectDir, file, source, node.component, aliases);
       // 같은 파일에 정의된 컴포넌트처럼 찾지 못하면 라우터 파일을 화면 파일로 둔다
       const files = target ? await screenFiles(projectDir, target, aliases) : [file];
@@ -61,14 +68,20 @@ async function fromCodeRouters(projectDir, aliases, screens) {
   }
 }
 
-// flatRoutes()를 쓰는데 라우트 파일을 하나도 찾지 못하면 알린다(폴더 이름을 다르게 둔 경우 등)
-export async function warnings(projectDir) {
+// 화면이 빠졌을 수 있는 곳을 알린다: 경로를 읽지 못한 라우트(변수 경로·스프레드), 라우트 파일을 하나도 찾지 못한 flatRoutes()(폴더 이름을 다르게 둔 경우 등)
+// inApp: 앱 폴더 기준 경로 → 프로젝트 루트 기준(모노레포에서 경고에 적는 경로)
+export async function warnings(projectDir, inApp = (p) => p) {
   const config = await routeConfigFile(projectDir);
-  if (!config) return [];
-  const calls = flatRoutesCalls(await readFile(join(projectDir, config), 'utf8'));
-  if (!calls.length || (await listScreens(projectDir)).length) return [];
-  const dirs = calls.map((c) => `${posix.join(posix.dirname(config), c.dir)}/`).join(', ');
-  return [t('{0}의 flatRoutes()가 가리키는 {1}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)', config, dirs)];
+  if (!config) {
+    if (await hasDependency(projectDir, ['@remix-run/react'])) return [];
+    return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: trees.flat() })));
+  }
+  const source = await readFile(join(projectDir, config), 'utf8');
+  const out = unreadWarnings([{ file: inApp(config), nodes: parseRouteConfig(source) }]);
+  const calls = flatRoutesCalls(source);
+  if (!calls.length || (await listScreens(projectDir)).length) return out;
+  const dirs = calls.map((c) => `${inApp(posix.join(posix.dirname(config), c.dir))}/`).join(', ');
+  return [...out, t('{0}의 flatRoutes()가 가리키는 {1}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)', inApp(config), dirs)];
 }
 
 export async function listScreens(projectDir) {

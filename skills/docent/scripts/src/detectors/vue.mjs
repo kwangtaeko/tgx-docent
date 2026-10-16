@@ -1,7 +1,7 @@
 // Vue 화면 감지기: Nuxt 파일 라우팅(pages/)과 Vue Router 라우트 선언. (설계 문서 6장 1번)
 import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
-import { findImport, flattenRoutes, parseRouteObjects, toDocentPath } from './route-tree.mjs';
+import { findImport, flattenRoutes, parseRouteObjects, toDocentPath, unreadWarnings } from './route-tree.mjs';
 import { byRoute, hasDependency, isDir, isFile, isTestFile, lineOf, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
 export const name = 'vue';
@@ -86,14 +86,22 @@ async function nuxtScreens(projectDir) {
   return screens.sort(byRoute);
 }
 
-async function routerScreens(projectDir) {
-  const aliases = await loadAliases(projectDir, VUE_ALIASES);
+// 라우터 파일마다 → { file, source, nodes }
+async function routerFiles(projectDir) {
   const root = (await isDir(join(projectDir, 'src'))) ? 'src' : '';
-  const screens = new Map();
+  const out = [];
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
     const source = await readFile(join(projectDir, file), 'utf8');
-    if (!/createRouter\s*\(|RouteRecordRaw/.test(source) && !/(^|\/)router\//.test(file)) continue;
-    for (const { path, node } of flattenRoutes(parseRouteObjects(source))) {
+    if (/createRouter\s*\(|RouteRecordRaw/.test(source) || /(^|\/)router\//.test(file)) out.push({ file, source, nodes: parseRouteObjects(source) });
+  }
+  return out;
+}
+
+async function routerScreens(projectDir) {
+  const aliases = await loadAliases(projectDir, VUE_ALIASES);
+  const screens = new Map();
+  for (const { file, source, nodes } of await routerFiles(projectDir)) {
+    for (const { path, node } of flattenRoutes(nodes)) {
       const route = toDocentPath(path);
       if (route === undefined || screens.has(route)) continue;
       const spec = node.component.importPath ?? findImport(source, node.component.name);
@@ -103,6 +111,12 @@ async function routerScreens(projectDir) {
     }
   }
   return [...screens.values()].sort(byRoute);
+}
+
+// Vue Router에서 경로를 읽지 못한 라우트가 있으면 알린다
+export async function warnings(projectDir, inApp = (p) => p) {
+  if (await hasDependency(projectDir, ['nuxt'])) return [];
+  return unreadWarnings((await routerFiles(projectDir)).map(({ file, nodes }) => ({ file: inApp(file), nodes })));
 }
 
 export async function listScreens(projectDir) {

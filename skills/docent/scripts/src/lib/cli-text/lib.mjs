@@ -47,4 +47,8 @@ export default {
   // detectors/react-router.mjs
   '{0}의 flatRoutes()가 가리키는 {1}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)':
     'No route files found in {1}, which flatRoutes() in {0} points to — use route-explorer to find screens (references/stacks/js-routers.md)',
+
+  // detectors/route-tree.mjs
+  '경로를 소스 글자만으로 읽을 수 없는 라우트(변수 경로·스프레드)가 있어 화면이 빠졌을 수 있습니다: {0} — route-explorer로 나머지 화면을 찾으세요(references/stacks/js-routers.md)':
+    'Some routes have paths that cannot be read from the source text (variable paths or spreads), so screens may be missing: {0} — use route-explorer to find the rest (references/stacks/js-routers.md)',
 };

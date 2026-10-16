@@ -75,6 +75,7 @@ async function checkEntry(projectDir, label, entry, problems) {
 export async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
+  const warnings = []; // 제외한 항목은 아니지만 화면이 빠졌을 수 있다는 감지기 경고
   const previous = await readJsonIfExists(join(docentDir(projectDir), 'inventory.json'));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
@@ -92,13 +93,15 @@ export async function runInventory(projectDir) {
       problems.push(`config.yaml: ${t('알 수 없는 감지기 {0}', name)}`);
       continue;
     }
-    for (const w of (await detector.warnings?.(appDir)) ?? []) problems.push(`${name}: ${w}`);
+    for (const w of (await detector.warnings?.(appDir, inApp)) ?? []) warnings.push(`${name}: ${w}`);
     for (const s of await detector.listScreens(appDir)) {
       if (!pages.has(s.route)) pages.set(s.route, { ...s, files: s.files.map(inApp), evidence: inApp(s.evidence), kind: 'page', source: `detector:${name}` });
     }
   }
 
   const agentEntries = await collectAgentEntries(projectDir, problems);
+  // 감지기 경고는 모두 "route-explorer로 빠진 화면을 찾으라"는 안내다. 에이전트가 화면을 이미 더했으면 다시 알리지 않는다
+  if (agentEntries.some((e) => e.kind === 'page')) warnings.length = 0;
   for (const entry of agentEntries.filter((e) => e.kind === 'page')) {
     if (pages.has(entry.route)) continue; // 감지기 결과 우선
     const files = await checkEntry(projectDir, entry.route, entry, problems);
@@ -173,5 +176,5 @@ export async function runInventory(projectDir) {
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(t('inventory.json 스키마 오류: {0}', errors.join('; ')));
   await writeJson(join(docentDir(projectDir), 'inventory.json'), inventory);
-  return { inventory, problems };
+  return { inventory, problems, warnings };
 }

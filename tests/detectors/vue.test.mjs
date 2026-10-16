@@ -94,3 +94,14 @@ test('프로젝트 밖을 가리키는 srcDir는 무시한다', async () => {
   assert.deepEqual(await vue.nuxtDirs(dir), { srcDir: undefined, pages: undefined });
   assert.deepEqual((await vue.listScreens(dir)).map((s) => s.route), ['/']);
 });
+
+test('Vue Router에 변수 경로가 있으면 경고, Nuxt·리터럴 경로면 없음', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"vue-router":"4"}}',
+    'src/router/index.ts': "import A from '../A.vue';\nexport default createRouter({ routes: [{ path: '/a', component: A }, { path: PATHS.b, component: A }] });\n",
+    'src/A.vue': '<template><div /></template>\n',
+  });
+  assert.ok((await vue.warnings(dir)).some((w) => /src\/router\/index\.ts:2/.test(w)));
+  assert.deepEqual(await vue.warnings('fixtures/detectors/vue-router'), []);
+  assert.deepEqual(await vue.warnings('fixtures/detectors/nuxt'), []);
+});

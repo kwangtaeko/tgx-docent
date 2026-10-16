@@ -25,6 +25,15 @@ test('워크스페이스 설정이 없으면 apps/*·packages/*를 본다', asyn
   assert.deepEqual(await findWorkspaceApps(dir), [{ dir: 'apps/shop', detectors: ['react-router'] }]);
 });
 
+test('워크스페이스 설정이 없으면 루트 바로 아래 폴더(frontend/ 등)도 본다', async () => {
+  const dir = await project({
+    'frontend/package.json': '{"dependencies":{"react-router-dom":"7"}}',
+    'backend/build.gradle': '',
+    'docs/readme.md': '',
+  });
+  assert.deepEqual(await findWorkspaceApps(dir), [{ dir: 'frontend', detectors: ['react-router'] }]);
+});
+
 test('프로젝트 밖·제외 패턴은 무시한다', async () => {
   const dir = await project({ 'package.json': '{"workspaces":["../outside/*","!apps/*"]}' });
   assert.deepEqual(await findWorkspaceApps(dir), []);

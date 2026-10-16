@@ -17,7 +17,7 @@ async function golden() {
 
 test('변화가 없으면 할 일이 없다', async () => {
   const { dir } = await golden();
-  assert.deepEqual(await runUpdate(dir), { added: [], removed: [], reanalyze: [], rescenario: [], recapture: [], problems: [] });
+  assert.deepEqual(await runUpdate(dir), { added: [], removed: [], reanalyze: [], rescenario: [], recapture: [], problems: [], warnings: [] });
 });
 
 test('공통 파일이 바뀌면 그 파일을 읽은 화면을 다시 분석하고, 캡처가 있는 화면만 다시 찍는다', async () => {
