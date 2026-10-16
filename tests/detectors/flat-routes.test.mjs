@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flatRoutePath, flatRouteScreens, flatRoutesDirectory, splitRouteName } from '../../skills/docent/scripts/src/detectors/flat-routes.mjs';
+import { flatRoutePath, flatRouteScreens, flatRoutesCalls, globMatcher, splitRouteName } from '../../skills/docent/scripts/src/detectors/flat-routes.mjs';
 import { project } from '../helpers/project.mjs';
 
 test('파일 이름 규칙 → 경로', () => {
@@ -25,10 +25,31 @@ test('이스케이프 안의 점은 나누지 않는다', () => {
   assert.deepEqual(splitRouteName('a.b[.]c.d').map((s) => s.text), ['a', 'b.c', 'd']);
 });
 
-test('rootDirectory 인자를 읽는다', () => {
-  assert.equal(flatRoutesDirectory('export default flatRoutes();'), 'routes');
-  assert.equal(flatRoutesDirectory("export default flatRoutes({ rootDirectory: './pages/' });"), 'pages');
-  assert.equal(flatRoutesDirectory("export default [route('a', 'a.tsx')];"), undefined);
+test('flatRoutes() 호출의 rootDirectory·ignoredRouteFiles·prefix를 읽는다', () => {
+  assert.deepEqual(flatRoutesCalls('export default flatRoutes();'), [{ dir: 'routes', prefix: '', ignored: [] }]);
+  assert.deepEqual(flatRoutesCalls("export default flatRoutes({ rootDirectory: './pages/', ignoredRouteFiles: ['**/*.css', \"home.tsx\"] });"), [
+    { dir: 'pages', prefix: '', ignored: ['**/*.css', 'home.tsx'] },
+  ]);
+  assert.deepEqual(flatRoutesCalls("export default [...(await flatRoutes()), ...prefix('docs', await flatRoutes({ rootDirectory: 'docs' }))];"), [
+    { dir: 'routes', prefix: '', ignored: [] },
+    { dir: 'docs', prefix: 'docs', ignored: [] },
+  ]);
+  assert.deepEqual(flatRoutesCalls("export default [route('a', 'a.tsx')];"), []);
+});
+
+test('ignoredRouteFiles glob', () => {
+  const ignored = globMatcher(['**/.*', '**/*.{css,md}', 'home.tsx', 'legacy/**']);
+  for (const rel of ['.x.tsx', 'a/.x', 'style.css', 'b/c.md', 'home.tsx', 'legacy/route.tsx']) assert.ok(ignored(rel), rel);
+  for (const rel of ['orders.tsx', 'homes.tsx', 'b/home.tsx']) assert.ok(!ignored(rel), rel);
+});
+
+test('ignored·prefix를 적용한다', async () => {
+  const dir = await project({
+    'app/docs/_index.tsx': 'export default function D() {}\n',
+    'app/docs/intro.tsx': 'export default function I() {}\n',
+    'app/docs/draft.tsx': 'export default function X() {}\n',
+  });
+  assert.deepEqual((await flatRouteScreens(dir, 'app/docs', { prefix: 'docs', ignored: ['draft.tsx'] })).map((s) => s.route), ['/docs', '/docs/intro']);
 });
 
 test('폴더가 없으면 빈 목록', async () => {

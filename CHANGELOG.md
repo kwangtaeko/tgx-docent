@@ -1,25 +1,18 @@
 # 변경 이력
 
-## 미배포
-
-- **감지기 확장**: React Router `flatRoutes()`와 Remix v2의 파일 이름 라우팅, Nuxt `srcDir`·`dir.pages`를 감지기가 직접 읽습니다(1.0.0의 알려진 한계 해소)
-- **모노레포**: `init`이 워크스페이스에서 앱을 찾아 `config.yaml`의 `app`으로 정합니다. 앱이 여럿이면 `init --app <폴더>`로 고릅니다
-- **산출물 디자인**: Pretendard 글꼴, 라이트·다크 색 토큰, 옅은 색 바탕과 그라데이션 소개 배너, 브라우저 틀 캡처와 확대 보기, 입력 항목 배지·알림 상자. PDF·PPTX도 같은 디자인
-
-## 1.0.0 (2026-10-15)
+## 1.0.0 (2026-10-16)
 
 첫 공개 릴리스입니다.
 
-- **화면 목록**: Next.js(App·Pages Router), React Router(v6·v7), Vue Router·Nuxt, SvelteKit 감지기. 감지기가 없는 스택(Spring MVC·JSP, ASP.NET WebForms, Django·Flask, PHP 등)은 에이전트 탐색과 스택별 힌트(`references/stacks/`)로 찾습니다
+- **화면 목록**: Next.js(App·Pages Router), React Router(v6·v7, `flatRoutes()`)·Remix v2, Vue Router·Nuxt(`srcDir` 포함), SvelteKit 감지기. 모노레포는 `init`이 워크스페이스에서 앱을 찾고, 여럿이면 `init --app <폴더>`로 고릅니다. 감지기가 없는 스택(Spring MVC·JSP, ASP.NET WebForms, Django·Flask, PHP 등)은 에이전트 탐색과 스택별 힌트(`references/stacks/`)로 찾습니다
 - **화면 분석**: 화면마다 제목·목적·역할·입력 항목·버튼·메시지를 소스 근거(`파일:줄`)와 함께 기록하고, 근거 위치와 문구를 스크립트로 검사합니다. 확정할 수 없는 내용은 `[확인 필요]`와 `review.md`로 남깁니다
-- **실행·캡처**: 실행 계획을 보여 주고 동의를 받은 뒤 앱을 띄웁니다. 로그인(환경변수 계정), 크롤 대조(사이트맵 포함), 전체 화면 캡처, 조작 GIF 녹화(마스킹, 계정 값 노출 방지)를 지원합니다
-- **산출물**: HTML(소개·화면 목록·화면별 매뉴얼·워크플로우), 소개 README, PDF, PPTX. `delivery`·`handover`·`portfolio` 프리셋
+- **실행·캡처**: 실행 계획을 보여 주고 동의를 받은 뒤 앱을 띄웁니다. 로그인(환경변수 계정), 크롤 대조(사이트맵 포함), 전체 화면 캡처, 조작 GIF 녹화(새 창으로 열리는 화면 포함, 마스킹, 계정 값 노출 방지)를 지원합니다
+- **산출물**: HTML(소개·화면 목록·화면별 매뉴얼·워크플로우), 소개 README, PDF, PPTX. `delivery`·`handover`·`portfolio` 프리셋, 한국어·영어(`language`), 색 테마 5종(`output.theme`), 라이트·다크 모드. Pretendard 글꼴(SIL OFL)을 함께 넣습니다
 - **갱신**: `/docent-update`로 바뀐 화면만 다시 분석·캡처
 - **보안**: 비밀 파일 읽기 차단 훅, 비밀 값 대신 환경변수 이름만 저장, 동의 없는 설치·실행 금지
 
 알려진 한계:
 
-- 산출물은 한국어로만 만듭니다
 - 모바일·데스크톱 앱은 지원하지 않습니다
-- `flatRoutes()`(React Router v7 파일 라우팅), 모노레포 하위 앱, Nuxt `srcDir`는 감지기가 읽지 못해 에이전트 탐색으로 찾습니다
-- 새 창으로 열리는 팝업은 GIF로 녹화하지 못합니다(주소로 직접 캡처)
+- 한 번에 앱 하나를 문서로 만듭니다(모노레포는 앱마다 따로)
+- 명령줄 안내 문구는 한국어입니다(산출물 언어와 별개)

@@ -25,7 +25,7 @@ Run `/docent` in your project. docent shows you the screen list and asks you to 
 
 - `.docent/out/html/index.html` — introduction, screen list, a manual page for each screen (screenshot and GIF), and workflows
 - `.docent/out/README.md` — an introduction for first-time readers
-- `.docent/out/사용자매뉴얼.pdf`, `.pptx` — PDF and PPT (on request)
+- `.docent/out/UserManual.pdf`, `.pptx` — PDF and PPT (on request; `사용자매뉴얼.pdf` when the language is Korean)
 - `.docent/review.md` — items that need review (write your answer and run `/docent-analyze` again)
 
 Pick a preset for your audience:
@@ -33,6 +33,8 @@ Pick a preset for your audience:
 - `delivery`: cover, table of contents and revision history
 - `handover`: keeps source references and source file lists
 - `portfolio`: public-facing, focused on the introduction and GIFs
+
+In `.docent/config.yaml`, pick the language (`language: ko | en`) and a color theme (`output.theme: indigo | blue | emerald | rose | slate`). Set the language before analyzing screens, so the screen descriptions are written in it too. Button names and messages shown on screen are quoted as they appear, not translated.
 
 When the code changes, `/docent-update` redoes only the screens that changed.
 

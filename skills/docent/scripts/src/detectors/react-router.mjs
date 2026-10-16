@@ -1,7 +1,7 @@
 // React Router 화면 감지기: v7 프레임워크 모드(app/routes.ts, flatRoutes() 포함), Remix v2(app/routes/ 파일 이름), 코드 라우터(createBrowserRouter·useRoutes·<Route>). (설계 문서 6장 1번)
 import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
-import { flatRouteScreens, flatRoutesDirectory } from './flat-routes.mjs';
+import { flatRouteScreens, flatRoutesCalls, remixIgnoredRouteFiles } from './flat-routes.mjs';
 import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath } from './route-tree.mjs';
 import { byRoute, hasDependency, isDir, isFile, isTestFile, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
 
@@ -34,9 +34,9 @@ async function fromRouteConfig(projectDir, file, aliases, screens) {
     add(screens, toDocentPath(path), files, `${file}:${node.line}`);
   }
   // 같은 경로면 route()로 적은 쪽이 먼저
-  const flatDir = flatRoutesDirectory(source);
-  if (flatDir) {
-    for (const s of await flatRouteScreens(projectDir, posix.join(posix.dirname(file), flatDir))) add(screens, s.route, s.files, s.evidence);
+  for (const call of flatRoutesCalls(source)) {
+    const dir = posix.join(posix.dirname(file), call.dir);
+    for (const s of await flatRouteScreens(projectDir, dir, call)) add(screens, s.route, s.files, s.evidence);
   }
 }
 
@@ -64,10 +64,10 @@ async function fromCodeRouters(projectDir, aliases, screens) {
 export async function warnings(projectDir) {
   const config = await routeConfigFile(projectDir);
   if (!config) return [];
-  const flatDir = flatRoutesDirectory(await readFile(join(projectDir, config), 'utf8'));
-  if (!flatDir || (await listScreens(projectDir)).length) return [];
-  const dir = posix.join(posix.dirname(config), flatDir);
-  return [`${config}의 flatRoutes()가 가리키는 ${dir}/에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)`];
+  const calls = flatRoutesCalls(await readFile(join(projectDir, config), 'utf8'));
+  if (!calls.length || (await listScreens(projectDir)).length) return [];
+  const dirs = calls.map((c) => `${posix.join(posix.dirname(config), c.dir)}/`).join(', ');
+  return [`${config}의 flatRoutes()가 가리키는 ${dirs}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)`];
 }
 
 export async function listScreens(projectDir) {
@@ -76,7 +76,10 @@ export async function listScreens(projectDir) {
   const config = await routeConfigFile(projectDir);
   if (config) await fromRouteConfig(projectDir, config, aliases, screens);
   // Remix v2는 routes.ts 없이 app/routes/ 파일 이름으로 라우트를 만든다
-  else if (await hasDependency(projectDir, ['@remix-run/react'])) for (const s of await flatRouteScreens(projectDir, 'app/routes')) add(screens, s.route, s.files, s.evidence);
+  else if (await hasDependency(projectDir, ['@remix-run/react'])) {
+    const ignored = await remixIgnoredRouteFiles(projectDir);
+    for (const s of await flatRouteScreens(projectDir, 'app/routes', { ignored })) add(screens, s.route, s.files, s.evidence);
+  }
   else await fromCodeRouters(projectDir, aliases, screens);
   return [...screens.values()].sort(byRoute);
 }

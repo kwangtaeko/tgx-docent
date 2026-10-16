@@ -25,7 +25,7 @@
 
 - `.docent/out/html/index.html` — 소개·화면 목록·화면별 매뉴얼(캡처·조작 GIF)·워크플로우
 - `.docent/out/README.md` — 처음 보는 사람을 위한 소개 README
-- `.docent/out/사용자매뉴얼.pdf`, `.pptx` — PDF·PPT(요청 시)
+- `.docent/out/사용자매뉴얼.pdf`, `.pptx` — PDF·PPT(요청 시, 영어면 `UserManual.pdf`)
 - `.docent/review.md` — 확인 필요 항목(답을 적고 `/docent-analyze`를 다시 실행)
 
 용도에 맞춰 프리셋을 고릅니다.
@@ -33,6 +33,8 @@
 - `delivery`(납품): 표지·목차·개정 이력
 - `handover`(인수인계): 근거·소스 파일 유지
 - `portfolio`(외부 공개): 소개·GIF 중심
+
+`.docent/config.yaml`에서 언어(`language: ko | en`)와 색 테마(`output.theme: indigo | blue | emerald | rose | slate`)를 고릅니다. 언어는 화면 분석 전에 정합니다(화면 설명도 그 언어로 씁니다). 화면에 보이는 버튼 이름·메시지는 번역하지 않고 화면 그대로 인용합니다.
 
 코드가 바뀌면 `/docent-update`로 바뀐 화면만 다시 처리합니다.
 

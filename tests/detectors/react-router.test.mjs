@@ -111,3 +111,24 @@ test('routes.ts의 route()와 flatRoutes()를 함께 쓰면 둘 다, 같은 경�
   assert.deepEqual(screens.map((s) => s.route), ['/about', '/faq', '/login']);
   assert.deepEqual(screens.find((s) => s.route === '/login').files, ['app/pages/login.tsx']);
 });
+
+test('Remix v2의 vite.config ignoredRouteFiles를 따른다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"@remix-run/react":"2"}}',
+    'vite.config.ts': "export default defineConfig({ plugins: [remix({ ignoredRouteFiles: ['**/*.test.*', 'old.*'] })] });\n",
+    'app/routes/_index.tsx': 'export default function Index() {}\n',
+    'app/routes/old.tsx': 'export default function Old() {}\n',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir)).map((s) => s.route), ['/']);
+});
+
+test('routes.ts의 prefix로 감싼 flatRoutes()는 경로 앞에 prefix를 붙인다', async () => {
+  const dir = await project({
+    'package.json': '{"dependencies":{"react-router":"7"}}',
+    'app/routes.ts': "export default [...(await flatRoutes()), ...prefix('admin', await flatRoutes({ rootDirectory: 'admin' }))] satisfies RouteConfig;\n",
+    'app/routes/_index.tsx': 'export default function Index() {}\n',
+    'app/admin/_index.tsx': 'export default function Admin() {}\n',
+    'app/admin/users.tsx': 'export default function Users() {}\n',
+  });
+  assert.deepEqual((await reactRouter.listScreens(dir)).map((s) => s.route), ['/', '/admin', '/admin/users']);
+});

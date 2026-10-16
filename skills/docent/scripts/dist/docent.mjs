@@ -36909,10 +36909,34 @@ async function routeModules(projectDir, routesDir) {
   }
   return modules.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 }
-async function flatRouteScreens(projectDir, routesDir) {
+function globMatcher(globs) {
+  const res = globs.map((g) => {
+    let re = "";
+    for (let i = 0; i < g.length; i++) {
+      const c = g[i];
+      if (c === "*" && g[i + 1] === "*") {
+        re += g[i + 2] === "/" ? "(?:.*/)?" : ".*";
+        i += g[i + 2] === "/" ? 2 : 1;
+      } else if (c === "*") re += "[^/]*";
+      else if (c === "?") re += "[^/]";
+      else if (c === "{") {
+        const end = g.indexOf("}", i);
+        if (end < 0) re += "\\{";
+        else {
+          re += `(?:${g.slice(i + 1, end).split(",").map((x) => x.replace(/[.+^$()|[\]\\]/g, "\\$&")).join("|")})`;
+          i = end;
+        }
+      } else re += c.replace(/[.+^$()|[\]\\]/g, "\\$&");
+    }
+    return new RegExp(`^${re}$`);
+  });
+  return (rel) => res.some((r) => r.test(rel));
+}
+async function flatRouteScreens(projectDir, routesDir, { prefix = "", ignored = [] } = {}) {
   if (!await isDir(join19(projectDir, routesDir))) return [];
   const aliases = await loadAliases(projectDir);
-  const modules = await routeModules(projectDir, routesDir);
+  const isIgnored = globMatcher(ignored);
+  const modules = (await routeModules(projectDir, routesDir)).filter((m) => !isIgnored(m.file.slice(routesDir.length + 1)));
   const byName = new Map(modules.map((m) => [m.name, m]));
   const parentOf = (name5) => {
     let best;
@@ -36935,7 +36959,8 @@ async function flatRouteScreens(projectDir, routesDir) {
     if (kids.length) {
       if (byName.has(`${m.name}._index`) || isPathless(m.name)) continue;
     }
-    const route = toDocentPath(flatRoutePath(m.name));
+    const path = flatRoutePath(m.name);
+    const route = toDocentPath(prefix ? `/${prefix.replace(/^\/|\/$/g, "")}${path === "/" ? "" : path}` : path);
     if (route === void 0 || screens.has(route)) continue;
     const source = await readFile10(join19(projectDir, m.file), "utf8");
     const files = await screenFiles(projectDir, m.file, aliases);
@@ -36944,10 +36969,31 @@ async function flatRouteScreens(projectDir, routesDir) {
   }
   return [...screens.values()].sort(byRoute);
 }
-function flatRoutesDirectory(source) {
-  if (!/\bflatRoutes\s*\(/.test(source)) return void 0;
-  const m = /\bflatRoutes\s*\(\s*\{[^}]*\brootDirectory\s*:\s*['"]([^'"]+)['"]/.exec(source);
-  return posix3.normalize((m?.[1] ?? "routes").replace(/^\.\//, "").replace(/\/$/, ""));
+var stringList = (text) => [...(text ?? "").matchAll(/(['"`])((?:(?!\1).)*)\1/g)].map((m) => m[2]);
+function flatRoutesCalls(source) {
+  const calls = [];
+  for (const m of source.matchAll(/\bflatRoutes\s*\(\s*(\{[^}]*\})?/g)) {
+    const options = m[1] ?? "";
+    const root = /\brootDirectory\s*:\s*['"]([^'"]+)['"]/.exec(options)?.[1] ?? "routes";
+    const ignored = stringList(/\bignoredRouteFiles\s*:\s*\[([^\]]*)\]/.exec(options)?.[1]);
+    const before = source.slice(0, m.index);
+    const prefix = /\bprefix\s*\(\s*['"]([^'"]*)['"]\s*,\s*(?:await\s+)?(?:\(\s*)?$/.exec(before)?.[1] ?? "";
+    calls.push({ dir: posix3.normalize(root.replace(/^\.\//, "").replace(/\/$/, "")), prefix, ignored });
+  }
+  return calls;
+}
+async function remixIgnoredRouteFiles(projectDir) {
+  for (const file of ["vite.config.ts", "vite.config.js", "vite.config.mjs", "vite.config.mts", "remix.config.js", "remix.config.cjs", "remix.config.mjs"]) {
+    let source;
+    try {
+      source = await readFile10(join19(projectDir, file), "utf8");
+    } catch {
+      continue;
+    }
+    const m = /\bignoredRouteFiles\s*:\s*\[([^\]]*)\]/.exec(source);
+    if (m) return stringList(m[1]);
+  }
+  return [];
 }
 
 // skills/docent/scripts/src/detectors/react-router.mjs
@@ -36973,9 +37019,9 @@ async function fromRouteConfig(projectDir, file, aliases, screens) {
     const files = await isFile(join20(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
     add(screens, toDocentPath(path), files, `${file}:${node.line}`);
   }
-  const flatDir = flatRoutesDirectory(source);
-  if (flatDir) {
-    for (const s of await flatRouteScreens(projectDir, posix4.join(posix4.dirname(file), flatDir))) add(screens, s.route, s.files, s.evidence);
+  for (const call of flatRoutesCalls(source)) {
+    const dir = posix4.join(posix4.dirname(file), call.dir);
+    for (const s of await flatRouteScreens(projectDir, dir, call)) add(screens, s.route, s.files, s.evidence);
   }
 }
 async function componentFile(projectDir, file, source, component, aliases) {
@@ -36998,18 +37044,20 @@ async function fromCodeRouters(projectDir, aliases, screens) {
 async function warnings(projectDir) {
   const config = await routeConfigFile(projectDir);
   if (!config) return [];
-  const flatDir = flatRoutesDirectory(await readFile11(join20(projectDir, config), "utf8"));
-  if (!flatDir || (await listScreens2(projectDir)).length) return [];
-  const dir = posix4.join(posix4.dirname(config), flatDir);
-  return [`${config}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 ${dir}/\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
+  const calls = flatRoutesCalls(await readFile11(join20(projectDir, config), "utf8"));
+  if (!calls.length || (await listScreens2(projectDir)).length) return [];
+  const dirs = calls.map((c) => `${posix4.join(posix4.dirname(config), c.dir)}/`).join(", ");
+  return [`${config}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 ${dirs}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)`];
 }
 async function listScreens2(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = /* @__PURE__ */ new Map();
   const config = await routeConfigFile(projectDir);
   if (config) await fromRouteConfig(projectDir, config, aliases, screens);
-  else if (await hasDependency(projectDir, ["@remix-run/react"])) for (const s of await flatRouteScreens(projectDir, "app/routes")) add(screens, s.route, s.files, s.evidence);
-  else await fromCodeRouters(projectDir, aliases, screens);
+  else if (await hasDependency(projectDir, ["@remix-run/react"])) {
+    const ignored = await remixIgnoredRouteFiles(projectDir);
+    for (const s of await flatRouteScreens(projectDir, "app/routes", { ignored })) add(screens, s.route, s.files, s.evidence);
+  } else await fromCodeRouters(projectDir, aliases, screens);
   return [...screens.values()].sort(byRoute);
 }
 
