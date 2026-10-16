@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { t } from './cli-text.mjs';
 
 export const PLAYWRIGHT_VERSION = '1.56.1';
 
@@ -59,8 +60,7 @@ export async function requirePlaywright() {
   const found = await findPlaywright();
   if (!found) {
     throw new PlaywrightMissing(
-      '화면 캡처·녹화에 필요한 Playwright가 없습니다. 사용자 동의를 받은 뒤 `docent runtime install`로 설치하세요 ' +
-        `(${runtimeDir()}에 playwright@${PLAYWRIGHT_VERSION}와 Chromium을 받습니다).`,
+      t('화면 캡처·녹화에 필요한 Playwright가 없습니다. 사용자 동의를 받은 뒤 `docent runtime install`로 설치하세요 ({0}에 playwright@{1}와 Chromium을 받습니다).', runtimeDir(), PLAYWRIGHT_VERSION),
     );
   }
   return found.module;
@@ -72,7 +72,7 @@ export async function launchBrowser(options = {}) {
     return await chromium.launch(options);
   } catch (err) {
     if (/Executable doesn't exist|browserType\.launch/.test(err.message)) {
-      throw new PlaywrightMissing(`Chromium을 찾을 수 없습니다. \`docent runtime install\`(또는 npx playwright install chromium)로 설치하세요.\n${err.message.split('\n')[0]}`);
+      throw new PlaywrightMissing(t('Chromium을 찾을 수 없습니다. `docent runtime install`(또는 npx playwright install chromium)로 설치하세요.') + `\n${err.message.split('\n')[0]}`);
     }
     throw err;
   }

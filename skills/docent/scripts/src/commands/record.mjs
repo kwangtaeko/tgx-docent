@@ -1,6 +1,7 @@
 // docent record [id…] — 시나리오를 실행하며 화면을 찍어 조작 GIF(.docent/media/gif/<id>.gif)를 만든다. (설계 문서 9장)
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { clearFailure, ensureMediaDirs, mediaPaths, recordFailure } from '../lib/media.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
@@ -84,20 +85,20 @@ export async function runRecord(projectDir, ids) {
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
       if (!scenario) {
-        result.skipped.push({ id, reason: '시나리오가 없습니다' });
+        result.skipped.push({ id, reason: t('시나리오가 없습니다') });
         continue;
       }
       if (!scenario.steps.length) {
-        result.skipped.push({ id, reason: '보여 줄 조작 단계가 없습니다' });
+        result.skipped.push({ id, reason: t('보여 줄 조작 단계가 없습니다') });
         continue;
       }
       if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
-        result.skipped.push({ id, reason: '환경변수 값(계정 등)을 입력하는 단계가 있어 GIF로 만들지 않습니다' });
+        result.skipped.push({ id, reason: t('환경변수 값(계정 등)을 입력하는 단계가 있어 GIF로 만들지 않습니다') });
         continue;
       }
       const screen = await loadScreen(projectDir, id);
       if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
-        result.skipped.push({ id, reason: '시나리오가 낡았습니다' });
+        result.skipped.push({ id, reason: t('시나리오가 낡았습니다') });
         continue;
       }
       // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
@@ -116,13 +117,13 @@ export async function runRecord(projectDir, ids) {
         if (!stepResult.ok) {
           await start.screenshot({ path: paths.fail(id) }).catch(() => {});
           await recordFailure(projectDir, { id, kind: 'record', step: stepResult.index, reason: stepResult.reason });
-          result.failed.push({ id, reason: `${stepResult.index + 1}번째 단계 — ${stepResult.reason}` });
+          result.failed.push({ id, reason: t('{0}번째 단계 — {1}', stepResult.index + 1, stepResult.reason) });
           continue;
         }
         let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
         if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
         if (gif.length > GIF_MAX_BYTES) {
-          const reason = 'GIF가 2MB를 넘습니다. 시나리오 단계를 줄이세요';
+          const reason = t('GIF가 2MB를 넘습니다. 시나리오 단계를 줄이세요');
           await recordFailure(projectDir, { id, kind: 'record', reason });
           result.failed.push({ id, reason });
           continue;

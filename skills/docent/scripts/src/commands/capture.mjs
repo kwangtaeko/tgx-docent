@@ -1,5 +1,6 @@
 // docent capture [id…] — 화면별 전체 페이지 캡처를 .docent/media/img/<id>.png로 만든다. (설계 문서 9장)
 import { join } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { clearFailure, ensureMediaDirs, mediaPaths, recordFailure } from '../lib/media.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
@@ -60,17 +61,17 @@ export async function openScreen(page, { baseUrl, path, setup, loginPath, onPage
   try {
     response = await page.goto(new URL(path, baseUrl).href, { waitUntil: 'load', timeout: 30000 });
   } catch (err) {
-    return `열 수 없습니다: ${err.message.split('\n')[0]}`;
+    return t('열 수 없습니다: {0}', err.message.split('\n')[0]);
   }
   const landed = new URL(page.url()).pathname;
-  if (landed === loginPath && path.split('?')[0] !== loginPath) return '로그인 필요 — docent auth login으로 로그인 상태를 저장하세요';
+  if (landed === loginPath && path.split('?')[0] !== loginPath) return t('로그인 필요 — docent auth login으로 로그인 상태를 저장하세요');
   if (response && response.status() >= 400) return `HTTP ${response.status()}`;
   const trim = (p) => (p.length > 1 ? p.replace(/\/+$/, '') : p);
-  if (trim(landed) !== trim(path.split('?')[0])) return `다른 화면(${landed})으로 이동했습니다 — 권한이 없거나 조건이 맞지 않습니다`;
+  if (trim(landed) !== trim(path.split('?')[0])) return t('다른 화면({0})으로 이동했습니다 — 권한이 없거나 조건이 맞지 않습니다', landed);
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   if (setup?.length) {
     const r = await runSteps(page, setup, { onPage });
-    if (!r.ok) return `준비 단계 ${r.index + 1}번째 실패: ${r.reason}`;
+    if (!r.ok) return t('준비 단계 {0}번째 실패: {1}', r.index + 1, r.reason);
   }
   return undefined;
 }
@@ -96,11 +97,11 @@ export async function runCapture(projectDir, ids) {
       const scenario = await loadScenario(projectDir, screen.id);
       const path = scenario?.path ?? staticPath(screen.route);
       if (!path || (screen.kind !== 'page' && !scenario)) {
-        result.skipped.push({ id: screen.id, reason: '시나리오에 실제 경로가 필요합니다' });
+        result.skipped.push({ id: screen.id, reason: t('시나리오에 실제 경로가 필요합니다') });
         continue;
       }
       if (scenario && usesEnvValue(scenario.setup)) {
-        result.skipped.push({ id: screen.id, reason: '준비 단계에 환경변수 값(계정 등)이 있어 캡처하지 않습니다' });
+        result.skipped.push({ id: screen.id, reason: t('준비 단계에 환경변수 값(계정 등)이 있어 캡처하지 않습니다') });
         continue;
       }
       const page = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();

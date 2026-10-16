@@ -1,5 +1,6 @@
 // docent crawl — 실행 중인 앱을 링크로 돌아다니며 화면 목록과 대조한다. (설계 문서 6장 3번)
 import { join } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
 import { docentDir, readJson, writeJson } from '../lib/workspace.mjs';
@@ -121,7 +122,7 @@ export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}
   // 모든 링크가 로그인 화면으로 돌아갔다면 저장된 로그인 상태가 만료된 것이다
   const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
   if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
-    warnings.push('로그인 화면만 방문했습니다. 로그인 상태가 만료된 것 같습니다 — docent auth login으로 다시 로그인하세요');
+    warnings.push(t('로그인 화면만 방문했습니다. 로그인 상태가 만료된 것 같습니다 — docent auth login으로 다시 로그인하세요'));
   }
   return { visited, unmatched, unreached, warnings };
 }

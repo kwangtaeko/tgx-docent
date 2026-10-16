@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { loadConfig } from '../lib/config.mjs';
 import { launchBrowser } from '../lib/playwright.mjs';
+import { t } from '../lib/cli-text.mjs';
 import { docentDir } from '../lib/workspace.mjs';
 import { loadRun } from './run.mjs';
 
@@ -43,10 +44,10 @@ function loggedInPath(path, loginPath, successPath) {
 export async function authLogin(projectDir) {
   const { auth } = await loadConfig(projectDir);
   if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
-    throw new Error('config.yaml에 auth(loginPath, fields, submit) 설정이 없습니다');
+    throw new Error(t('config.yaml에 auth(loginPath, fields, submit) 설정이 없습니다'));
   }
   const missing = auth.fields.filter((f) => !process.env[f.env]).map((f) => f.env);
-  if (missing.length) throw new Error(`로그인에 필요한 환경변수가 없습니다: ${missing.join(', ')}`);
+  if (missing.length) throw new Error(t('로그인에 필요한 환경변수가 없습니다: {0}', missing.join(', ')));
 
   const run = await loadRun(projectDir);
   const browser = await launchBrowser();
@@ -63,7 +64,7 @@ export async function authLogin(projectDir) {
     const path = new URL(page.url()).pathname;
     const success = auth.successPath ?? '/';
     if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
-      throw new Error(`로그인 실패: 로그인 후 ${success}가 아니라 ${path}에 머물렀습니다. 계정 환경변수(${auth.fields.map((f) => f.env).join(', ')})를 확인하세요`);
+      throw new Error(t('로그인 실패: 로그인 후 {0}가 아니라 {1}에 머물렀습니다. 계정 환경변수({2})를 확인하세요', success, path, auth.fields.map((f) => f.env).join(', ')));
     }
     await mkdir(join(docentDir(projectDir), 'auth'), { recursive: true });
     await context.storageState({ path: statePath(projectDir) });
@@ -82,7 +83,7 @@ export async function authSave(projectDir) {
     const page = await context.newPage();
     await page.goto(run.baseUrl);
     const rl = createInterface({ input: process.stdin, output: process.stdout });
-    await rl.question('브라우저에서 로그인을 마친 뒤 여기서 Enter를 누르세요… ');
+    await rl.question(t('브라우저에서 로그인을 마친 뒤 여기서 Enter를 누르세요… '));
     rl.close();
     await mkdir(join(docentDir(projectDir), 'auth'), { recursive: true });
     await context.storageState({ path: statePath(projectDir) });

@@ -1,6 +1,7 @@
 // .docent/media/ — 캡처·GIF·실패 기록. build가 지우는 out/ 밖에 둔다.
 import { mkdir, rename, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
+import { t } from './cli-text.mjs';
 import { docentDir, readJsonIfExists, writeJson } from './workspace.mjs';
 
 export function mediaPaths(projectDir) {
@@ -52,7 +53,7 @@ async function withLock(path, fn) {
       } catch {
         // 그 사이 풀렸거나 다른 대기자가 치움
       }
-      if (Date.now() > deadline) throw new Error(`${path} 잠금을 얻지 못했습니다`);
+      if (Date.now() > deadline) throw new Error(t('{0} 잠금을 얻지 못했습니다', path));
       await sleep(50);
     }
   }

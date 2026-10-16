@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { findPlaywright, PLAYWRIGHT_VERSION, runtimeDir } from '../lib/playwright.mjs';
 
 export async function runtimeStatus() {
@@ -11,7 +12,7 @@ export async function runtimeStatus() {
 
 function run(command, args) {
   const r = spawnSync(command, args, { stdio: 'inherit', shell: process.platform === 'win32' });
-  if (r.status !== 0) throw new Error(`${command} ${args.join(' ')} 실패 (exit ${r.status})`);
+  if (r.status !== 0) throw new Error(t('{0} 실패 (exit {1})', `${command} ${args.join(' ')}`, r.status));
 }
 
 export async function runtimeInstall() {

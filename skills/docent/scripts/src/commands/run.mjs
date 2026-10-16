@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { closeSync, existsSync, openSync, readFileSync } from 'node:fs';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { httpCheck } from '../lib/http.mjs';
 import { normalizeRel } from '../lib/paths.mjs';
 import { validateRun } from '../lib/schema.mjs';
@@ -14,9 +15,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function loadRun(projectDir) {
   const run = await readJsonIfExists(join(docentDir(projectDir), 'run.json'));
-  if (!run) throw new Error('.docent/run.json이 없습니다. 실행 방법을 먼저 정하세요');
+  if (!run) throw new Error(t('.docent/run.json이 없습니다. 실행 방법을 먼저 정하세요'));
   const { valid, errors } = validateRun(run);
-  if (!valid) throw new Error(`.docent/run.json 형식 오류: ${errors.join('; ')}`);
+  if (!valid) throw new Error(t('.docent/run.json 형식 오류: {0}', errors.join('; ')));
   return run;
 }
 
@@ -37,11 +38,11 @@ function commandsHash(run) {
 
 export function describeCommands(run) {
   return [
-    ...(run.install ?? []).map((c) => `설치: ${c}`),
-    `실행: ${run.start}`,
-    ...(run.stop !== undefined ? [`정리: ${run.stop}`] : []),
-    `위치: ${run.cwd ?? '.'}`,
-    ...Object.entries(run.env ?? {}).map(([k, v]) => `환경: ${k}=${v}`),
+    ...(run.install ?? []).map((c) => t('설치: {0}', c)),
+    t('실행: {0}', run.start),
+    ...(run.stop !== undefined ? [t('정리: {0}', run.stop)] : []),
+    t('위치: {0}', run.cwd ?? '.'),
+    ...Object.entries(run.env ?? {}).map(([k, v]) => t('환경: {0}={1}', k, v)),
   ].join('\n');
 }
 
@@ -144,14 +145,15 @@ export async function runStart(projectDir, { install = false } = {}) {
   const run = await loadRun(projectDir);
   // 사용자가 직접 띄운 앱이면 이 셸에 환경변수가 없어도 그대로 쓴다
   if ((await httpCheck(healthUrl(run), 2000)).ok) return { baseUrl: run.baseUrl, started: false, reused: true };
-  if (run.mode === 'url') throw new Error(`${run.baseUrl}가 응답하지 않습니다. 앱을 띄운 뒤 다시 시도하세요`);
+  if (run.mode === 'url') throw new Error(t('{0}가 응답하지 않습니다. 앱을 띄운 뒤 다시 시도하세요', run.baseUrl));
   const missing = (run.envNames ?? []).filter((name) => !process.env[name]);
-  if (missing.length) throw new Error(`실행에 필요한 환경변수가 없습니다: ${missing.join(', ')}`);
+  if (missing.length) throw new Error(t('실행에 필요한 환경변수가 없습니다: {0}', missing.join(', ')));
   const booting = await readPid(projectDir);
-  if (booting) throw new Error(`이미 시작 중인 앱이 있습니다(pid ${booting}). 끝날 때까지 기다리거나 docent run stop을 실행하세요`);
+  if (booting) throw new Error(t('이미 시작 중인 앱이 있습니다(pid {0}). 끝날 때까지 기다리거나 docent run stop을 실행하세요', booting));
   if (!(await approved(projectDir, run))) {
     throw new Error(
-      `.docent/run.json의 명령이 이 컴퓨터에서 아직 승인되지 않았습니다. 아래 명령을 사용자에게 보여 주고 동의를 받은 뒤 \`docent run approve\`를 실행하세요:\n${describeCommands(run)}`,
+      t('.docent/run.json의 명령이 이 컴퓨터에서 아직 승인되지 않았습니다. 아래 명령을 사용자에게 보여 주고 동의를 받은 뒤 `docent run approve`를 실행하세요:') +
+        `\n${describeCommands(run)}`,
     );
   }
 
@@ -159,7 +161,7 @@ export async function runStart(projectDir, { install = false } = {}) {
   if (install) {
     for (const command of run.install ?? []) {
       const r = spawnSync(command, { cwd, shell: true, stdio: 'inherit', env: childEnv(run) });
-      if (r.status !== 0) throw new Error(`설치 명령 실패: ${command} (exit ${r.status})`);
+      if (r.status !== 0) throw new Error(t('설치 명령 실패: {0} (exit {1})', command, r.status));
     }
   }
 
@@ -180,10 +182,10 @@ export async function runStart(projectDir, { install = false } = {}) {
     await sleep(1000);
   }
   // 종료 이벤트는 아래 kill 뒤에도 오므로 이유는 kill 전에 정한다
-  const reason = exited ? '앱이 시작 중에 종료되었습니다' : `헬스체크 시간 초과(${run.healthcheck?.timeoutSec ?? 120}초)`;
+  const reason = exited ? t('앱이 시작 중에 종료되었습니다') : t('헬스체크 시간 초과({0}초)', run.healthcheck?.timeoutSec ?? 120);
   killGroup(child.pid, 'SIGKILL');
   await rm(pidFile(projectDir), { force: true });
-  throw new Error(`${reason}. .docent/run.log 마지막 부분:\n${await logTail(projectDir, run)}`);
+  throw new Error(t('{0}. .docent/run.log 마지막 부분:', reason) + `\n${await logTail(projectDir, run)}`);
 }
 
 export async function runStop(projectDir) {
