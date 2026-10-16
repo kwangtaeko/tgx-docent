@@ -50,9 +50,11 @@ async function checkScreen(projectDir, s, ids, problems) {
 }
 
 // a → b: a의 버튼이 b로 이동·b를 열거나, a가 b의 하위 화면(닫고 돌아감)
+// a → b: a의 버튼이 b로 가거나 b를 열거나, a가 b 위에 뜬 창(모달·팝업)이라 닫으면 b로 돌아간다.
+// view(메뉴로 바뀌는 화면)는 닫히는 창이 아니므로 부모로 돌아가는 연결로 보지 않는다
 function hasEdge(screens, a, b) {
   const s = screens.get(a);
-  return s.parentId === b || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
+  return (s.parentId === b && s.kind !== 'view') || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
 }
 
 // known: 존재하는 화면 ID(파일이 깨져 읽지 못한 화면 포함). 읽지 못한 화면은 따로 보고됐으므로 여기서는 건너뛴다.
@@ -63,7 +65,7 @@ function checkSummary(summary, screens, known, problems) {
   const claims = [['한 줄 소개', summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
     for (const id of claim.screens) if (!exists(id)) problems.push(`summary.json: "${label}"의 없는 화면 ${id}`);
-    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"를 뒷받침하는 확신도 높은 화면이 없습니다`);
+    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"를 뒷받침하는 화면이 모두 확신도 low입니다`);
   }
   for (const wf of summary.workflows) {
     const missing = wf.steps.filter((id) => !exists(id));

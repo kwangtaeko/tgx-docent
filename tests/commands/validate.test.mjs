@@ -133,3 +133,21 @@ test('선택지가 근거 근처에 없으면 실패', async () => {
   assert.equal(ok, false);
   assert.ok(problems.some((p) => p.includes('소스에 없는 선택지')), problems.join('\n'));
 });
+
+test('view는 부모로 닫혀 돌아가는 연결이 아니다(모달·팝업만)', async () => {
+  const { dir, docent } = await golden();
+  const inventory = await readJsonFile(join(docent, 'inventory.json'));
+  const child = inventory.screens.find((s) => s.parentId);
+  const summary = await readJsonFile(join(docent, 'summary.json'));
+  summary.workflows.push({ name: '닫고 돌아감', description: '하위 화면에서 부모로', steps: [child.id, child.parentId] });
+  await writeJsonFile(join(docent, 'summary.json'), summary);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+  const path = join(docent, 'screens', `${child.id}.json`);
+  const screen = await readJsonFile(path);
+  screen.kind = 'view';
+  await writeJsonFile(path, screen);
+  child.kind = 'view';
+  await writeJsonFile(join(docent, 'inventory.json'), inventory);
+  const { problems } = await runValidate(dir);
+  assert.ok(problems.some((p) => p.includes(`${child.id} → ${child.parentId}`)), problems.join('\n'));
+});

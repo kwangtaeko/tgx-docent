@@ -36,7 +36,7 @@ function merge(base, override) {
 
 const ARRAY_KEYS = ['detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
 const OBJECT_KEYS = ['screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
-const STRING_KEYS = ['language', 'app', 'output.preset', 'output.theme', 'output.title', 'output.organization'];
+const STRING_KEYS = ['language', 'app', 'output.preset', 'output.theme', 'output.projectName', 'output.title', 'output.organization'];
 
 const get = (obj, path) => path.split('.').reduce((o, k) => (isObject(o) ? o[k] : undefined), obj);
 

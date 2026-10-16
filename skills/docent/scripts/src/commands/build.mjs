@@ -15,14 +15,36 @@ import { resolveOutputOptions } from '../lib/output-options.mjs';
 import { launchBrowser, PlaywrightMissing } from '../lib/playwright.mjs';
 import { runValidate } from './validate.mjs';
 
-async function projectName(projectDir) {
+const readText = (path) => readFile(path, 'utf8').catch(() => undefined);
+const jsonOf = async (path) => {
   try {
-    const pkg = JSON.parse(await readFile(join(projectDir, 'package.json'), 'utf8'));
-    if (pkg.name) return pkg.name;
+    return JSON.parse(await readText(path));
   } catch {
-    // package.json이 없는 프로젝트
+    return undefined;
   }
-  return basename(projectDir);
+};
+
+// 사용자에게 보이는 제품 이름: package.json productName, electron-builder·Tauri 설정의 productName
+async function productName(dir) {
+  const pkg = await jsonOf(join(dir, 'package.json'));
+  if (pkg?.productName) return pkg.productName;
+  for (const file of ['electron-builder.yml', 'electron-builder.yaml']) {
+    const m = /^productName:\s*["']?([^"'\n#]+?)["']?\s*$/m.exec((await readText(join(dir, file))) ?? '');
+    if (m) return m[1];
+  }
+  const builder = await jsonOf(join(dir, 'electron-builder.json'));
+  if (builder?.productName) return builder.productName;
+  const tauri = await jsonOf(join(dir, 'src-tauri', 'tauri.conf.json'));
+  return tauri?.productName ?? tauri?.package?.productName;
+}
+
+// 산출물 머리의 프로젝트 이름: output.projectName > 앱(app 폴더)·루트의 제품 이름 > 루트 package.json name > 폴더 이름
+async function projectName(projectDir, config) {
+  if (config.output?.projectName) return String(config.output.projectName);
+  const name = (config.app && (await productName(join(projectDir, config.app)))) || (await productName(projectDir));
+  if (name) return name;
+  const pkg = await jsonOf(join(projectDir, 'package.json'));
+  return pkg?.name ?? basename(projectDir);
 }
 
 async function put(outDir, rel, content, files) {
@@ -79,7 +101,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
     screens,
     summary: await readJson(join(dir, 'summary.json')),
     date: projectDate(projectDir, config, [...new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
-    projectName: await projectName(projectDir),
+    projectName: await projectName(projectDir, config),
   };
   if (options.preset === 'delivery') {
     const n = uncertainCount(screens);

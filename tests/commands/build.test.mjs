@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { runBuild } from '../../skills/docent/scripts/src/commands/build.mjs';
@@ -143,4 +143,16 @@ test('language: en이면 영어 산출물과 영어 파일 이름, 경고 없음
   assert.ok(!r.warnings.some((w) => w.includes('language')), r.warnings.join('\n'));
   assert.match(await readFile(join(docent, 'out', 'README.md'), 'utf8'), /^## Key features$/m);
   assert.match(await readFile(join(docent, 'out', 'html', 'index.html'), 'utf8'), /<html lang="en">/);
+});
+
+test('산출물 이름: output.projectName > 앱의 제품 이름 > package.json name', async () => {
+  const { dir, docent } = await prepared();
+  await mkdir(join(dir, 'apps', 'desktop'), { recursive: true });
+  await writeFile(join(dir, 'apps', 'desktop', 'electron-builder.yml'), 'appId: x.y\nproductName: TG Forge\n');
+  await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\napp: apps/desktop\ndetectors: [nextjs]\n');
+  await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['readme'] });
+  assert.match(await readFile(join(docent, 'out', 'README.md'), 'utf8'), /^# TG Forge$/m);
+  await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\napp: apps/desktop\ndetectors: [nextjs]\noutput:\n  projectName: 사내 생성기\n');
+  await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['readme'] });
+  assert.match(await readFile(join(docent, 'out', 'README.md'), 'utf8'), /^# 사내 생성기$/m);
 });

@@ -43,6 +43,7 @@ analyze:
 #   theme: indigo  # 색 테마: indigo | blue | emerald | rose | slate
 #   formats: [html, readme]
 #   title: 사용자 매뉴얼
+#   projectName: ""  # 산출물에 보일 이름(비우면 제품 이름·package.json name)
 #   organization: ""
 #   revisions:
 #     - { version: "1.0", date: "2026-10-14", author: "", note: "최초 작성" }

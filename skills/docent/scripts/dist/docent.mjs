@@ -27631,7 +27631,7 @@ function merge(base, override) {
 }
 var ARRAY_KEYS = ["detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
 var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
-var STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.title", "output.organization"];
+var STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
 var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
 function checkConfig(config) {
   const fail = (path, kind) => {
@@ -29222,7 +29222,7 @@ function listBody(input) {
   return `<h1>${T.screenList}</h1>
 <p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="table-wrap">
-<table>
+<table class="screen-list">
 <thead><tr>${T.listHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
 <tbody>
 ${rows}
@@ -29481,7 +29481,10 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--card); }
 table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
 th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; white-space: nowrap; }
+/* \uD654\uBA74 \uBAA9\uB85D: ID\xB7\uD654\uBA74\xB7\uACBD\uB85C\xB7\uBA54\uB274\uB294 \uC904\uC744 \uBC14\uAFB8\uC9C0 \uC54A\uACE0, \uB0A8\uB294 \uD3ED\uC740 \uBAA9\uC801 \uCE78\uC774 \uC4F4\uB2E4(\uC881\uC73C\uBA74 \uD45C\uB9CC \uAC00\uB85C\uB85C \uBC00\uB9BC) */
+.screen-list td:nth-child(-n+4) { white-space: nowrap; }
+.screen-list td:last-child { min-width: 16rem; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover td { background: var(--bg-soft); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
@@ -35437,7 +35440,7 @@ async function checkScreen(projectDir, s, ids, problems) {
 }
 function hasEdge(screens, a, b) {
   const s = screens.get(a);
-  return s.parentId === b || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
+  return s.parentId === b && s.kind !== "view" || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
 }
 function checkSummary(summary, screens, known, problems) {
   const exists4 = (id) => known.has(id);
@@ -35446,7 +35449,7 @@ function checkSummary(summary, screens, known, problems) {
   const claims = [["\uD55C \uC904 \uC18C\uAC1C", summary.oneLiner], ...summary.features.map((f) => [f.value, f])];
   for (const [label, claim] of claims) {
     for (const id of claim.screens) if (!exists4(id)) problems.push(`summary.json: "${label}"\uC758 \uC5C6\uB294 \uD654\uBA74 ${id}`);
-    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD655\uC2E0\uB3C4 \uB192\uC740 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4`);
+    if (!supported(claim.screens)) problems.push(`summary.json: "${label}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4`);
   }
   for (const wf of summary.workflows) {
     const missing = wf.steps.filter((id) => !exists4(id));
@@ -35539,13 +35542,32 @@ async function runValidate(projectDir, { only = [] } = {}) {
 }
 
 // skills/docent/scripts/src/commands/build.mjs
-async function projectName(projectDir) {
+var readText = (path) => readFile7(path, "utf8").catch(() => void 0);
+var jsonOf = async (path) => {
   try {
-    const pkg = JSON.parse(await readFile7(join11(projectDir, "package.json"), "utf8"));
-    if (pkg.name) return pkg.name;
+    return JSON.parse(await readText(path));
   } catch {
+    return void 0;
   }
-  return basename(projectDir);
+};
+async function productName(dir) {
+  const pkg = await jsonOf(join11(dir, "package.json"));
+  if (pkg?.productName) return pkg.productName;
+  for (const file of ["electron-builder.yml", "electron-builder.yaml"]) {
+    const m = /^productName:\s*["']?([^"'\n#]+?)["']?\s*$/m.exec(await readText(join11(dir, file)) ?? "");
+    if (m) return m[1];
+  }
+  const builder = await jsonOf(join11(dir, "electron-builder.json"));
+  if (builder?.productName) return builder.productName;
+  const tauri = await jsonOf(join11(dir, "src-tauri", "tauri.conf.json"));
+  return tauri?.productName ?? tauri?.package?.productName;
+}
+async function projectName(projectDir, config) {
+  if (config.output?.projectName) return String(config.output.projectName);
+  const name5 = config.app && await productName(join11(projectDir, config.app)) || await productName(projectDir);
+  if (name5) return name5;
+  const pkg = await jsonOf(join11(projectDir, "package.json"));
+  return pkg?.name ?? basename(projectDir);
 }
 async function put(outDir, rel, content, files) {
   const path = join11(outDir, rel);
@@ -35594,7 +35616,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
     screens,
     summary: await readJson(join11(dir, "summary.json")),
     date: projectDate(projectDir, config, [.../* @__PURE__ */ new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
-    projectName: await projectName(projectDir)
+    projectName: await projectName(projectDir, config)
   };
   if (options.preset === "delivery") {
     const n = uncertainCount(screens);
@@ -37342,6 +37364,7 @@ analyze:
 #   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate
 #   formats: [html, readme]
 #   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC
+#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)
 #   organization: ""
 #   revisions:
 #     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }

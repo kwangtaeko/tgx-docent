@@ -214,7 +214,7 @@ export function listBody(input) {
   return `<h1>${T.screenList}</h1>
 <p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="table-wrap">
-<table>
+<table class="screen-list">
 <thead><tr>${T.listHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead>
 <tbody>
 ${rows}
@@ -516,7 +516,10 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--card); }
 table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
 th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; white-space: nowrap; }
+/* 화면 목록: ID·화면·경로·메뉴는 줄을 바꾸지 않고, 남는 폭은 목적 칸이 쓴다(좁으면 표만 가로로 밀림) */
+.screen-list td:nth-child(-n+4) { white-space: nowrap; }
+.screen-list td:last-child { min-width: 16rem; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover td { background: var(--bg-soft); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }

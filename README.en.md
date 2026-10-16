@@ -46,7 +46,7 @@ When the code changes, `/docent-update` redoes only the screens that changed.
 | Spring MVC (JSP, Thymeleaf), Django and Flask, PHP, other JS routers | agent exploration with per-stack hints (`skills/docent/references/stacks/`) | starts the app, or uses a URL you give |
 | ASP.NET WebForms | agent exploration with hints | URL only (needs IIS and Windows) |
 
-The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). A record of running docent on a real personal site is in `docs/field-tests/`.
+The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). Records of running docent on real repositories (a personal site and a desktop-app monorepo) are in `docs/field-tests/`.
 
 ## Good to know
 
