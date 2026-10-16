@@ -210,3 +210,14 @@ test('같은 group의 메시지는 표 하나로, group 없는 메시지는 알�
   assert.match(html, /<p class="message-group-title">CI 검증 상태 <span>2<\/span><\/p>/);
   assert.match(html, /<tr><td>검증 완료[^<]*(<!--[^>]*-->)?<\/td><td>CI가 통과하면<\/td><\/tr>/);
 });
+
+test('묶음 없는 문구가 많으면 표 하나로, 자리 표시는 칩으로', async () => {
+  const input = await loadGolden();
+  const s = input.screens.get('orders-new');
+  const ev = s.messages[0].evidence;
+  s.messages = Array.from({ length: 6 }, (_, i) => ({ text: `현재 버전 {버전 ${i}}이 최신입니다.`, when: '확인하면', evidence: ev }));
+  const html = renderSite(input).get('screens/orders-new.html');
+  assert.equal((html.match(/class="callout note"/g) ?? []).length, 0);
+  assert.match(html, /<table class="messages">/);
+  assert.match(html, /현재 버전 <span class="ph">버전 0<\/span>이 최신입니다\./);
+});

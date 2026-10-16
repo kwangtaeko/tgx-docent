@@ -5,6 +5,9 @@ import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 import { DEFAULT_THEME, mermaidInit, themeCss } from './theme.mjs';
 
+// 실행 중 값이 채워지는 자리({버전})는 흐린 칩으로 보인다
+const messageText = (text) => h(text).replace(/\{([^{}\n]{1,30})\}/g, '<span class="ph">$1</span>');
+const LOOSE_MESSAGE_LIMIT = 5;
 const flag = (item, T) => (item.confidence === 'low' ? `<mark class="flag">${T.flag}</mark> ` : '');
 // Mermaid 예약어(end, class, style 등)와 겹치지 않게 접두어를 붙인다
 const nodeId = (id) => `s_${id.replace(/-/g, '_')}`;
@@ -304,17 +307,20 @@ ${s.actions
   // 묶음(group)이 없는 문구는 알림 상자로, 같은 묶음의 문구는 표 하나로(상태 코드마다 문구가 있는 화면이 길어지지 않게)
   const groups = new Map();
   for (const m of s.messages) if (m.group) groups.set(m.group, [...(groups.get(m.group) ?? []), m]);
+  const messageTable = (list) => `<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead><tbody>
+${list.map((m) => `<tr><td>${messageText(m.text)}${ev(m.evidence)}</td><td>${h(m.when)}</td></tr>`).join('\n')}
+</tbody></table></div>`;
+  const loose = s.messages.filter((m) => !m.group);
   const messages = s.messages.length
     ? [
-        ...s.messages
-          .filter((m) => !m.group)
-          .map((m) => `<aside class="callout note"><p class="callout-title">${h(m.text)}${ev(m.evidence)}</p><p>${h(m.when)}</p></aside>`),
+        // 묶음 없는 문구가 많으면 알림 상자 대신 표 하나로
+        ...(loose.length > LOOSE_MESSAGE_LIMIT
+          ? [messageTable(loose)]
+          : loose.map((m) => `<aside class="callout note"><p class="callout-title">${messageText(m.text)}${ev(m.evidence)}</p><p>${h(m.when)}</p></aside>`)),
         ...[...groups].map(
           ([name, list]) => `<div class="message-group">
 <p class="message-group-title">${h(name)} <span>${list.length}</span></p>
-<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead><tbody>
-${list.map((m) => `<tr><td>${h(m.text)}${ev(m.evidence)}</td><td>${h(m.when)}</td></tr>`).join('\n')}
-</tbody></table></div>
+${messageTable(list)}
 </div>`,
         ),
       ].join('\n')
@@ -562,6 +568,7 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
 .field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
 .message-group { margin: 1rem 0; }
+.ph { display: inline-block; padding: 0 0.4rem; margin: 0 0.1rem; border-radius: 6px; font-size: 0.9em; font-weight: 500; color: var(--accent); background: var(--accent-soft); border: 1px dashed color-mix(in srgb, var(--accent) 35%, transparent); }
 .message-group-title { margin: 0 0 0.4rem; font-weight: 600; }
 .message-group-title span { margin-left: 0.3rem; font-size: 0.78rem; font-weight: 500; color: var(--muted); padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); }
 table.messages td:first-child { width: 55%; }

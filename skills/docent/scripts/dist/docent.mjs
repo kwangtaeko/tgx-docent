@@ -29056,6 +29056,8 @@ function mermaidInit(name5) {
 }
 
 // skills/docent/scripts/src/renderers/html.mjs
+var messageText = (text) => escapeHtml(text).replace(/\{([^{}\n]{1,30})\}/g, '<span class="ph">$1</span>');
+var LOOSE_MESSAGE_LIMIT = 5;
 var flag = (item, T) => item.confidence === "low" ? `<mark class="flag">${T.flag}</mark> ` : "";
 var nodeId = (id) => `s_${id.replace(/-/g, "_")}`;
 var mediaOf = (input) => input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
@@ -29295,14 +29297,17 @@ ${s.actions.map((a) => {
 </ul>` : empty;
   const groups = /* @__PURE__ */ new Map();
   for (const m of s.messages) if (m.group) groups.set(m.group, [...groups.get(m.group) ?? [], m]);
+  const messageTable = (list) => `<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>
+${list.map((m) => `<tr><td>${messageText(m.text)}${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`).join("\n")}
+</tbody></table></div>`;
+  const loose = s.messages.filter((m) => !m.group);
   const messages = s.messages.length ? [
-    ...s.messages.filter((m) => !m.group).map((m) => `<aside class="callout note"><p class="callout-title">${escapeHtml(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`),
+    // 묶음 없는 문구가 많으면 알림 상자 대신 표 하나로
+    ...loose.length > LOOSE_MESSAGE_LIMIT ? [messageTable(loose)] : loose.map((m) => `<aside class="callout note"><p class="callout-title">${messageText(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`),
     ...[...groups].map(
       ([name5, list]) => `<div class="message-group">
 <p class="message-group-title">${escapeHtml(name5)} <span>${list.length}</span></p>
-<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>
-${list.map((m) => `<tr><td>${escapeHtml(m.text)}${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`).join("\n")}
-</tbody></table></div>
+${messageTable(list)}
 </div>`
     )
   ].join("\n") : empty;
@@ -29533,6 +29538,7 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
 .field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
 .message-group { margin: 1rem 0; }
+.ph { display: inline-block; padding: 0 0.4rem; margin: 0 0.1rem; border-radius: 6px; font-size: 0.9em; font-weight: 500; color: var(--accent); background: var(--accent-soft); border: 1px dashed color-mix(in srgb, var(--accent) 35%, transparent); }
 .message-group-title { margin: 0 0 0.4rem; font-weight: 600; }
 .message-group-title span { margin-left: 0.3rem; font-size: 0.78rem; font-weight: 500; color: var(--muted); padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); }
 table.messages td:first-child { width: 55%; }
