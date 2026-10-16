@@ -42,14 +42,14 @@ docent는 소스에서 바로 문서를 쓰지 않고, 화면 목록(`inventory.
 | `id`·`kind`·`route`·`parentId` | inventory 항목 값 그대로(`route`는 page가 아니면 null, `parentId`는 page가 아니면 필수) |
 | `sourceHash` | `$DOCENT hash <readFiles…>`가 출력한 값 |
 | `title` | 화면 이름 `{value, evidence}` |
-| `menuPath` | 메뉴 위치 `{value: [...], evidence}` (알 수 있을 때만) |
+| `menuPath` | 메뉴 위치 `{value: [...], evidence, moreEvidence?}` (알 수 있을 때만). 이름마다 `evidence`나 `moreEvidence`(이름이 여러 파일에 나뉘어 있을 때의 나머지 위치, 파일은 `readFiles`에도) 중 한 곳 근처에 글자가 있어야 합니다 |
 | `purpose` | 화면 목적 `{value, evidence, confidence}` |
 | `roles` | 접근 가능한 역할 `[{value, evidence, confidence}]` |
 | `sections` | 탭·단계 입력 같은 화면 내 구획 `[{title, evidence}]` |
-| `fields` | 입력 항목 `[{label, type, required, section?, options?, evidence, confidence}]`. `type`은 `text textarea number date select checkbox radio file password email url tel other`. `options`는 고정된 선택지(화면 문구 그대로) |
-| `actions` | 버튼 동작 `[{label, effect, section?, navigatesTo?, opens?, evidence, effectEvidence?, confidence}]`. `evidence`는 라벨이 있는 줄, `effectEvidence`는 결과를 뒷받침하는 다른 위치들(처리 함수 등, 파일은 `readFiles`에도). `section`은 같은 라벨이 여러 구획에 있을 때 구획 제목. `navigatesTo`는 이동하는 화면 ID(워크플로우 재료), `opens`는 여는 하위 화면 ID |
+| `fields` | 입력 항목 `[{label, type, required, section?, options?, evidence, confidence}]`. `type`은 `text textarea number date select checkbox radio file password email url tel other`. `options`는 고정된 선택지(화면 문구 그대로), 선택지가 라벨과 떨어진 상수·코드표에 있으면 그 위치를 `optionsEvidence`에(파일은 `readFiles`에도) |
+| `actions` | 버튼 동작 `[{label, effect, section?, navigatesTo?, opens?, evidence, effectEvidence?, confidence}]`. `evidence`는 라벨이 있는 줄, `effectEvidence`는 결과를 뒷받침하는 다른 위치들(처리 함수 등, 파일은 `readFiles`에도). `section`은 같은 라벨이 여러 구획에 있을 때 구획 제목(`sections`의 `title` 중 하나). 글자 없는 동작(표의 행 클릭 등)은 `unlabeled: true`와 동작을 설명하는 `label`("행 클릭")로 적고, 검증은 라벨 글자를 찾지 않습니다. `navigatesTo`는 이동하는 화면 ID(워크플로우 재료), `opens`는 여는 하위 화면 ID |
 | `messages` | 안내 메시지 `[{text, when, group?, evidence}]`. `group`은 같은 종류의 문구 묶음 이름(같은 group은 산출물에서 표 하나로) |
 | `unknowns` | 소스만으로 확정할 수 없는 것. `review.md`로 모인다 |
 | `readFiles` | 분석 중 실제로 읽은 파일. `sourceHash` 계산 대상 |
 
-문자열이 소스에 그대로 나오는 항목(`fields[].label`, `fields[].options`, `actions[].label`, `messages[].text`)은 근거 위치 ±5줄 안에 그 문구가 실제로 있어야 합니다. 실행 중에 값이 채워지는 자리는 `{이름}`으로 적으며("현재 버전 {버전}이 최신입니다."), 검증은 자리 표시를 뺀 나머지 글자가 순서대로 있는지 봅니다.
+문자열이 소스에 그대로 나오는 항목(`menuPath.value`, `fields[].label`, `fields[].options`, `actions[].label`, `messages[].text`)은 근거 위치 ±5줄 안에 그 문구가 실제로 있어야 합니다. 자리 표시는 라벨에도 씁니다("{점수}점 행동 기준"). 실행 중에 값이 채워지는 자리는 `{이름}`으로 적으며("현재 버전 {버전}이 최신입니다."), 검증은 자리 표시를 뺀 나머지 글자가 순서대로 있는지 봅니다.

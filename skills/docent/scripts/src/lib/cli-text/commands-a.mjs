@@ -107,4 +107,7 @@ export default {
     'Playwright is not installed; added step lists instead of workflow diagrams in the PPT',
   // validate.mjs — effectEvidence
   '"{0}"의 effectEvidence 파일 {1}이 readFiles에 없습니다': 'effectEvidence file {1} of "{0}" is not in readFiles',
+  '메뉴 경로의 "{0}"이 근거({1}) 근처에 없습니다': 'Menu path name "{0}" is not near its evidence ({1})',
+  '근거 파일 {0}이 readFiles에 없습니다': 'Evidence file {0} is not in readFiles',
+  '"{0}"의 section "{1}"이 sections에 없습니다': 'Section "{1}" of "{0}" is not in sections',
 };

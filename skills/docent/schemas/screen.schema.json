@@ -68,10 +68,19 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "메뉴 이름들(위 단계부터). 이름마다 근거 근처에 글자가 있어야 한다"
         },
         "evidence": {
           "$ref": "#/$defs/evidence"
+        },
+        "moreEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "description": "메뉴 경로의 이름이 여러 곳에 나뉘어 있을 때(그룹 이름은 프론트, 메뉴 이름은 DB 등) 나머지 위치. value의 이름마다 evidence나 moreEvidence 중 한 곳 근처에 글자가 있어야 한다"
         }
       }
     },
@@ -190,6 +199,10 @@
               "minLength": 1
             },
             "description": "고정된 선택지(화면 문구 그대로). 근거 근처에 글자가 있어야 한다"
+          },
+          "optionsEvidence": {
+            "$ref": "#/$defs/evidence",
+            "description": "선택지가 라벨과 떨어진 곳(상수·코드표 등)에 정의돼 있으면 그 위치. 있으면 options는 이 근처에서 확인한다"
           }
         }
       }
@@ -235,6 +248,10 @@
               "$ref": "#/$defs/evidence"
             },
             "description": "버튼 결과(effect)를 뒷받침하는 다른 위치(처리 함수, 메인 프로세스 등). evidence는 라벨이 있는 줄"
+          },
+          "unlabeled": {
+            "const": true,
+            "description": "화면에 글자가 없는 동작(표의 행 클릭, 카드 클릭 등). label은 동작을 짧게 설명한 말(예: '행 클릭')이고 글자 검사를 하지 않는다. evidence는 그 처리기(onClick 등)가 있는 줄"
           }
         }
       }

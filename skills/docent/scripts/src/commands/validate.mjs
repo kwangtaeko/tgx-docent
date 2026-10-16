@@ -16,17 +16,19 @@ async function load(path, label, problems) {
   }
 }
 
+// [근거, 확인할 글자] 목록. 글자가 없으면 위치만 확인한다
 function evidenceChecks(s) {
   const checks = [[s.title.evidence], [s.purpose.evidence]];
-  if (s.menuPath) checks.push([s.menuPath.evidence]);
   for (const x of [...s.roles, ...s.sections]) checks.push([x.evidence]);
   for (const f of s.fields) {
     checks.push([f.evidence, f.label]);
-    // 선택지도 화면 문구 그대로 근거 근처에 있어야 한다
-    for (const option of f.options ?? []) checks.push([f.evidence, option]);
+    // 선택지도 화면 문구 그대로, 근거(따로 적었으면 optionsEvidence) 근처에 있어야 한다
+    if (f.optionsEvidence) checks.push([f.optionsEvidence]);
+    for (const option of f.options ?? []) checks.push([f.optionsEvidence ?? f.evidence, option]);
   }
   for (const a of s.actions) {
-    checks.push([a.evidence, a.label]);
+    // 글자가 없는 동작(행 클릭 등)은 처리기 위치만 확인한다
+    checks.push(a.unlabeled ? [a.evidence] : [a.evidence, a.label]);
     // 결과의 근거: 위치만 확인한다(라벨 글자는 없어도 된다)
     for (const ev of a.effectEvidence ?? []) checks.push([ev]);
   }
@@ -34,18 +36,47 @@ function evidenceChecks(s) {
   return checks;
 }
 
+const fileOf = (ev) => ev.slice(0, ev.lastIndexOf(':'));
+
+// 메뉴 경로: 이름마다 근거 중 한 곳 근처에 글자가 있어야 한다(그룹 이름과 메뉴 이름이 다른 파일에 있을 수 있다)
+async function checkMenuPath(projectDir, s, problems) {
+  const places = [s.menuPath.evidence, ...(s.menuPath.moreEvidence ?? [])];
+  const located = [];
+  for (const ev of places) {
+    const r = await checkEvidence(projectDir, ev);
+    if (r.ok) located.push(ev);
+    else problems.push(`${s.id}: ${r.reason}`);
+  }
+  if (located.length < places.length) return;
+  for (const name of s.menuPath.value) {
+    let found = false;
+    for (const ev of located) if ((await checkEvidence(projectDir, ev, { expectText: name })).ok) found = true;
+    if (!found) problems.push(`${s.id}: ${t('메뉴 경로의 "{0}"이 근거({1}) 근처에 없습니다', name, places.join(', '))}`);
+  }
+}
+
 async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
     const r = await checkEvidence(projectDir, ev, text === undefined ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
+  if (s.menuPath) await checkMenuPath(projectDir, s, problems);
   // 결과 근거 파일은 readFiles에 있어야 그 파일이 바뀔 때 다시 분석한다
   const read = new Set(s.readFiles ?? []);
   for (const a of s.actions) {
     for (const ev of a.effectEvidence ?? []) {
-      const file = ev.slice(0, ev.lastIndexOf(':'));
+      const file = fileOf(ev);
       if (file && !read.has(file)) problems.push(`${s.id}: ${t('"{0}"의 effectEvidence 파일 {1}이 readFiles에 없습니다', a.label, file)}`);
     }
+  }
+  for (const ev of [...(s.menuPath?.moreEvidence ?? []), ...s.fields.flatMap((f) => (f.optionsEvidence ? [f.optionsEvidence] : []))]) {
+    const file = fileOf(ev);
+    if (file && !read.has(file)) problems.push(`${s.id}: ${t('근거 파일 {0}이 readFiles에 없습니다', file)}`);
+  }
+  // section은 sections의 title 중 하나여야 한다(같은 라벨을 구획으로 구분하는 값)
+  const titles = new Set(s.sections.map((x) => x.title));
+  for (const x of [...s.fields, ...s.actions]) {
+    if (x.section !== undefined && !titles.has(x.section)) problems.push(`${s.id}: ${t('"{0}"의 section "{1}"이 sections에 없습니다', x.label, x.section)}`);
   }
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t('없는 부모 화면 {0}', s.parentId)}`);
   for (const a of s.actions) {

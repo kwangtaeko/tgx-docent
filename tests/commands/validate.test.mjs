@@ -169,3 +169,53 @@ test('effectEvidence: 위치가 있어야 하고 파일은 readFiles에 있어�
   await writeJsonFile(path, s);
   assert.ok((await runValidate(dir)).problems.some((p) => p.includes('effectEvidence') && p.includes('package.json')));
 });
+
+test('menuPath: 이름마다 근거(evidence·moreEvidence) 중 한 곳 근처에 글자가 있어야 한다', async () => {
+  const { dir, docent } = await golden();
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = await readJsonFile(path);
+  s.menuPath.value = ['주문관리', '거래처 등록'];
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('"거래처 등록"')));
+
+  // 다른 파일의 근거를 더하면 통과, 그 파일은 readFiles에 있어야 한다
+  s.menuPath.value = ['주문관리', '거래처를 선택하세요.'];
+  s.menuPath.moreEvidence = ['lib/order-schema.ts:4'];
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+  s.menuPath.moreEvidence = ['package.json:1'];
+  await writeJsonFile(path, s);
+  const problems = (await runValidate(dir)).problems;
+  assert.ok(problems.some((p) => p.includes('readFiles') && p.includes('package.json')), problems.join('\n'));
+});
+
+test('optionsEvidence가 있으면 선택지를 그 근처에서 찾는다', async () => {
+  const { dir, docent } = await golden();
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = await readJsonFile(path);
+  s.fields[0].options = ['납기일을 입력하세요.'];
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.length > 0);
+  s.fields[0].optionsEvidence = 'lib/order-schema.ts:5';
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+});
+
+test('unlabeled 동작은 라벨 글자를 찾지 않고, section은 sections의 제목이어야 한다', async () => {
+  const { dir, docent } = await golden();
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = await readJsonFile(path);
+  s.actions[0].label = '행 클릭';
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('행 클릭')));
+  s.actions[0].unlabeled = true;
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+
+  s.actions[0].section = '없는 구획';
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('"없는 구획"')));
+  s.sections = [{ title: '없는 구획', evidence: s.actions[0].evidence }];
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+});

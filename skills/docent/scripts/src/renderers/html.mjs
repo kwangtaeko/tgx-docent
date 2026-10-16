@@ -287,7 +287,7 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
 ${s.fields
   .map(
     (f) =>
-      `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ''}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${h(o)}</li>`).join('')}</ul>` : ''}</li>`,
+      `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}${f.optionsEvidence ? ev(f.optionsEvidence) : ''}<span class="badge">${h(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ''}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${h(o)}</li>`).join('')}</ul>` : ''}</li>`,
   )
   .join('\n')}
 </ul>`

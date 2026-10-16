@@ -27675,7 +27675,10 @@ var commands_a_default = {
   "\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Could not draw {0} workflow diagram(s); added step lists instead",
   "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT",
   // validate.mjs — effectEvidence
-  '"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'effectEvidence file {1} of "{0}" is not in readFiles'
+  '"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'effectEvidence file {1} of "{0}" is not in readFiles',
+  '\uBA54\uB274 \uACBD\uB85C\uC758 "{0}"\uC774 \uADFC\uAC70({1}) \uADFC\uCC98\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Menu path name "{0}" is not near its evidence ({1})',
+  "\uADFC\uAC70 \uD30C\uC77C {0}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Evidence file {0} is not in readFiles",
+  '"{0}"\uC758 section "{1}"\uC774 sections\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Section "{1}" of "{0}" is not in sections'
 };
 
 // skills/docent/scripts/src/lib/cli-text/commands-b.mjs
@@ -28562,10 +28565,19 @@ var screen_schema_default = {
           type: "array",
           items: {
             type: "string"
-          }
+          },
+          description: "\uBA54\uB274 \uC774\uB984\uB4E4(\uC704 \uB2E8\uACC4\uBD80\uD130). \uC774\uB984\uB9C8\uB2E4 \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
         },
         evidence: {
           $ref: "#/$defs/evidence"
+        },
+        moreEvidence: {
+          type: "array",
+          minItems: 1,
+          items: {
+            $ref: "#/$defs/evidence"
+          },
+          description: "\uBA54\uB274 \uACBD\uB85C\uC758 \uC774\uB984\uC774 \uC5EC\uB7EC \uACF3\uC5D0 \uB098\uB258\uC5B4 \uC788\uC744 \uB54C(\uADF8\uB8F9 \uC774\uB984\uC740 \uD504\uB860\uD2B8, \uBA54\uB274 \uC774\uB984\uC740 DB \uB4F1) \uB098\uBA38\uC9C0 \uC704\uCE58. value\uC758 \uC774\uB984\uB9C8\uB2E4 evidence\uB098 moreEvidence \uC911 \uD55C \uACF3 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
         }
       }
     },
@@ -28684,6 +28696,10 @@ var screen_schema_default = {
               minLength: 1
             },
             description: "\uACE0\uC815\uB41C \uC120\uD0DD\uC9C0(\uD654\uBA74 \uBB38\uAD6C \uADF8\uB300\uB85C). \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
+          },
+          optionsEvidence: {
+            $ref: "#/$defs/evidence",
+            description: "\uC120\uD0DD\uC9C0\uAC00 \uB77C\uBCA8\uACFC \uB5A8\uC5B4\uC9C4 \uACF3(\uC0C1\uC218\xB7\uCF54\uB4DC\uD45C \uB4F1)\uC5D0 \uC815\uC758\uB3FC \uC788\uC73C\uBA74 \uADF8 \uC704\uCE58. \uC788\uC73C\uBA74 options\uB294 \uC774 \uADFC\uCC98\uC5D0\uC11C \uD655\uC778\uD55C\uB2E4"
           }
         }
       }
@@ -28729,6 +28745,10 @@ var screen_schema_default = {
               $ref: "#/$defs/evidence"
             },
             description: "\uBC84\uD2BC \uACB0\uACFC(effect)\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uB2E4\uB978 \uC704\uCE58(\uCC98\uB9AC \uD568\uC218, \uBA54\uC778 \uD504\uB85C\uC138\uC2A4 \uB4F1). evidence\uB294 \uB77C\uBCA8\uC774 \uC788\uB294 \uC904"
+          },
+          unlabeled: {
+            const: true,
+            description: "\uD654\uBA74\uC5D0 \uAE00\uC790\uAC00 \uC5C6\uB294 \uB3D9\uC791(\uD45C\uC758 \uD589 \uD074\uB9AD, \uCE74\uB4DC \uD074\uB9AD \uB4F1). label\uC740 \uB3D9\uC791\uC744 \uC9E7\uAC8C \uC124\uBA85\uD55C \uB9D0(\uC608: '\uD589 \uD074\uB9AD')\uC774\uACE0 \uAE00\uC790 \uAC80\uC0AC\uB97C \uD558\uC9C0 \uC54A\uB294\uB2E4. evidence\uB294 \uADF8 \uCC98\uB9AC\uAE30(onClick \uB4F1)\uAC00 \uC788\uB294 \uC904"
           }
         }
       }
@@ -29591,7 +29611,7 @@ function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) 
   const sectionTag = (x) => x.section ? `<span class="field-section">${escapeHtml(x.section)}</span>` : "";
   const fields = s.fields.length ? `<ul class="fields">
 ${s.fields.map(
-    (f) => `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}<span class="badge">${escapeHtml(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ""}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${escapeHtml(o)}</li>`).join("")}</ul>` : ""}</li>`
+    (f) => `<li><div class="field-head">${flag(f, T)}${sectionTag(f)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}${f.optionsEvidence ? ev(f.optionsEvidence) : ""}<span class="badge">${escapeHtml(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ""}</div>${f.options ? `<ul class="options">${f.options.map((o) => `<li>${escapeHtml(o)}</li>`).join("")}</ul>` : ""}</li>`
   ).join("\n")}
 </ul>` : empty;
   const actions = s.actions.length ? `<ul class="fields actions">
@@ -35743,30 +35763,55 @@ async function load(path, label, problems) {
 }
 function evidenceChecks(s) {
   const checks = [[s.title.evidence], [s.purpose.evidence]];
-  if (s.menuPath) checks.push([s.menuPath.evidence]);
   for (const x of [...s.roles, ...s.sections]) checks.push([x.evidence]);
   for (const f of s.fields) {
     checks.push([f.evidence, f.label]);
-    for (const option of f.options ?? []) checks.push([f.evidence, option]);
+    if (f.optionsEvidence) checks.push([f.optionsEvidence]);
+    for (const option of f.options ?? []) checks.push([f.optionsEvidence ?? f.evidence, option]);
   }
   for (const a of s.actions) {
-    checks.push([a.evidence, a.label]);
+    checks.push(a.unlabeled ? [a.evidence] : [a.evidence, a.label]);
     for (const ev of a.effectEvidence ?? []) checks.push([ev]);
   }
   for (const m of s.messages) checks.push([m.evidence, m.text]);
   return checks;
+}
+var fileOf = (ev) => ev.slice(0, ev.lastIndexOf(":"));
+async function checkMenuPath(projectDir, s, problems) {
+  const places = [s.menuPath.evidence, ...s.menuPath.moreEvidence ?? []];
+  const located = [];
+  for (const ev of places) {
+    const r = await checkEvidence(projectDir, ev);
+    if (r.ok) located.push(ev);
+    else problems.push(`${s.id}: ${r.reason}`);
+  }
+  if (located.length < places.length) return;
+  for (const name5 of s.menuPath.value) {
+    let found = false;
+    for (const ev of located) if ((await checkEvidence(projectDir, ev, { expectText: name5 })).ok) found = true;
+    if (!found) problems.push(`${s.id}: ${t('\uBA54\uB274 \uACBD\uB85C\uC758 "{0}"\uC774 \uADFC\uAC70({1}) \uADFC\uCC98\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', name5, places.join(", "))}`);
+  }
 }
 async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
     const r = await checkEvidence(projectDir, ev, text === void 0 ? {} : { expectText: text });
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
+  if (s.menuPath) await checkMenuPath(projectDir, s, problems);
   const read = new Set(s.readFiles ?? []);
   for (const a of s.actions) {
     for (const ev of a.effectEvidence ?? []) {
-      const file = ev.slice(0, ev.lastIndexOf(":"));
+      const file = fileOf(ev);
       if (file && !read.has(file)) problems.push(`${s.id}: ${t('"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', a.label, file)}`);
     }
+  }
+  for (const ev of [...s.menuPath?.moreEvidence ?? [], ...s.fields.flatMap((f) => f.optionsEvidence ? [f.optionsEvidence] : [])]) {
+    const file = fileOf(ev);
+    if (file && !read.has(file)) problems.push(`${s.id}: ${t("\uADFC\uAC70 \uD30C\uC77C {0}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4", file)}`);
+  }
+  const titles = new Set(s.sections.map((x) => x.title));
+  for (const x of [...s.fields, ...s.actions]) {
+    if (x.section !== void 0 && !titles.has(x.section)) problems.push(`${s.id}: ${t('"{0}"\uC758 section "{1}"\uC774 sections\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', x.label, x.section)}`);
   }
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t("\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}", s.parentId)}`);
   for (const a of s.actions) {
