@@ -1,5 +1,6 @@
 // 산출물 옵션: config.yaml의 output + CLI 인자(우선). (설계 문서 3장 용도 프리셋)
 import { stringsFor } from '../renderers/i18n.mjs';
+import { DEFAULT_THEME, THEMES } from '../renderers/theme.mjs';
 export const PRESETS = ['delivery', 'handover', 'portfolio'];
 export const FORMATS = ['html', 'readme', 'pdf', 'pptx'];
 const REVISION_FIELDS = ['version', 'date', 'author', 'note'];
@@ -22,10 +23,13 @@ export function resolveOutputOptions(config, cli = {}) {
     }
   });
   const language = config.language ?? 'ko';
+  const theme = output.theme ?? DEFAULT_THEME;
+  if (!(theme in THEMES)) throw new Error(`알 수 없는 테마 "${theme}" — ${Object.keys(THEMES).join(', ')} 중 하나를 쓰세요`);
   return {
     preset,
     formats,
     language,
+    theme,
     title: String(output.title ?? stringsFor(language).defaultTitle),
     organization: String(output.organization ?? ''),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]]))),

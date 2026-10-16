@@ -40,6 +40,7 @@ analyze:
 # 산출물(preset: delivery 납품 | handover 인수인계 | portfolio 포트폴리오, formats: html readme pdf pptx):
 # output:
 #   preset: handover
+#   theme: indigo  # 색 테마: indigo | blue | emerald | rose | slate
 #   formats: [html, readme]
 #   title: 사용자 매뉴얼
 #   organization: ""

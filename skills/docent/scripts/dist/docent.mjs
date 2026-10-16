@@ -16060,38 +16060,38 @@ var require_bitpacker = __commonJS({
       }
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-          let rgba = getRGBA(data, inIndex);
+          let rgba2 = getRGBA(data, inIndex);
           switch (options.colorType) {
             case constants.COLORTYPE_COLOR_ALPHA:
             case constants.COLORTYPE_COLOR:
               if (options.bitDepth === 8) {
-                outData[outIndex] = rgba.red;
-                outData[outIndex + 1] = rgba.green;
-                outData[outIndex + 2] = rgba.blue;
+                outData[outIndex] = rgba2.red;
+                outData[outIndex + 1] = rgba2.green;
+                outData[outIndex + 2] = rgba2.blue;
                 if (outHasAlpha) {
-                  outData[outIndex + 3] = rgba.alpha;
+                  outData[outIndex + 3] = rgba2.alpha;
                 }
               } else {
-                outData.writeUInt16BE(rgba.red, outIndex);
-                outData.writeUInt16BE(rgba.green, outIndex + 2);
-                outData.writeUInt16BE(rgba.blue, outIndex + 4);
+                outData.writeUInt16BE(rgba2.red, outIndex);
+                outData.writeUInt16BE(rgba2.green, outIndex + 2);
+                outData.writeUInt16BE(rgba2.blue, outIndex + 4);
                 if (outHasAlpha) {
-                  outData.writeUInt16BE(rgba.alpha, outIndex + 6);
+                  outData.writeUInt16BE(rgba2.alpha, outIndex + 6);
                 }
               }
               break;
             case constants.COLORTYPE_ALPHA:
             case constants.COLORTYPE_GRAYSCALE: {
-              let grayscale = (rgba.red + rgba.green + rgba.blue) / 3;
+              let grayscale = (rgba2.red + rgba2.green + rgba2.blue) / 3;
               if (options.bitDepth === 8) {
                 outData[outIndex] = grayscale;
                 if (outHasAlpha) {
-                  outData[outIndex + 1] = rgba.alpha;
+                  outData[outIndex + 1] = rgba2.alpha;
                 }
               } else {
                 outData.writeUInt16BE(grayscale, outIndex);
                 if (outHasAlpha) {
-                  outData.writeUInt16BE(rgba.alpha, outIndex + 2);
+                  outData.writeUInt16BE(rgba2.alpha, outIndex + 2);
                 }
               }
               break;
@@ -26959,7 +26959,7 @@ var require_gifenc = __commonJS({
       }
       return bins;
     }
-    function quantize2(rgba, maxColors, opts = {}) {
+    function quantize2(rgba2, maxColors, opts = {}) {
       const {
         format = "rgb565",
         clearAlpha = true,
@@ -26967,13 +26967,13 @@ var require_gifenc = __commonJS({
         clearAlphaThreshold = 0,
         oneBitAlpha = false
       } = opts;
-      if (!rgba || !rgba.buffer) {
+      if (!rgba2 || !rgba2.buffer) {
         throw new Error("quantize() expected RGBA Uint8Array data");
       }
-      if (!(rgba instanceof Uint8Array) && !(rgba instanceof Uint8ClampedArray)) {
+      if (!(rgba2 instanceof Uint8Array) && !(rgba2 instanceof Uint8ClampedArray)) {
         throw new Error("quantize() expected RGBA Uint8Array data");
       }
-      const data = new Uint32Array(rgba.buffer);
+      const data = new Uint32Array(rgba2.buffer);
       let useSqrt = opts.useSqrt !== false;
       const hasAlpha = format === "rgba4444";
       const bins = create_bin_list(data, format);
@@ -27105,8 +27105,8 @@ var require_gifenc = __commonJS({
     function roundStep(byte, step) {
       return step > 1 ? Math.round(byte / step) * step : byte;
     }
-    function prequantize(rgba, { roundRGB = 5, roundAlpha = 10, oneBitAlpha = null } = {}) {
-      const data = new Uint32Array(rgba.buffer);
+    function prequantize(rgba2, { roundRGB = 5, roundAlpha = 10, oneBitAlpha = null } = {}) {
+      const data = new Uint32Array(rgba2.buffer);
       for (let i = 0; i < data.length; i++) {
         const color = data[i];
         let a = color >> 24 & 255;
@@ -27124,17 +27124,17 @@ var require_gifenc = __commonJS({
         data[i] = a << 24 | b << 16 | g << 8 | r << 0;
       }
     }
-    function applyPalette2(rgba, palette, format = "rgb565") {
-      if (!rgba || !rgba.buffer) {
+    function applyPalette2(rgba2, palette, format = "rgb565") {
+      if (!rgba2 || !rgba2.buffer) {
         throw new Error("quantize() expected RGBA Uint8Array data");
       }
-      if (!(rgba instanceof Uint8Array) && !(rgba instanceof Uint8ClampedArray)) {
+      if (!(rgba2 instanceof Uint8Array) && !(rgba2 instanceof Uint8ClampedArray)) {
         throw new Error("quantize() expected RGBA Uint8Array data");
       }
       if (palette.length > 256) {
         throw new Error("applyPalette() only works with 256 colors or less");
       }
-      const data = new Uint32Array(rgba.buffer);
+      const data = new Uint32Array(rgba2.buffer);
       const length = data.length;
       const bincount = format === "rgb444" ? 4096 : 65536;
       const index = new Uint8Array(length);
@@ -27629,7 +27629,7 @@ function merge(base, override) {
 }
 var ARRAY_KEYS = ["detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
 var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
-var STRING_KEYS = ["language", "app", "output.preset", "output.title", "output.organization"];
+var STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.title", "output.organization"];
 var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
 function checkConfig(config) {
   const fail = (path, kind) => {
@@ -28981,6 +28981,46 @@ function orderedMenuEntries(inventory, screens) {
   return entries.map(({ id, menu }) => ({ id, menu }));
 }
 
+// skills/docent/scripts/src/renderers/theme.mjs
+var DEFAULT_THEME = "indigo";
+var THEMES = {
+  indigo: { accent: "4F46E5", accentDark: "8B8CF8", accent2: "A855F7", hero: ["312E81", "4F46E5", "7C3AED"], glow: ["6366F1", "EC4899"], soft: "EEF2FF", ink: "1E1B4B", onInk: "E0E7FF", chipLine: "C7D2FE" },
+  blue: { accent: "2563EB", accentDark: "60A5FA", accent2: "06B6D4", hero: ["1E3A8A", "2563EB", "0891B2"], glow: ["3B82F6", "06B6D4"], soft: "EFF6FF", ink: "172554", onInk: "DBEAFE", chipLine: "BFDBFE" },
+  emerald: { accent: "059669", accentDark: "34D399", accent2: "14B8A6", hero: ["064E3B", "059669", "0D9488"], glow: ["10B981", "84CC16"], soft: "ECFDF5", ink: "022C22", onInk: "D1FAE5", chipLine: "A7F3D0" },
+  rose: { accent: "E11D48", accentDark: "FB7185", accent2: "F97316", hero: ["881337", "E11D48", "DB2777"], glow: ["F43F5E", "F97316"], soft: "FFF1F2", ink: "4C0519", onInk: "FFE4E6", chipLine: "FECDD3" },
+  slate: { accent: "334155", accentDark: "CBD5E1", accent2: "64748B", hero: ["0F172A", "334155", "475569"], glow: ["64748B", "94A3B8"], soft: "F1F5F9", ink: "0F172A", onInk: "E2E8F0", chipLine: "CBD5E1" }
+};
+var themeOf = (input) => THEMES[input?.options?.theme] ?? THEMES[DEFAULT_THEME];
+var rgb = (hex2) => [0, 2, 4].map((i) => parseInt(hex2.slice(i, i + 2), 16)).join(", ");
+var rgba = (hex2, a) => `rgba(${rgb(hex2)}, ${a})`;
+function themeCss(name5) {
+  const t = THEMES[name5] ?? THEMES[DEFAULT_THEME];
+  const hero = `radial-gradient(600px 320px at 100% 0%, ${rgba(t.glow[1], 0.55)}, transparent 62%), radial-gradient(520px 300px at 0% 100%, ${rgba(t.accent2, 0.4)}, transparent 60%), linear-gradient(135deg, #${t.hero[0]} 0%, #${t.hero[1]} 48%, #${t.hero[2]} 100%)`;
+  return `
+/* \uD14C\uB9C8: ${name5 in THEMES ? name5 : DEFAULT_THEME} */
+:root {
+  --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; --accent-2: #${t.accent2};
+  --glow-1: ${rgba(t.glow[0], 0.16)}; --glow-2: ${rgba(t.glow[1], 0.1)};
+  --hero-bg: ${hero}; --hero-shadow: ${rgba(t.accent, 0.55)};
+}
+@media (prefers-color-scheme: dark) {
+  :root { --accent: #${t.accentDark}; --accent-soft: ${rgba(t.accentDark, 0.12)}; --glow-1: ${rgba(t.glow[0], 0.22)}; --glow-2: ${rgba(t.glow[1], 0.12)}; }
+}
+@media print {
+  :root { --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; }
+}
+`;
+}
+function mermaidInit(name5) {
+  const t = THEMES[name5] ?? THEMES[DEFAULT_THEME];
+  return `(() => {
+  const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  return { startOnLoad: true, theme: 'base', themeVariables: dark
+    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t.ink}', primaryTextColor: '#${t.onInk}', primaryBorderColor: '#${t.accent}', lineColor: '#8b8b98', background: '#0e0e11' }
+    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#${t.soft}', primaryTextColor: '#${t.ink}', primaryBorderColor: '#${t.accentDark}', lineColor: '#9a9aa6', background: '#ffffff' } };
+})()`;
+}
+
 // skills/docent/scripts/src/renderers/html.mjs
 var flag = (item, T) => item.confidence === "low" ? `<mark class="flag">${T.flag}</mark> ` : "";
 var nodeId = (id) => `s_${id.replace(/-/g, "_")}`;
@@ -29264,12 +29304,7 @@ function workflowMermaid(input, wf, { forHtml = true } = {}) {
   }
   return ["flowchart LR", ...nodes, ...edges].join("\n");
 }
-var MERMAID_INIT = `(() => {
-  const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
-  return { startOnLoad: true, theme: 'base', themeVariables: dark
-    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#1e1b4b', primaryTextColor: '#e0e7ff', primaryBorderColor: '#6366f1', lineColor: '#8b8b98', background: '#0e0e11' }
-    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#eef2ff', primaryTextColor: '#1e1b4b', primaryBorderColor: '#818cf8', lineColor: '#9a9aa6', background: '#ffffff' } };
-})()`;
+var MERMAID_INIT = mermaidInit(DEFAULT_THEME);
 function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
   const T = textOf(input);
@@ -29290,11 +29325,11 @@ ${blocks}`;
 }
 function renderWorkflows(input) {
   const scripts = `<script src="assets/mermaid.min.js"></script>
-<script>mermaid.initialize(${MERMAID_INIT});</script>
+<script>mermaid.initialize(${mermaidInit(input.options?.theme)});</script>
 `;
   return page({ ...input, title: textOf(input).workflows, body: workflowsBody(input), root: "", scripts, active: "workflows.html" });
 }
-var STYLE = `/* docent \uC0B0\uCD9C\uBB3C \uC2A4\uD0C0\uC77C. \uAE00\uAF34: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
+var BASE_STYLE = `/* docent \uC0B0\uCD9C\uBB3C \uC2A4\uD0C0\uC77C. \uAE00\uAF34: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
 @font-face {
   font-family: "Pretendard Variable";
   font-weight: 45 920;
@@ -29364,7 +29399,7 @@ header.site { position: sticky; top: 0; z-index: 10; background: color-mix(in sr
 header.site .site-inner { height: 60px; }
 .brand { display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; }
 .brand:hover { text-decoration: none; }
-.brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #a855f7); color: #fff; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
+.brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
 header.site nav { display: flex; gap: 0.25rem; margin-left: auto; }
 header.site nav a { color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.92rem; font-weight: 500; }
 header.site nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
@@ -29375,10 +29410,7 @@ main { max-width: var(--content); margin: 0 auto; padding: 2.2rem 1.5rem 0; }
 
 /* \uC18C\uAC1C */
 .hero { position: relative; padding: 3.4rem 2.6rem 2.6rem; margin: 0 0 1rem; border-radius: 24px; color: #fff; overflow: hidden; isolation: isolate;
-  box-shadow: 0 30px 60px -24px rgba(79, 70, 229, 0.55); background:
-  radial-gradient(600px 320px at 100% 0%, rgba(236, 72, 153, 0.55), transparent 62%),
-  radial-gradient(520px 300px at 0% 100%, rgba(14, 165, 233, 0.45), transparent 60%),
-  linear-gradient(135deg, #312e81 0%, #4f46e5 48%, #7c3aed 100%); }
+  box-shadow: 0 30px 60px -24px var(--hero-shadow); background: var(--hero-bg); }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.35;
   background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px); background-size: 32px 32px;
   -webkit-mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); }
@@ -29474,7 +29506,7 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
 .steps li + li::after { content: "\u2192"; position: absolute; left: -1.2rem; color: var(--faint); }
 
 /* \uB0A9\uD488\uC6A9 \uD45C\uC9C0\xB7\uBAA9\uCC28 */
-.cover { padding: 5rem 2.6rem 3rem; margin-bottom: 2.4rem; border-radius: 22px; color: #fff; background: radial-gradient(800px 400px at 100% 0%, rgba(168, 85, 247, 0.55), transparent 60%), linear-gradient(135deg, #312e81, #4f46e5 55%, #6d28d9); }
+.cover { padding: 5rem 2.6rem 3rem; margin-bottom: 2.4rem; border-radius: 22px; color: #fff; background: var(--hero-bg); }
 .cover h1 { font-size: 2.8rem; margin: 0 0 0.4rem; color: #fff; }
 .cover .doc-title { font-size: 1.35rem; margin: 0 0 3rem; opacity: 0.85; }
 .cover dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.2rem; margin: 0; opacity: 0.9; }
@@ -29503,9 +29535,11 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 `;
+var styleFor = (theme) => BASE_STYLE + themeCss(theme ?? DEFAULT_THEME);
+var STYLE = styleFor(DEFAULT_THEME);
 function renderSite(input) {
   const site = /* @__PURE__ */ new Map();
-  site.set("assets/style.css", STYLE);
+  site.set("assets/style.css", styleFor(input.options?.theme));
   site.set("index.html", renderIndex(input));
   site.set("screens.html", renderList(input));
   site.set("workflows.html", renderWorkflows(input));
@@ -34964,7 +34998,7 @@ var PptxGenJS = class {
 // skills/docent/scripts/src/renderers/pptx.mjs
 var FONT = "Malgun Gothic";
 var W = 13.333;
-var C = { fg: "17171C", muted: "5B5B66", line: "E4E4EA", soft: "F6F6F8", accent: "4F46E5", accentSoft: "EEF2FF", ink: "1E1B4B", onInk: "E0E7FF" };
+var C = { fg: "17171C", muted: "5B5B66", line: "E4E4EA", soft: "F6F6F8" };
 var FRAME_BAR = 0.28;
 var MAX_ROWS = 8;
 var MENU_LINES = 18;
@@ -34979,16 +35013,15 @@ var low = (x, T) => x.confidence === "low" ? T.flagPrefix : "";
 var BG_W = 1333;
 var BG_H = 750;
 var hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
-var BACKDROPS = {
-  // 본문: 옅은 회청색 + 위쪽 남색·분홍, 아래 하늘색 번짐
-  body: { base: ["F6F6FB"], glows: [[0.06, -0.14, 0.75, 0.75, "6366F1", 0.16], [0.97, -0.1, 0.62, 0.68, "EC4899", 0.1], [0.5, 1.15, 0.7, 0.6, "0EA5E9", 0.08]], dots: true },
-  // 표지: 남색→보라 대각 그라데이션 + 오른쪽 위 분홍, 왼쪽 아래 하늘색 번짐
-  cover: { base: ["312E81", "4F46E5", "7C3AED"], glows: [[1, 0, 0.6, 0.75, "EC4899", 0.55], [0, 1, 0.55, 0.7, "0EA5E9", 0.45]], dots: false }
-};
+function backdropSpec(kind, t) {
+  if (kind === "cover") return { base: t.hero, glows: [[1, 0, 0.6, 0.75, t.glow[1], 0.55], [0, 1, 0.55, 0.7, t.accent2, 0.4]], dots: false };
+  return { base: ["F6F6FB"], glows: [[0.06, -0.14, 0.75, 0.75, t.glow[0], 0.16], [0.97, -0.1, 0.62, 0.68, t.glow[1], 0.1], [0.5, 1.15, 0.7, 0.6, "0EA5E9", 0.08]], dots: true };
+}
 var backdropCache = /* @__PURE__ */ new Map();
-function backdrop(kind) {
-  if (backdropCache.has(kind)) return backdropCache.get(kind);
-  const { base, glows, dots } = BACKDROPS[kind];
+function backdrop(kind, theme = DEFAULT_THEME) {
+  const key = `${kind}:${theme}`;
+  if (backdropCache.has(key)) return backdropCache.get(key);
+  const { base, glows, dots } = backdropSpec(kind, THEMES[theme] ?? THEMES[DEFAULT_THEME]);
   const stops = base.map(hex);
   const png = new import_pngjs.PNG({ width: BG_W, height: BG_H });
   for (let y = 0; y < BG_H; y++) {
@@ -35014,7 +35047,7 @@ function backdrop(kind) {
     }
   }
   const uri = dataUri(import_pngjs.PNG.sync.write(png), "image/png");
-  backdropCache.set(kind, uri);
+  backdropCache.set(key, uri);
   return uri;
 }
 function imageSize(buf) {
@@ -35047,8 +35080,8 @@ async function readMaybe(path) {
   }
 }
 var SUB_MAX = 180;
-function title(slide, text, sub) {
-  slide.addShape("rect", { x: 0.5, y: 0.4, w: 0.07, h: 0.42, fill: { color: C.accent }, line: { color: C.accent } });
+function title(slide, P, text, sub) {
+  slide.addShape("rect", { x: 0.5, y: 0.4, w: 0.07, h: 0.42, fill: { color: P.accent }, line: { color: P.accent } });
   slide.addText(text, { x: 0.68, y: 0.3, w: W - 1.2, h: 0.6, fontFace: FONT, fontSize: 24, bold: true, color: C.fg });
   if (sub) {
     const short = sub.length > SUB_MAX ? `${sub.slice(0, SUB_MAX - 1)}\u2026` : sub;
@@ -35064,9 +35097,9 @@ function framed(slide, buf, type, box) {
   });
   slide.addImage({ data: dataUri(buf, type), ...img });
 }
-function card(slide, { x, y, w, h }, head, body) {
+function card(slide, P, { x, y, w, h }, head, body) {
   slide.addShape("roundRect", { x, y, w, h, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: C.line, width: 0.75 } });
-  slide.addShape("ellipse", { x: x + 0.22, y: y + 0.27, w: 0.09, h: 0.09, fill: { color: C.accent }, line: { color: C.accent } });
+  slide.addShape("ellipse", { x: x + 0.22, y: y + 0.27, w: 0.09, h: 0.09, fill: { color: P.accent }, line: { color: P.accent } });
   slide.addText(head, { x: x + 0.38, y: y + 0.12, w: w - 0.55, h: 0.38, fontFace: FONT, fontSize: 13, bold: true, color: C.fg, valign: "middle", fit: "shrink" });
   slide.addText(body, { x: x + 0.2, y: y + 0.52, w: w - 0.4, h: h - 0.64, fontFace: FONT, fontSize: 11, color: C.muted, valign: "top", fit: "shrink", paraSpaceAfter: 2 });
 }
@@ -35118,45 +35151,47 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
   const T = textOf(input);
+  const P = themeOf(input);
+  const theme = input.options?.theme ?? DEFAULT_THEME;
   pptx.title = `${input.projectName} ${options.title ?? T.defaultTitle}`;
   if (options.organization) pptx.company = options.organization;
   pptx.defineSlideMaster({
     title: "DOCENT",
-    background: { data: backdrop("body") },
+    background: { data: backdrop("body", theme) },
     objects: [{ line: { x: 0.5, y: 7.05, w: W - 1, h: 0, line: { color: C.line, width: 0.75 } } }, { text: { text: input.projectName, options: { x: 0.5, y: 7.08, w: 6, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted } } }],
     slideNumber: { x: W - 1.2, y: 7.08, w: 0.7, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted, align: "right" }
   });
   const addSlide = () => pptx.addSlide({ masterName: "DOCENT" });
   const cover = pptx.addSlide();
-  cover.background = { data: backdrop("cover") };
+  cover.background = { data: backdrop("cover", theme) };
   cover.addText(options.title ?? T.defaultTitle, { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: "roundRect", rectRadius: 0.2, fill: { color: "FFFFFF", transparency: 82 }, line: { color: "FFFFFF", transparency: 65, width: 0.75 }, align: "center", fontFace: FONT, fontSize: 13, bold: true, color: "FFFFFF", fit: "shrink" });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: "FFFFFF" });
-  cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1, fontFace: FONT, fontSize: 16, color: C.onInk, valign: "top", fit: "shrink" });
+  cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1, fontFace: FONT, fontSize: 16, color: P.onInk, valign: "top", fit: "shrink" });
   const stats = [[input.inventory.screens.length, T.statScreens], [input.summary.workflows.length, T.statWorkflows]];
   stats.forEach(([n, label], i) => {
-    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: "FFFFFF", breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5, w: 1.7, h: 1, shape: "roundRect", rectRadius: 0.12, fill: { color: "FFFFFF", transparency: 86 }, line: { color: "FFFFFF", transparency: 70, width: 0.75 }, fontFace: FONT, valign: "middle", margin: 10 });
+    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: "FFFFFF", breakLine: true } }, { text: label, options: { fontSize: 11, color: P.onInk } }], { x: 0.9 + i * 1.9, y: 5, w: 1.7, h: 1, shape: "roundRect", rectRadius: 0.12, fill: { color: "FFFFFF", transparency: 86 }, line: { color: "FFFFFF", transparency: 70, width: 0.75 }, fontFace: FONT, valign: "middle", margin: 10 });
   });
-  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
+  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: P.onInk });
   splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
     const intro = addSlide();
-    title(intro, `${T.intro}${i ? T.continued : ""}`, input.summary.oneLiner.value);
+    title(intro, P, `${T.intro}${i ? T.continued : ""}`, input.summary.oneLiner.value);
     const cols = 3;
     const rows = Math.max(1, Math.ceil(features.length / cols));
     const gap = 0.2;
     const cw = (W - 1.2 - gap * (cols - 1)) / cols;
     const ch = Math.min(2.2, (5.3 - gap * (rows - 1)) / rows);
-    features.forEach((f, k) => card(intro, { x: 0.6 + k % cols * (cw + gap), y: 1.6 + Math.floor(k / cols) * (ch + gap), w: cw, h: ch }, f.menu, f.value));
+    features.forEach((f, k) => card(intro, P, { x: 0.6 + k % cols * (cw + gap), y: 1.6 + Math.floor(k / cols) * (ch + gap), w: cw, h: ch }, f.menu, f.value));
   });
   splitEvery(menuLines2(input), MENU_LINES).forEach((lines, i) => {
     const menu = addSlide();
-    title(menu, `${T.menu}${i ? T.continued : ""}`);
+    title(menu, P, `${T.menu}${i ? T.continued : ""}`);
     const boxH = Math.min(5.75, 0.5 + Math.max(1, lines.length) * 0.3);
     menu.addShape("roundRect", { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: C.line, width: 0.75 } });
     menu.addText(lines.join("\n") || T.noMenu, { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: "top" });
   });
   input.summary.workflows.forEach((wf, i) => {
     const slide = addSlide();
-    title(slide, `${T.workflows} \xB7 ${wf.name}`, wf.description);
+    title(slide, P, `${T.workflows} \xB7 ${wf.name}`, wf.description);
     const png = diagrams?.[i];
     if (png) {
       slide.addShape("roundRect", { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: C.line, width: 0.75 } });
@@ -35168,7 +35203,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
     const y = png ? 5.45 : 1.9;
     wf.steps.forEach((id, k) => {
       const x = 0.6 + k * (chipW + arrow);
-      slide.addText([{ text: `${k + 1}  `, options: { bold: true, color: C.accent } }, { text: screenTitle(input.screens, id), options: { color: C.ink } }], { x, y, w: chipW, h: 0.55, shape: "roundRect", rectRadius: 0.27, fill: { color: C.accentSoft }, line: { color: "C7D2FE", width: 0.75 }, align: "center", valign: "middle", fontFace: FONT, fontSize: 13, fit: "shrink" });
+      slide.addText([{ text: `${k + 1}  `, options: { bold: true, color: P.accent } }, { text: screenTitle(input.screens, id), options: { color: P.ink } }], { x, y, w: chipW, h: 0.55, shape: "roundRect", rectRadius: 0.27, fill: { color: P.soft }, line: { color: P.chipLine, width: 0.75 }, align: "center", valign: "middle", fontFace: FONT, fontSize: 13, fit: "shrink" });
       if (k < n - 1) slide.addText("\u2192", { x: x + chipW, y, w: arrow, h: 0.55, align: "center", valign: "middle", fontFace: FONT, fontSize: 14, color: C.muted });
     });
   });
@@ -35178,7 +35213,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
       if (!media.gifs.has(entry.id)) continue;
       const gif = await readMaybe(join8(mediaDir, "gif", `${entry.id}.gif`));
       const slide = addSlide();
-      title(slide, s.title.value, s.purpose.value);
+      title(slide, P, s.title.value, s.purpose.value);
       if (gif) framed(slide, gif, "image/gif", { x: 0.6, y: 1.5, w: W - 1.2, h: 5.4 });
       continue;
     }
@@ -35188,22 +35223,22 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
     const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = addSlide();
-      title(slide, `${s.title.value}${i ? T.continued : ""}`, `${low(s.purpose, T)}${s.purpose.value}`);
+      title(slide, P, `${s.title.value}${i ? T.continued : ""}`, `${low(s.purpose, T)}${s.purpose.value}`);
       const box = SHOT_BOX;
       if (shot) framed(slide, shot, "image/png", box);
       else {
         slide.addShape("roundRect", { ...box, rectRadius: 0.1, line: { color: C.line, dashType: "dash" }, fill: { color: C.soft } });
         slide.addText(T.noShot, { ...box, align: "center", valign: "middle", fontFace: FONT, fontSize: 16, color: C.muted });
       }
-      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
-      const body = (chunk.length ? chunk : [["", T.noRows, ""]]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? C.accent : "7C3AED" } }, ...rest]);
+      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
+      const body = (chunk.length ? chunk : [["", T.noRows, ""]]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? P.accent : P.accent2 } }, ...rest]);
       slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 }, valign: "top" });
     });
   }
   if (preset === "delivery") {
     const slide = addSlide();
-    title(slide, T.revisions);
-    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+    title(slide, P, T.revisions);
+    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
     const rows = revisionRows(input).map((r) => [r.version, r.date, r.author, r.note]);
     slide.addTable([header, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 } });
   }
@@ -35246,7 +35281,7 @@ function renderPrint(input) {
 <meta charset="utf-8">
 <title>${escapeHtml(input.projectName)} ${escapeHtml(title2)}</title>
 <style>
-${STYLE.replaceAll('url("fonts/', 'url("assets/fonts/')}${PRINT_STYLE}</style>
+${styleFor(input.options?.theme).replaceAll('url("fonts/', 'url("assets/fonts/')}${PRINT_STYLE}</style>
 </head>
 <body>
 <main>
@@ -35256,7 +35291,7 @@ ${parts.join("\n")}
 <script>
 (async () => {
   try {
-    mermaid.initialize({ ...${MERMAID_INIT}, startOnLoad: false });
+    mermaid.initialize({ ...${mermaidInit(input.options?.theme)}, startOnLoad: false });
     await mermaid.run({ querySelector: 'pre.mermaid' });
   } finally {
     document.body.dataset.ready = '1';
@@ -35290,10 +35325,13 @@ function resolveOutputOptions(config, cli = {}) {
     }
   });
   const language = config.language ?? "ko";
+  const theme = output.theme ?? DEFAULT_THEME;
+  if (!(theme in THEMES)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "${theme}" \u2014 ${Object.keys(THEMES).join(", ")} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694`);
   return {
     preset,
     formats,
     language,
+    theme,
     title: String(output.title ?? stringsFor(language).defaultTitle),
     organization: String(output.organization ?? ""),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]])))
@@ -37198,6 +37236,7 @@ analyze:
 # \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):
 # output:
 #   preset: handover
+#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate
 #   formats: [html, readme]
 #   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC
 #   organization: ""

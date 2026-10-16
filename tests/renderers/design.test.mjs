@@ -59,6 +59,7 @@ test('워크플로우 다이어그램은 산출물 색에 맞춘 테마로 그�
 test('배경은 흰색 대신 옅은 색 번짐·점 격자, 소개 머리는 그라데이션 배너', () => {
   assert.match(STYLE, /--glow-1:/);
   assert.match(STYLE, /body::before \{[^}]*background-size: 22px 22px/);
-  assert.match(STYLE, /\.hero \{[^}]*linear-gradient\(135deg/);
+  assert.match(STYLE, /\.hero \{[^}]*background: var\(--hero-bg\)/);
+  assert.match(STYLE, /--hero-bg: [^;]*linear-gradient\(135deg/);
   assert.match(STYLE, /@media print \{[\s\S]*body::before \{ display: none; \}/);
 });

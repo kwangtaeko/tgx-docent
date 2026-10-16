@@ -5,12 +5,14 @@ import { PNG } from 'pngjs';
 import PptxGenJS from 'pptxgenjs';
 import { presetOf, revisionRows, screenTitle } from './html.mjs';
 import { textOf } from './i18n.mjs';
+import { DEFAULT_THEME, THEMES, themeOf } from './theme.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 
 const FONT = 'Malgun Gothic';
 const W = 13.333;
 // HTML 산출물과 같은 색 토큰
-const C = { fg: '17171C', muted: '5B5B66', line: 'E4E4EA', soft: 'F6F6F8', accent: '4F46E5', accentSoft: 'EEF2FF', ink: '1E1B4B', onInk: 'E0E7FF' };
+// 바탕·글자색(테마와 무관). 강조색은 테마(theme.mjs)에서
+const C = { fg: '17171C', muted: '5B5B66', line: 'E4E4EA', soft: 'F6F6F8' };
 const FRAME_BAR = 0.28;
 const MAX_ROWS = 8;
 const MENU_LINES = 18;
@@ -28,16 +30,16 @@ const low = (x, T) => (x.confidence === 'low' ? T.flagPrefix : '');
 const BG_W = 1333;
 const BG_H = 750;
 const hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
-const BACKDROPS = {
-  // 본문: 옅은 회청색 + 위쪽 남색·분홍, 아래 하늘색 번짐
-  body: { base: ['F6F6FB'], glows: [[0.06, -0.14, 0.75, 0.75, '6366F1', 0.16], [0.97, -0.1, 0.62, 0.68, 'EC4899', 0.1], [0.5, 1.15, 0.7, 0.6, '0EA5E9', 0.08]], dots: true },
-  // 표지: 남색→보라 대각 그라데이션 + 오른쪽 위 분홍, 왼쪽 아래 하늘색 번짐
-  cover: { base: ['312E81', '4F46E5', '7C3AED'], glows: [[1, 0, 0.6, 0.75, 'EC4899', 0.55], [0, 1, 0.55, 0.7, '0EA5E9', 0.45]], dots: false },
-};
+// 본문: 옅은 회청색 + 위쪽 테마 번짐 두 색, 아래 하늘색 번짐 / 표지: 테마 배너 그라데이션 + 오른쪽 위·왼쪽 아래 번짐
+function backdropSpec(kind, t) {
+  if (kind === 'cover') return { base: t.hero, glows: [[1, 0, 0.6, 0.75, t.glow[1], 0.55], [0, 1, 0.55, 0.7, t.accent2, 0.4]], dots: false };
+  return { base: ['F6F6FB'], glows: [[0.06, -0.14, 0.75, 0.75, t.glow[0], 0.16], [0.97, -0.1, 0.62, 0.68, t.glow[1], 0.1], [0.5, 1.15, 0.7, 0.6, '0EA5E9', 0.08]], dots: true };
+}
 const backdropCache = new Map();
-export function backdrop(kind) {
-  if (backdropCache.has(kind)) return backdropCache.get(kind);
-  const { base, glows, dots } = BACKDROPS[kind];
+export function backdrop(kind, theme = DEFAULT_THEME) {
+  const key = `${kind}:${theme}`;
+  if (backdropCache.has(key)) return backdropCache.get(key);
+  const { base, glows, dots } = backdropSpec(kind, THEMES[theme] ?? THEMES[DEFAULT_THEME]);
   const stops = base.map(hex);
   const png = new PNG({ width: BG_W, height: BG_H });
   for (let y = 0; y < BG_H; y++) {
@@ -64,7 +66,7 @@ export function backdrop(kind) {
     }
   }
   const uri = dataUri(PNG.sync.write(png), 'image/png');
-  backdropCache.set(kind, uri);
+  backdropCache.set(key, uri);
   return uri;
 }
 
@@ -105,8 +107,8 @@ async function readMaybe(path) {
 }
 
 const SUB_MAX = 180;
-function title(slide, text, sub) {
-  slide.addShape('rect', { x: 0.5, y: 0.4, w: 0.07, h: 0.42, fill: { color: C.accent }, line: { color: C.accent } });
+function title(slide, P, text, sub) {
+  slide.addShape('rect', { x: 0.5, y: 0.4, w: 0.07, h: 0.42, fill: { color: P.accent }, line: { color: P.accent } });
   slide.addText(text, { x: 0.68, y: 0.3, w: W - 1.2, h: 0.6, fontFace: FONT, fontSize: 24, bold: true, color: C.fg });
   // 부제는 두 줄까지(넘치면 줄임표) — 아래 내용 영역(y 1.5~)을 침범하지 않게
   if (sub) {
@@ -127,9 +129,9 @@ function framed(slide, buf, type, box) {
 }
 
 // 둥근 칸 안의 제목·설명 카드
-function card(slide, { x, y, w, h }, head, body) {
+function card(slide, P, { x, y, w, h }, head, body) {
   slide.addShape('roundRect', { x, y, w, h, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
-  slide.addShape('ellipse', { x: x + 0.22, y: y + 0.27, w: 0.09, h: 0.09, fill: { color: C.accent }, line: { color: C.accent } });
+  slide.addShape('ellipse', { x: x + 0.22, y: y + 0.27, w: 0.09, h: 0.09, fill: { color: P.accent }, line: { color: P.accent } });
   slide.addText(head, { x: x + 0.38, y: y + 0.12, w: w - 0.55, h: 0.38, fontFace: FONT, fontSize: 13, bold: true, color: C.fg, valign: 'middle', fit: 'shrink' });
   slide.addText(body, { x: x + 0.2, y: y + 0.52, w: w - 0.4, h: h - 0.64, fontFace: FONT, fontSize: 11, color: C.muted, valign: 'top', fit: 'shrink', paraSpaceAfter: 2 });
 }
@@ -188,45 +190,47 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
   const T = textOf(input);
+  const P = themeOf(input);
+  const theme = input.options?.theme ?? DEFAULT_THEME;
   pptx.title = `${input.projectName} ${options.title ?? T.defaultTitle}`;
   if (options.organization) pptx.company = options.organization;
 
   // 표지
   pptx.defineSlideMaster({
     title: 'DOCENT',
-    background: { data: backdrop('body') },
+    background: { data: backdrop('body', theme) },
     objects: [{ line: { x: 0.5, y: 7.05, w: W - 1, h: 0, line: { color: C.line, width: 0.75 } } }, { text: { text: input.projectName, options: { x: 0.5, y: 7.08, w: 6, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted } } }],
     slideNumber: { x: W - 1.2, y: 7.08, w: 0.7, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted, align: 'right' },
   });
   const addSlide = () => pptx.addSlide({ masterName: 'DOCENT' });
 
   const cover = pptx.addSlide();
-  cover.background = { data: backdrop('cover') };
+  cover.background = { data: backdrop('cover', theme) };
   cover.addText(options.title ?? T.defaultTitle, { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: 'FFFFFF', transparency: 82 }, line: { color: 'FFFFFF', transparency: 65, width: 0.75 }, align: 'center', fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', fit: 'shrink' });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: 'FFFFFF' });
-  cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1.0, fontFace: FONT, fontSize: 16, color: C.onInk, valign: 'top', fit: 'shrink' });
+  cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1.0, fontFace: FONT, fontSize: 16, color: P.onInk, valign: 'top', fit: 'shrink' });
   const stats = [[input.inventory.screens.length, T.statScreens], [input.summary.workflows.length, T.statWorkflows]];
   stats.forEach(([n, label], i) => {
-    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: 'FFFFFF', breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5.0, w: 1.7, h: 1.0, shape: 'roundRect', rectRadius: 0.12, fill: { color: 'FFFFFF', transparency: 86 }, line: { color: 'FFFFFF', transparency: 70, width: 0.75 }, fontFace: FONT, valign: 'middle', margin: 10 });
+    cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: 'FFFFFF', breakLine: true } }, { text: label, options: { fontSize: 11, color: P.onInk } }], { x: 0.9 + i * 1.9, y: 5.0, w: 1.7, h: 1.0, shape: 'roundRect', rectRadius: 0.12, fill: { color: 'FFFFFF', transparency: 86 }, line: { color: 'FFFFFF', transparency: 70, width: 0.75 }, fontFace: FONT, valign: 'middle', margin: 10 });
   });
-  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
+  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: P.onInk });
 
   // 소개(주요 기능이 많으면 여러 장)
   splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
     const intro = addSlide();
-    title(intro, `${T.intro}${i ? T.continued : ''}`, input.summary.oneLiner.value);
+    title(intro, P, `${T.intro}${i ? T.continued : ''}`, input.summary.oneLiner.value);
     const cols = 3;
     const rows = Math.max(1, Math.ceil(features.length / cols));
     const gap = 0.2;
     const cw = (W - 1.2 - gap * (cols - 1)) / cols;
     const ch = Math.min(2.2, (5.3 - gap * (rows - 1)) / rows);
-    features.forEach((f, k) => card(intro, { x: 0.6 + (k % cols) * (cw + gap), y: 1.6 + Math.floor(k / cols) * (ch + gap), w: cw, h: ch }, f.menu, f.value));
+    features.forEach((f, k) => card(intro, P, { x: 0.6 + (k % cols) * (cw + gap), y: 1.6 + Math.floor(k / cols) * (ch + gap), w: cw, h: ch }, f.menu, f.value));
   });
 
   // 메뉴 구조(길면 여러 장)
   splitEvery(menuLines(input), MENU_LINES).forEach((lines, i) => {
     const menu = addSlide();
-    title(menu, `${T.menu}${i ? T.continued : ''}`);
+    title(menu, P, `${T.menu}${i ? T.continued : ''}`);
     // 상자 높이는 줄 수에 맞춘다(15pt 한 줄 약 0.3in)
     const boxH = Math.min(5.75, 0.5 + Math.max(1, lines.length) * 0.3);
     menu.addShape('roundRect', { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
@@ -236,7 +240,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   // 워크플로우
   input.summary.workflows.forEach((wf, i) => {
     const slide = addSlide();
-    title(slide, `${T.workflows} · ${wf.name}`, wf.description);
+    title(slide, P, `${T.workflows} · ${wf.name}`, wf.description);
     const png = diagrams?.[i];
     if (png) {
       slide.addShape('roundRect', { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
@@ -249,7 +253,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
     const y = png ? 5.45 : 1.9;
     wf.steps.forEach((id, k) => {
       const x = 0.6 + k * (chipW + arrow);
-      slide.addText([{ text: `${k + 1}  `, options: { bold: true, color: C.accent } }, { text: screenTitle(input.screens, id), options: { color: C.ink } }], { x, y, w: chipW, h: 0.55, shape: 'roundRect', rectRadius: 0.27, fill: { color: C.accentSoft }, line: { color: 'C7D2FE', width: 0.75 }, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 13, fit: 'shrink' });
+      slide.addText([{ text: `${k + 1}  `, options: { bold: true, color: P.accent } }, { text: screenTitle(input.screens, id), options: { color: P.ink } }], { x, y, w: chipW, h: 0.55, shape: 'roundRect', rectRadius: 0.27, fill: { color: P.soft }, line: { color: P.chipLine, width: 0.75 }, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 13, fit: 'shrink' });
       if (k < n - 1) slide.addText('→', { x: x + chipW, y, w: arrow, h: 0.55, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 14, color: C.muted });
     });
   });
@@ -261,7 +265,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
       if (!media.gifs.has(entry.id)) continue;
       const gif = await readMaybe(join(mediaDir, 'gif', `${entry.id}.gif`));
       const slide = addSlide();
-      title(slide, s.title.value, s.purpose.value);
+      title(slide, P, s.title.value, s.purpose.value);
       if (gif) framed(slide, gif, 'image/gif', { x: 0.6, y: 1.5, w: W - 1.2, h: 5.4 });
       continue;
     }
@@ -271,23 +275,23 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
     const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = addSlide();
-      title(slide, `${s.title.value}${i ? T.continued : ''}`, `${low(s.purpose, T)}${s.purpose.value}`);
+      title(slide, P, `${s.title.value}${i ? T.continued : ''}`, `${low(s.purpose, T)}${s.purpose.value}`);
       const box = SHOT_BOX;
       if (shot) framed(slide, shot, 'image/png', box);
       else {
         slide.addShape('roundRect', { ...box, rectRadius: 0.1, line: { color: C.line, dashType: 'dash' }, fill: { color: C.soft } });
         slide.addText(T.noShot, { ...box, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 16, color: C.muted });
       }
-      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
-      const body = (chunk.length ? chunk : [['', T.noRows, '']]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? C.accent : '7C3AED' } }, ...rest]);
+      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
+      const body = (chunk.length ? chunk : [['', T.noRows, '']]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? P.accent : P.accent2 } }, ...rest]);
       slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6.0, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: 'solid', color: C.line, pt: 0.75 }, valign: 'top' });
     });
   }
 
   if (preset === 'delivery') {
     const slide = addSlide();
-    title(slide, T.revisions);
-    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+    title(slide, P, T.revisions);
+    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: P.ink, fill: { color: P.soft } } }));
     const rows = revisionRows(input).map((r) => [r.version, r.date, r.author, r.note]);
     slide.addTable([header, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2.0, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: 'solid', color: C.line, pt: 0.75 } });
   }

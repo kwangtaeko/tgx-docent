@@ -1,7 +1,8 @@
 // PDF용 인쇄 HTML: 모든 내용을 한 문서로 잇는다. Mermaid 렌더가 끝나면 body[data-ready="1"]. (설계 문서 10장)
 import { escapeHtml as h } from './escape.mjs';
 import { textOf } from './i18n.mjs';
-import { cardsBody, coverBody, introBody, listBody, MERMAID_INIT, presetOf, revisionsBody, screenBody, STYLE, tocBody, workflowsBody } from './html.mjs';
+import { mermaidInit } from './theme.mjs';
+import { cardsBody, coverBody, introBody, listBody, presetOf, revisionsBody, screenBody, styleFor, tocBody, workflowsBody } from './html.mjs';
 
 const PRINT_STYLE = `
 .screen, .part { break-before: page; }
@@ -40,7 +41,7 @@ export function renderPrint(input) {
 <meta charset="utf-8">
 <title>${h(input.projectName)} ${h(title)}</title>
 <style>
-${STYLE.replaceAll('url("fonts/', 'url("assets/fonts/')}${PRINT_STYLE}</style>
+${styleFor(input.options?.theme).replaceAll('url("fonts/', 'url("assets/fonts/')}${PRINT_STYLE}</style>
 </head>
 <body>
 <main>
@@ -50,7 +51,7 @@ ${parts.join('\n')}
 <script>
 (async () => {
   try {
-    mermaid.initialize({ ...${MERMAID_INIT}, startOnLoad: false });
+    mermaid.initialize({ ...${mermaidInit(input.options?.theme)}, startOnLoad: false });
     await mermaid.run({ querySelector: 'pre.mermaid' });
   } finally {
     document.body.dataset.ready = '1';

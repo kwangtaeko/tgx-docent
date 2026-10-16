@@ -15,6 +15,7 @@ test('기본값', () => {
     preset: 'handover',
     formats: ['html', 'readme'],
     language: 'ko',
+    theme: 'indigo',
     title: '사용자 매뉴얼',
     organization: '',
     revisions: [],
@@ -54,4 +55,9 @@ test('형식이 비면 오류', () => {
 
 test('개정 이력 오류 문구', () => {
   assert.throws(() => resolveOutputOptions(cfg({ revisions: [{ date: 'x', author: 'y', note: 'z' }] }), {}), /revisions\[0\]의 version 값이 없거나/);
+});
+
+test('theme은 정해진 이름만 받는다', () => {
+  assert.equal(resolveOutputOptions(cfg({ theme: 'emerald' })).theme, 'emerald');
+  assert.throws(() => resolveOutputOptions(cfg({ theme: 'neon' })), /알 수 없는 테마 "neon"/);
 });

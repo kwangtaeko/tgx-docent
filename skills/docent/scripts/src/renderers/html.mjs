@@ -3,6 +3,7 @@
 import { escapeComment, escapeHtml as h } from './escape.mjs';
 import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
+import { DEFAULT_THEME, mermaidInit, themeCss } from './theme.mjs';
 
 const flag = (item, T) => (item.confidence === 'low' ? `<mark class="flag">${T.flag}</mark> ` : '');
 // Mermaid 예약어(end, class, style 등)와 겹치지 않게 접두어를 붙인다
@@ -358,13 +359,8 @@ export function workflowMermaid(input, wf, { forHtml = true } = {}) {
   return ['flowchart LR', ...nodes, ...edges].join('\n');
 }
 
-// 워크플로우 다이어그램 색을 산출물 색에 맞춘다(다크 모드면 어두운 색)
-export const MERMAID_INIT = `(() => {
-  const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
-  return { startOnLoad: true, theme: 'base', themeVariables: dark
-    ? { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#1e1b4b', primaryTextColor: '#e0e7ff', primaryBorderColor: '#6366f1', lineColor: '#8b8b98', background: '#0e0e11' }
-    : { fontFamily: 'Pretendard Variable, sans-serif', primaryColor: '#eef2ff', primaryTextColor: '#1e1b4b', primaryBorderColor: '#818cf8', lineColor: '#9a9aa6', background: '#ffffff' } };
-})()`;
+// 워크플로우 다이어그램 색을 산출물 색에 맞춘다(다크 모드면 어두운 색). 테마별은 mermaidInit(theme)
+export const MERMAID_INIT = mermaidInit(DEFAULT_THEME);
 
 export function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
@@ -388,11 +384,11 @@ ${blocks}`;
 }
 
 function renderWorkflows(input) {
-  const scripts = `<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize(${MERMAID_INIT});</script>\n`;
+  const scripts = `<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize(${mermaidInit(input.options?.theme)});</script>\n`;
   return page({ ...input, title: textOf(input).workflows, body: workflowsBody(input), root: '', scripts, active: 'workflows.html' });
 }
 
-const STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
+const BASE_STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
 @font-face {
   font-family: "Pretendard Variable";
   font-weight: 45 920;
@@ -462,7 +458,7 @@ header.site { position: sticky; top: 0; z-index: 10; background: color-mix(in sr
 header.site .site-inner { height: 60px; }
 .brand { display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; }
 .brand:hover { text-decoration: none; }
-.brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #a855f7); color: #fff; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
+.brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
 header.site nav { display: flex; gap: 0.25rem; margin-left: auto; }
 header.site nav a { color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.92rem; font-weight: 500; }
 header.site nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
@@ -473,10 +469,7 @@ main { max-width: var(--content); margin: 0 auto; padding: 2.2rem 1.5rem 0; }
 
 /* 소개 */
 .hero { position: relative; padding: 3.4rem 2.6rem 2.6rem; margin: 0 0 1rem; border-radius: 24px; color: #fff; overflow: hidden; isolation: isolate;
-  box-shadow: 0 30px 60px -24px rgba(79, 70, 229, 0.55); background:
-  radial-gradient(600px 320px at 100% 0%, rgba(236, 72, 153, 0.55), transparent 62%),
-  radial-gradient(520px 300px at 0% 100%, rgba(14, 165, 233, 0.45), transparent 60%),
-  linear-gradient(135deg, #312e81 0%, #4f46e5 48%, #7c3aed 100%); }
+  box-shadow: 0 30px 60px -24px var(--hero-shadow); background: var(--hero-bg); }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.35;
   background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px); background-size: 32px 32px;
   -webkit-mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); }
@@ -572,7 +565,7 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
 .steps li + li::after { content: "→"; position: absolute; left: -1.2rem; color: var(--faint); }
 
 /* 납품용 표지·목차 */
-.cover { padding: 5rem 2.6rem 3rem; margin-bottom: 2.4rem; border-radius: 22px; color: #fff; background: radial-gradient(800px 400px at 100% 0%, rgba(168, 85, 247, 0.55), transparent 60%), linear-gradient(135deg, #312e81, #4f46e5 55%, #6d28d9); }
+.cover { padding: 5rem 2.6rem 3rem; margin-bottom: 2.4rem; border-radius: 22px; color: #fff; background: var(--hero-bg); }
 .cover h1 { font-size: 2.8rem; margin: 0 0 0.4rem; color: #fff; }
 .cover .doc-title { font-size: 1.35rem; margin: 0 0 3rem; opacity: 0.85; }
 .cover dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.2rem; margin: 0; opacity: 0.9; }
@@ -602,11 +595,14 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
 }
 `;
 
+// 기본 스타일 + 테마 색. STYLE은 기본 테마
+export const styleFor = (theme) => BASE_STYLE + themeCss(theme ?? DEFAULT_THEME);
+const STYLE = styleFor(DEFAULT_THEME);
 export { STYLE };
 
 export function renderSite(input) {
   const site = new Map();
-  site.set('assets/style.css', STYLE);
+  site.set('assets/style.css', styleFor(input.options?.theme));
   site.set('index.html', renderIndex(input));
   site.set('screens.html', renderList(input));
   site.set('workflows.html', renderWorkflows(input));
