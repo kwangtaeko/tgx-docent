@@ -5,7 +5,7 @@ import { PNG } from 'pngjs';
 import PptxGenJS from 'pptxgenjs';
 import { presetOf, revisionRows, screenTitle } from './html.mjs';
 import { textOf } from './i18n.mjs';
-import { DEFAULT_THEME, THEMES, themeOf } from './theme.mjs';
+import { DEFAULT_THEME, themeByName, themeOf } from './theme.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 
 const FONT = 'Malgun Gothic';
@@ -39,7 +39,7 @@ const backdropCache = new Map();
 export function backdrop(kind, theme = DEFAULT_THEME) {
   const key = `${kind}:${theme}`;
   if (backdropCache.has(key)) return backdropCache.get(key);
-  const { base, glows, dots } = backdropSpec(kind, THEMES[theme] ?? THEMES[DEFAULT_THEME]);
+  const { base, glows, dots } = backdropSpec(kind, themeByName(theme));
   const stops = base.map(hex);
   const png = new PNG({ width: BG_W, height: BG_H });
   for (let y = 0; y < BG_H; y++) {

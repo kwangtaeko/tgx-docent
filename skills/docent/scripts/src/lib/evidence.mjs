@@ -6,9 +6,42 @@ export const TEXT_WINDOW = 5;
 // 문구 안의 자리 표시({버전}, {name})와 그 자리에 올 수 있는 소스 글자 수
 const PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 const PLACEHOLDER_GAP = 160;
+const MAX_PLACEHOLDERS = 20;
 
 const LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 const SYMBOL = /^[A-Za-z_$][\w$.]*$/;
+
+// 자리 표시를 뺀 글자 조각들이 순서대로, 자리마다 PLACEHOLDER_GAP자 안에 이어지는지.
+// 정규식 대신 indexOf로 찾는다(자리가 여럿이면 정규식 되돌아가기가 지수적으로 느려짐).
+// 각 조각은 가능한 가장 앞에서 찾는다 — 간격에 상한만 있으므로 가장 앞이 늘 최선이다
+export function matchesWithPlaceholders(text, source) {
+  const parts = text.split(PLACEHOLDER);
+  if (parts.length < 2 || parts.length > MAX_PLACEHOLDERS + 1) return false;
+  const pieces = [];
+  let gaps = 0;
+  parts.forEach((part, i) => {
+    if (i > 0) gaps++;
+    if (!part.trim()) return; // 이어진 자리 표시({a}{b})는 간격을 합친다
+    pieces.push({ text: part, maxGap: gaps * PLACEHOLDER_GAP });
+    gaps = 0;
+  });
+  if (!pieces.length || pieces.map((p) => p.text).join('').replace(/\s/g, '').length < 2) return false;
+  const [first, ...rest] = pieces;
+  for (let start = source.indexOf(first.text); start >= 0; start = source.indexOf(first.text, start + 1)) {
+    let pos = start + first.text.length;
+    let ok = true;
+    for (const piece of rest) {
+      const at = source.indexOf(piece.text, pos);
+      if (at < 0 || at - pos > piece.maxGap) {
+        ok = false;
+        break;
+      }
+      pos = at + piece.text.length;
+    }
+    if (ok) return true;
+  }
+  return false;
+}
 
 export function parseEvidence(s) {
   const i = s.lastIndexOf(':');
@@ -80,9 +113,7 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
   const found = (text) => {
     if (window.some((line) => line.includes(text)) || joined.includes(squash(text))) return true;
     // 실행 중에 값이 채워지는 문구: {이름} 자리는 소스의 ${...}·변수 등 짧은 글자로 본다(나머지 글자는 그대로 있어야 함)
-    const parts = squash(text).split(PLACEHOLDER);
-    if (parts.length < 2 || parts.join('').replace(/\s/g, '').length < 2) return false;
-    return new RegExp(parts.map(escapeRegExp).join(`.{0,${PLACEHOLDER_GAP}}?`)).test(joined);
+    return matchesWithPlaceholders(squash(text), joined);
   };
   if (opts.expectText !== undefined && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} 근처(±${TEXT_WINDOW}줄)에 "${opts.expectText}" 없음` };

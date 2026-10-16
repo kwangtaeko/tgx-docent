@@ -61,3 +61,7 @@ test('theme은 정해진 이름만 받는다', () => {
   assert.equal(resolveOutputOptions(cfg({ theme: 'emerald' })).theme, 'emerald');
   assert.throws(() => resolveOutputOptions(cfg({ theme: 'neon' })), /알 수 없는 테마 "neon"/);
 });
+
+test('객체 기본 속성 이름(constructor 등)은 테마가 아니다', () => {
+  for (const theme of ['constructor', '__proto__', 'toString']) assert.throws(() => resolveOutputOptions(cfg({ theme })), /알 수 없는 테마/);
+});

@@ -73,6 +73,7 @@ async function main() {
         return 0;
       }
       console.log(r.created ? '.docent/config.yaml을 만들었습니다.' : '.docent/config.yaml이 이미 있어 그대로 둡니다.');
+      if (r.appIgnored) console.log('--app은 쓰지 않았습니다. 앱 폴더를 바꾸려면 .docent/config.yaml의 app을 고치세요.');
       if (r.app) console.log(`앱 폴더: ${r.app}`);
       console.log(`감지된 프레임워크: ${r.detectors.length ? r.detectors.join(', ') : '없음 (에이전트 탐색으로 화면을 찾습니다)'}`);
       if (r.desktop) console.log(`데스크톱 앱(${r.desktop})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)`);

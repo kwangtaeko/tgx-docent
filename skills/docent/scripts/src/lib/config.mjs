@@ -62,7 +62,7 @@ function checkConfig(config) {
   }
   if (config.app) {
     try {
-      config.app = normalizeRel(config.app);
+      config.app = normalizeRel(config.app.replace(/\\/g, '/'));
     } catch {
       throw new Error(`config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 (${config.app})`);
     }

@@ -230,3 +230,45 @@ test('popup은 시나리오 스키마에서 click에만 쓴다', () => {
   assert.equal(validateScenario({ ...base, steps: [{ do: 'click', role: 'button', label: 'a', popup: true, evidence: ev }] }).valid, true);
   assert.equal(validateScenario({ ...base, steps: [{ do: 'fill', label: 'a', value: 'b', popup: true, evidence: ev }] }).valid, false);
 });
+
+test('popup 단계의 클릭이 실패해도 프로세스가 죽지 않고 그 단계에서 실패', async () => {
+  const p = await open();
+  await p.evaluate(() => {
+    const b = document.createElement('button');
+    b.textContent = '막힌 버튼';
+    b.disabled = true;
+    document.body.append(b);
+  });
+  const r = await runSteps(p, [{ do: 'click', role: 'button', label: '막힌 버튼', popup: true, evidence: ev }], { timeoutMs: 300 });
+  assert.equal(r.ok, false);
+  // 버려진 새 창 기다림이 나중에 거부돼도 처리되지 않은 거부가 되지 않아야 한다
+  await new Promise((resolve) => setTimeout(resolve, 900));
+});
+
+test('새 창이 늦게 닫혀 끊긴 단계는 원래 창에서 다시 한다', async () => {
+  const slow = await startTestSite({
+    pages: {
+      '/main': html('주문', `<button onclick="window.open('/pick', 'pick')">찾기</button><b id="v"></b>
+        <button onclick="document.getElementById('done').textContent = '저장됨 ' + document.getElementById('v').textContent">저장</button><p id="done"></p>`),
+      '/pick': html('찾기', `<button onclick="window.opener.document.getElementById('v').textContent='A'; setTimeout(() => window.close(), 400)">고르기</button>`),
+    },
+  });
+  try {
+    const p = await (await browser()).newPage();
+    await p.goto(`${slow.url}/main`);
+    const r = await runSteps(
+      p,
+      [
+        { do: 'click', role: 'button', label: '찾기', popup: true, evidence: ev },
+        { do: 'click', role: 'button', label: '고르기', evidence: ev },
+        { do: 'click', role: 'button', label: '저장', evidence: ev },
+        { do: 'expectText', text: '저장됨 A', evidence: ev },
+      ],
+      { timeoutMs: 2000 },
+    );
+    assert.deepEqual(r, { ok: true });
+    assert.equal(await p.locator('#done').textContent(), '저장됨 A');
+  } finally {
+    await slow.close();
+  }
+});

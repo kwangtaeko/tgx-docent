@@ -27589,7 +27589,7 @@ var en = {
 };
 var STRINGS = { ko, en };
 var languageOf = (input) => input?.options?.language ?? "ko";
-var stringsFor = (language) => STRINGS[language] ?? ko;
+var stringsFor = (language) => typeof language === "string" && Object.hasOwn(STRINGS, language) ? STRINGS[language] : ko;
 var textOf = (input) => stringsFor(languageOf(input));
 
 // skills/docent/scripts/src/lib/paths.mjs
@@ -27655,7 +27655,7 @@ function checkConfig(config) {
   }
   if (config.app) {
     try {
-      config.app = normalizeRel(config.app);
+      config.app = normalizeRel(config.app.replace(/\\/g, "/"));
     } catch {
       throw new Error(`config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.app})`);
     }
@@ -28915,8 +28915,37 @@ import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
 var PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 var PLACEHOLDER_GAP = 160;
+var MAX_PLACEHOLDERS = 20;
 var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
+function matchesWithPlaceholders(text, source) {
+  const parts = text.split(PLACEHOLDER);
+  if (parts.length < 2 || parts.length > MAX_PLACEHOLDERS + 1) return false;
+  const pieces = [];
+  let gaps = 0;
+  parts.forEach((part, i) => {
+    if (i > 0) gaps++;
+    if (!part.trim()) return;
+    pieces.push({ text: part, maxGap: gaps * PLACEHOLDER_GAP });
+    gaps = 0;
+  });
+  if (!pieces.length || pieces.map((p) => p.text).join("").replace(/\s/g, "").length < 2) return false;
+  const [first, ...rest] = pieces;
+  for (let start = source.indexOf(first.text); start >= 0; start = source.indexOf(first.text, start + 1)) {
+    let pos = start + first.text.length;
+    let ok = true;
+    for (const piece of rest) {
+      const at = source.indexOf(piece.text, pos);
+      if (at < 0 || at - pos > piece.maxGap) {
+        ok = false;
+        break;
+      }
+      pos = at + piece.text.length;
+    }
+    if (ok) return true;
+  }
+  return false;
+}
 function parseEvidence(s) {
   const i = s.lastIndexOf(":");
   const file = i > 0 ? s.slice(0, i) : "";
@@ -28976,9 +29005,7 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   const joined = squash(window2.join(" "));
   const found = (text) => {
     if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text))) return true;
-    const parts = squash(text).split(PLACEHOLDER);
-    if (parts.length < 2 || parts.join("").replace(/\s/g, "").length < 2) return false;
-    return new RegExp(parts.map(escapeRegExp).join(`.{0,${PLACEHOLDER_GAP}}?`)).test(joined);
+    return matchesWithPlaceholders(squash(text), joined);
   };
   if (opts.expectText !== void 0 && !found(opts.expectText)) {
     return { ok: false, reason: `${evidence} \uADFC\uCC98(\xB1${TEXT_WINDOW}\uC904)\uC5D0 "${opts.expectText}" \uC5C6\uC74C` };
@@ -29024,14 +29051,16 @@ var THEMES = {
   rose: { accent: "E11D48", accentDark: "FB7185", accent2: "F97316", hero: ["881337", "E11D48", "DB2777"], glow: ["F43F5E", "F97316"], soft: "FFF1F2", ink: "4C0519", onInk: "FFE4E6", chipLine: "FECDD3" },
   slate: { accent: "334155", accentDark: "CBD5E1", accent2: "64748B", hero: ["0F172A", "334155", "475569"], glow: ["64748B", "94A3B8"], soft: "F1F5F9", ink: "0F172A", onInk: "E2E8F0", chipLine: "CBD5E1" }
 };
-var themeOf = (input) => THEMES[input?.options?.theme] ?? THEMES[DEFAULT_THEME];
+var themeByName = (name5) => typeof name5 === "string" && Object.hasOwn(THEMES, name5) ? THEMES[name5] : THEMES[DEFAULT_THEME];
+var isTheme = (name5) => typeof name5 === "string" && Object.hasOwn(THEMES, name5);
+var themeOf = (input) => themeByName(input?.options?.theme);
 var rgb = (hex2) => [0, 2, 4].map((i) => parseInt(hex2.slice(i, i + 2), 16)).join(", ");
 var rgba = (hex2, a) => `rgba(${rgb(hex2)}, ${a})`;
 function themeCss(name5) {
-  const t = THEMES[name5] ?? THEMES[DEFAULT_THEME];
+  const t = themeByName(name5);
   const hero = `radial-gradient(600px 320px at 100% 0%, ${rgba(t.glow[1], 0.55)}, transparent 62%), radial-gradient(520px 300px at 0% 100%, ${rgba(t.accent2, 0.4)}, transparent 60%), linear-gradient(135deg, #${t.hero[0]} 0%, #${t.hero[1]} 48%, #${t.hero[2]} 100%)`;
   return `
-/* \uD14C\uB9C8: ${name5 in THEMES ? name5 : DEFAULT_THEME} */
+/* \uD14C\uB9C8: ${isTheme(name5) ? name5 : DEFAULT_THEME} */
 :root {
   --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; --accent-2: #${t.accent2};
   --glow-1: ${rgba(t.glow[0], 0.16)}; --glow-2: ${rgba(t.glow[1], 0.1)};
@@ -29046,7 +29075,7 @@ function themeCss(name5) {
 `;
 }
 function mermaidInit(name5) {
-  const t = THEMES[name5] ?? THEMES[DEFAULT_THEME];
+  const t = themeByName(name5);
   return `(() => {
   const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   return { startOnLoad: true, theme: 'base', themeVariables: dark
@@ -35087,7 +35116,7 @@ var backdropCache = /* @__PURE__ */ new Map();
 function backdrop(kind, theme = DEFAULT_THEME) {
   const key = `${kind}:${theme}`;
   if (backdropCache.has(key)) return backdropCache.get(key);
-  const { base, glows, dots } = backdropSpec(kind, THEMES[theme] ?? THEMES[DEFAULT_THEME]);
+  const { base, glows, dots } = backdropSpec(kind, themeByName(theme));
   const stops = base.map(hex);
   const png = new import_pngjs.PNG({ width: BG_W, height: BG_H });
   for (let y = 0; y < BG_H; y++) {
@@ -35393,7 +35422,7 @@ function resolveOutputOptions(config, cli = {}) {
   });
   const language = config.language ?? "ko";
   const theme = output.theme ?? DEFAULT_THEME;
-  if (!(theme in THEMES)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "${theme}" \u2014 ${Object.keys(THEMES).join(", ")} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694`);
+  if (!isTheme(theme)) throw new Error(`\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "${theme}" \u2014 ${Object.keys(THEMES).join(", ")} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694`);
   return {
     preset,
     formats,
@@ -35865,8 +35894,17 @@ async function runStep(page2, step, env, timeoutMs) {
     }
     case "click": {
       const el = await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
-      if (!step.popup) return el.click({ timeout: timeoutMs });
+      if (!step.popup) {
+        try {
+          return await el.click({ timeout: timeoutMs });
+        } catch (err) {
+          if (page2.isClosed()) return void 0;
+          throw err;
+        }
+      }
       const opened = page2.waitForEvent("popup", { timeout: timeoutMs * 2 });
+      opened.catch(() => {
+      });
       await el.click({ timeout: timeoutMs });
       let popup;
       try {
@@ -35893,8 +35931,9 @@ async function runStep(page2, step, env, timeoutMs) {
       throw new StepError(`\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: ${step.do}`);
   }
 }
-async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage } = {}) {
-  const opened = [];
+async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage, openers = [] } = {}) {
+  const opened = [...openers];
+  let retried = -1;
   let current = page2;
   const back = async () => {
     let moved = false;
@@ -35916,8 +35955,11 @@ async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onSt
     } catch (err) {
       if (current.isClosed() && opened.length) {
         await back();
-        if (onStep) await onStep(index);
-        continue;
+        if (retried !== index) {
+          retried = index;
+          index--;
+          continue;
+        }
       }
       const reason = err instanceof StepError ? err.message : `${steps[index].do} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328`;
       return { ok: false, index, reason };
@@ -36248,7 +36290,7 @@ async function loadScreen(projectDir, id) {
     return void 0;
   }
 }
-async function recordSteps(page2, steps) {
+async function recordSteps(page2, steps, openers = []) {
   const frames = [];
   let active = page2;
   let recording = true;
@@ -36268,7 +36310,8 @@ async function recordSteps(page2, steps) {
     onStep: () => sleep3(300),
     onPage: (p) => {
       active = p;
-    }
+    },
+    openers
   });
   if (result.ok) await sleep3(1e3);
   recording = false;
@@ -36328,7 +36371,7 @@ async function runRecord(projectDir, ids) {
           result.failed.push({ id, reason: opened });
           continue;
         }
-        const { result: stepResult, frames } = await recordSteps(start, scenario.steps);
+        const { result: stepResult, frames } = await recordSteps(start, scenario.steps, start === page2 ? [] : [page2]);
         if (!stepResult.ok) {
           await start.screenshot({ path: paths.fail(id) }).catch(() => {
           });
@@ -37052,6 +37095,7 @@ async function flatRouteScreens(projectDir, routesDir, { prefix = "", ignored = 
     const route = toDocentPath(prefix ? `/${prefix.replace(/^\/|\/$/g, "")}${path === "/" ? "" : path}` : path);
     if (route === void 0 || screens.has(route)) continue;
     const source = await readFile10(join19(projectDir, m.file), "utf8");
+    if (!/\bexport\s+default\b/.test(source)) continue;
     const files = await screenFiles(projectDir, m.file, aliases);
     for (const file of ancestors(m)) if (!files.includes(file)) files.push(file);
     screens.set(route, { route, files, evidence: `${m.file}:${lineOf(source, /\bexport\s+default\b/)}` });
@@ -37067,7 +37111,9 @@ function flatRoutesCalls(source) {
     const ignored = stringList(/\bignoredRouteFiles\s*:\s*\[([^\]]*)\]/.exec(options)?.[1]);
     const before = source.slice(0, m.index);
     const prefix = /\bprefix\s*\(\s*['"]([^'"]*)['"]\s*,\s*(?:await\s+)?(?:\(\s*)?$/.exec(before)?.[1] ?? "";
-    calls.push({ dir: posix3.normalize(root.replace(/^\.\//, "").replace(/\/$/, "")), prefix, ignored });
+    const dir = posix3.normalize(root.replace(/^\.\//, "").replace(/\/$/, ""));
+    if (dir === ".." || dir.startsWith("../") || dir.startsWith("/") || /^[A-Za-z]:/.test(dir)) continue;
+    calls.push({ dir, prefix, ignored });
   }
   return calls;
 }
@@ -37364,7 +37410,7 @@ function configYaml(detectors, app) {
   return `# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694
 language: ko  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)
 ${app ? `# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)
-app: ${app}
+app: ${JSON.stringify(app)}
 ` : ""}# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)
 detectors:
 ${list}
@@ -37427,12 +37473,12 @@ async function runInit(projectDir, { app } = {}) {
   const configPath = join24(dir, "config.yaml");
   if (await exists2(configPath)) {
     const config = await loadConfig(projectDir);
-    return { created: false, detectors: config.detectors, ...config.app ? { app: config.app } : {} };
+    return { created: false, detectors: config.detectors, ...config.app ? { app: config.app } : {}, ...app !== void 0 ? { appIgnored: true } : {} };
   }
   if (app !== void 0) {
     let rel;
     try {
-      rel = normalizeRel(app);
+      rel = normalizeRel(app.replace(/\\/g, "/"));
     } catch {
       throw new Error(`--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: ${app}`);
     }
@@ -37931,6 +37977,7 @@ async function main() {
         return 0;
       }
       console.log(r.created ? ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4." : ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.");
+      if (r.appIgnored) console.log("--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694.");
       if (r.app) console.log(`\uC571 \uD3F4\uB354: ${r.app}`);
       console.log(`\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: ${r.detectors.length ? r.detectors.join(", ") : "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)"}`);
       if (r.desktop) console.log(`\uB370\uC2A4\uD06C\uD1B1 \uC571(${r.desktop})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)`);

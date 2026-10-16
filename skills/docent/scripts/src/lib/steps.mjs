@@ -97,9 +97,19 @@ async function runStep(page, step, env, timeoutMs) {
     }
     case 'click': {
       const el = await pick(await byRole(page, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
-      if (!step.popup) return el.click({ timeout: timeoutMs });
+      if (!step.popup) {
+        try {
+          return await el.click({ timeout: timeoutMs });
+        } catch (err) {
+          // 눌렀더니 이 창이 스스로 닫혔으면(새 창의 "선택" 후 window.close) 누른 것은 끝났다
+          if (page.isClosed()) return undefined;
+          throw err;
+        }
+      }
       // 새 창(window.open, target=_blank)으로 여는 버튼: 열린 창을 돌려주고 다음 단계는 그 창에서 한다
       const opened = page.waitForEvent('popup', { timeout: timeoutMs * 2 });
+      // 클릭이 실패하면 기다림은 버려지므로 나중에 처리되지 않은 거부로 프로세스가 죽지 않게 한다
+      opened.catch(() => {});
       await el.click({ timeout: timeoutMs });
       let popup;
       try {
@@ -128,8 +138,10 @@ async function runStep(page, step, env, timeoutMs) {
 }
 
 // onPage(page): 단계가 새 창으로 옮겨 가거나, 새 창이 닫혀 원래 창으로 돌아올 때 알린다(녹화·캡처할 창)
-export async function runSteps(page, steps, { env = process.env, timeoutMs = 5000, onStep, onPage } = {}) {
-  const opened = []; // 새 창을 연 창들(닫히면 여기로 돌아온다)
+// openers: page가 이미 새 창이면 그 창을 연 창들(준비 단계에서 연 새 창에서 이어 녹화할 때)
+export async function runSteps(page, steps, { env = process.env, timeoutMs = 5000, onStep, onPage, openers = [] } = {}) {
+  const opened = [...openers]; // 새 창을 연 창들(닫히면 여기로 돌아온다)
+  let retried = -1;
   let current = page;
   const back = async () => {
     // 새 창이 스스로 닫히면(선택 후 window.close 등) 연 창으로 돌아온다
@@ -150,11 +162,15 @@ export async function runSteps(page, steps, { env = process.env, timeoutMs = 500
         if (onPage) await onPage(current);
       }
     } catch (err) {
-      // 이 단계로 새 창이 닫혔으면(선택 후 window.close) 실패가 아니라 원래 창으로 돌아온 것
+      // 새 창이 닫혀 단계가 끊겼으면 원래 창으로 돌아온다
       if (current.isClosed() && opened.length) {
         await back();
-        if (onStep) await onStep(index);
-        continue;
+        // 이 단계는 닫히는 창에서 시작돼 끊긴 것이므로 원래 창에서 한 번 더 한다
+        if (retried !== index) {
+          retried = index;
+          index--;
+          continue;
+        }
       }
       // Playwright 오류 메시지에는 입력값이 들어갈 수 있으므로 우리 메시지만 쓴다
       const reason = err instanceof StepError ? err.message : `${steps[index].do} 단계 실행 실패`;

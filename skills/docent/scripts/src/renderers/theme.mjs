@@ -11,17 +11,20 @@ export const THEMES = {
   slate: { accent: '334155', accentDark: 'CBD5E1', accent2: '64748B', hero: ['0F172A', '334155', '475569'], glow: ['64748B', '94A3B8'], soft: 'F1F5F9', ink: '0F172A', onInk: 'E2E8F0', chipLine: 'CBD5E1' },
 };
 
-export const themeOf = (input) => THEMES[input?.options?.theme] ?? THEMES[DEFAULT_THEME];
+// 테마 이름 → 색. 없는 이름(constructor 같은 객체 속성 포함)이면 기본 테마
+export const themeByName = (name) => (typeof name === 'string' && Object.hasOwn(THEMES, name) ? THEMES[name] : THEMES[DEFAULT_THEME]);
+export const isTheme = (name) => typeof name === 'string' && Object.hasOwn(THEMES, name);
+export const themeOf = (input) => themeByName(input?.options?.theme);
 
 const rgb = (hex) => [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
 const rgba = (hex, a) => `rgba(${rgb(hex)}, ${a})`;
 
 // 테마 색 변수. 기본 스타일 뒤에 붙여 덮어쓴다
 export function themeCss(name) {
-  const t = THEMES[name] ?? THEMES[DEFAULT_THEME];
+  const t = themeByName(name);
   const hero = `radial-gradient(600px 320px at 100% 0%, ${rgba(t.glow[1], 0.55)}, transparent 62%), radial-gradient(520px 300px at 0% 100%, ${rgba(t.accent2, 0.4)}, transparent 60%), linear-gradient(135deg, #${t.hero[0]} 0%, #${t.hero[1]} 48%, #${t.hero[2]} 100%)`;
   return `
-/* 테마: ${name in THEMES ? name : DEFAULT_THEME} */
+/* 테마: ${isTheme(name) ? name : DEFAULT_THEME} */
 :root {
   --accent: #${t.accent}; --accent-soft: ${rgba(t.accent, 0.08)}; --accent-2: #${t.accent2};
   --glow-1: ${rgba(t.glow[0], 0.16)}; --glow-2: ${rgba(t.glow[1], 0.1)};
@@ -38,7 +41,7 @@ export function themeCss(name) {
 
 // Mermaid 다이어그램 색(다크 모드면 어두운 색)
 export function mermaidInit(name) {
-  const t = THEMES[name] ?? THEMES[DEFAULT_THEME];
+  const t = themeByName(name);
   return `(() => {
   const dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   return { startOnLoad: true, theme: 'base', themeVariables: dark

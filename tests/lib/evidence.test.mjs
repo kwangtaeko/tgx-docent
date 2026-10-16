@@ -134,3 +134,15 @@ test('{이름} 자리 표시: 실행 중 값이 채워지는 문구도 근거와
   // 자리 표시만 있는 문구는 아무것과도 맞지 않는다
   assert.equal(await ok('{버전}'), false);
 });
+
+test('자리 표시가 많아도 빨리 끝난다(정규식 되돌아가기 없음)', async () => {
+  const { matchesWithPlaceholders } = await import('../../skills/docent/scripts/src/lib/evidence.mjs');
+  const source = Array.from({ length: 11 }, (_, i) => `<div className="row-${i}">{items.map((item) => <span key={item.id}>{item.label}</span>)}</div>`).join(' ');
+  const started = Date.now();
+  assert.equal(matchesWithPlaceholders('{a}{b}{c}{d}zz', source), false);
+  assert.equal(matchesWithPlaceholders('{a} {b} {c} {d} done', source), false);
+  assert.ok(Date.now() - started < 500, `${Date.now() - started}ms`);
+  // 이어진 자리 표시는 간격을 합쳐 본다
+  assert.equal(matchesWithPlaceholders('row-{n}">{목록}</div>', source), true);
+  assert.equal(matchesWithPlaceholders('{a}{b}', source), false);
+});

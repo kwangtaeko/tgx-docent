@@ -145,6 +145,8 @@ export async function flatRouteScreens(projectDir, routesDir, { prefix = '', ign
     const route = toDocentPath(prefix ? `/${prefix.replace(/^\/|\/$/g, '')}${path === '/' ? '' : path}` : path);
     if (route === undefined || screens.has(route)) continue;
     const source = await readFile(join(projectDir, m.file), 'utf8');
+    // export default(화면 컴포넌트)가 없는 라우트는 loader·action만 있는 API·리소스 라우트라 화면이 아니다
+    if (!/\bexport\s+default\b/.test(source)) continue;
     const files = await screenFiles(projectDir, m.file, aliases);
     for (const file of ancestors(m)) if (!files.includes(file)) files.push(file);
     screens.set(route, { route, files, evidence: `${m.file}:${lineOf(source, /\bexport\s+default\b/)}` });
@@ -165,7 +167,10 @@ export function flatRoutesCalls(source) {
     // ...prefix('docs', await flatRoutes(...)) 처럼 바로 감싼 prefix
     const before = source.slice(0, m.index);
     const prefix = /\bprefix\s*\(\s*['"]([^'"]*)['"]\s*,\s*(?:await\s+)?(?:\(\s*)?$/.exec(before)?.[1] ?? '';
-    calls.push({ dir: posix.normalize(root.replace(/^\.\//, '').replace(/\/$/, '')), prefix, ignored });
+    const dir = posix.normalize(root.replace(/^\.\//, '').replace(/\/$/, ''));
+    // 프로젝트 밖(.. 또는 절대 경로)을 가리키면 읽지 않는다
+    if (dir === '..' || dir.startsWith('../') || dir.startsWith('/') || /^[A-Za-z]:/.test(dir)) continue;
+    calls.push({ dir, prefix, ignored });
   }
   return calls;
 }

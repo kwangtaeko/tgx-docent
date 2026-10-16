@@ -26,7 +26,7 @@ async function loadScreen(projectDir, id) {
 }
 
 // 단계를 실행하는 동안 1000/fps 간격으로 화면을 찍는다. 새 창이 열리면 그 창을 찍는다
-async function recordSteps(page, steps) {
+async function recordSteps(page, steps, openers = []) {
   const frames = [];
   let active = page;
   let recording = true;
@@ -48,6 +48,7 @@ async function recordSteps(page, steps) {
     onPage: (p) => {
       active = p;
     },
+    openers,
   });
   if (result.ok) await sleep(1000);
   recording = false;
@@ -111,7 +112,7 @@ export async function runRecord(projectDir, ids) {
           result.failed.push({ id, reason: opened });
           continue;
         }
-        const { result: stepResult, frames } = await recordSteps(start, scenario.steps);
+        const { result: stepResult, frames } = await recordSteps(start, scenario.steps, start === page ? [] : [page]);
         if (!stepResult.ok) {
           await start.screenshot({ path: paths.fail(id) }).catch(() => {});
           await recordFailure(projectDir, { id, kind: 'record', step: stepResult.index, reason: stepResult.reason });

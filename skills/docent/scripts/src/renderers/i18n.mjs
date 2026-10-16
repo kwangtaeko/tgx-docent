@@ -142,6 +142,6 @@ const en = {
 const STRINGS = { ko, en };
 
 export const languageOf = (input) => input?.options?.language ?? 'ko';
-export const stringsFor = (language) => STRINGS[language] ?? ko;
+export const stringsFor = (language) => (typeof language === 'string' && Object.hasOwn(STRINGS, language) ? STRINGS[language] : ko);
 // 렌더러용: 산출물 입력에서 문구 표를 고른다
 export const textOf = (input) => stringsFor(languageOf(input));

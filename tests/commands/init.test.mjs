@@ -99,3 +99,11 @@ test('루트가 Electron 앱이면 데스크톱이라고 알린다', async () =>
   const dir = await project({ 'package.json': '{"dependencies":{"react":"19"},"devDependencies":{"electron":"44"}}' });
   assert.deepEqual(await runInit(dir), { created: true, detectors: [], desktop: 'electron' });
 });
+
+test('--app은 역슬래시도 받고, YAML에 따옴표로 쓴다. 설정이 있으면 무시했다고 알린다', async () => {
+  const dir = await project({ 'package.json': '{}', 'apps/yes/package.json': '{"dependencies":{"next":"15"}}' });
+  assert.equal((await runInit(dir, { app: 'apps\\yes' })).app, 'apps/yes');
+  assert.match(await readFile(join(dir, '.docent', 'config.yaml'), 'utf8'), /^app: "apps\/yes"$/m);
+  assert.equal((await loadConfig(dir)).app, 'apps/yes');
+  assert.equal((await runInit(dir, { app: 'apps/other' })).appIgnored, true);
+});

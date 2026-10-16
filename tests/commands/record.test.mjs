@@ -103,3 +103,18 @@ test('새 창을 여는 단계도 이어서 녹화하고, 새 창이 닫히면 �
   assert.deepEqual(r.failed, []);
   assert.deepEqual(r.recorded, ['home']);
 });
+
+test('준비 단계에서 연 새 창이 녹화 중에 닫히면 원래 창으로 돌아와 잇는다', async () => {
+  const dir = await project({
+    ...SAVE,
+    setup: [{ do: 'click', role: 'button', label: '새 창 찾기', popup: true, evidence: 'x.ts:1' }],
+    steps: [
+      { do: 'fill', label: '거래처명', value: '한빛상사', evidence: 'x.ts:1' },
+      { do: 'click', role: 'button', label: '선택', evidence: 'x.ts:1' },
+      { do: 'expectText', text: '한빛상사', evidence: 'x.ts:1' },
+    ],
+  });
+  const r = await runRecord(dir, ['home']);
+  assert.deepEqual(r.failed, []);
+  assert.deepEqual(r.recorded, ['home']);
+});
