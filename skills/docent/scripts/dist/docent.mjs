@@ -27484,6 +27484,7 @@ var ko = {
   seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
   childOf: (t) => `${t}\uC758 \uD558\uC704 \uD654\uBA74`,
   viewNote: "\uBA54\uB274\uB85C \uC804\uD658",
+  messageHead: ["\uBB38\uAD6C", "\uB098\uC624\uB294 \uB54C"],
   totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
   listHead: ["ID", "\uD654\uBA74", "\uACBD\uB85C", "\uBA54\uB274", "\uC5ED\uD560", "\uBAA9\uC801"],
   noShot: "\uCEA1\uCC98 \uC5C6\uC74C",
@@ -27552,6 +27553,7 @@ var en = {
   seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
   childOf: (t) => `Inside ${t}`,
   viewNote: "switched from the menu",
+  messageHead: ["Message", "When"],
   totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
   listHead: ["ID", "Screen", "Path", "Menu", "Roles", "Purpose"],
   noShot: "No screenshot",
@@ -28474,6 +28476,11 @@ var screen_schema_default = {
           },
           evidence: {
             $ref: "#/$defs/evidence"
+          },
+          group: {
+            type: "string",
+            minLength: 1,
+            description: "\uAC19\uC740 \uC885\uB958\uC758 \uBB38\uAD6C \uBB36\uC74C \uC774\uB984(\uC0C1\uD0DC \uCF54\uB4DC\xB7\uAC80\uC0AC \uACB0\uACFC \uBB38\uAD6C \uD45C \uB4F1). \uAC19\uC740 group\uC740 \uD45C \uD558\uB098\uB85C \uBCF4\uC778\uB2E4"
           }
         }
       }
@@ -29286,7 +29293,19 @@ ${s.actions.map((a) => {
     return `<li><div class="field-head">${sectionTag(a)}<span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
   }).join("\n")}
 </ul>` : empty;
-  const messages = s.messages.length ? s.messages.map((m) => `<aside class="callout note"><p class="callout-title">${escapeHtml(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`).join("\n") : empty;
+  const groups = /* @__PURE__ */ new Map();
+  for (const m of s.messages) if (m.group) groups.set(m.group, [...groups.get(m.group) ?? [], m]);
+  const messages = s.messages.length ? [
+    ...s.messages.filter((m) => !m.group).map((m) => `<aside class="callout note"><p class="callout-title">${escapeHtml(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`),
+    ...[...groups].map(
+      ([name5, list]) => `<div class="message-group">
+<p class="message-group-title">${escapeHtml(name5)} <span>${list.length}</span></p>
+<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>
+${list.map((m) => `<tr><td>${escapeHtml(m.text)}${ev(m.evidence)}</td><td>${escapeHtml(m.when)}</td></tr>`).join("\n")}
+</tbody></table></div>
+</div>`
+    )
+  ].join("\n") : empty;
   const children = inventory.screens.filter((x) => x.parentId === s.id);
   const childList = children.length ? `<h2>${T.children}</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join("")}</ul>` : "";
   const unknowns = s.unknowns.length ? `<h2>${T.flag}</h2>
@@ -29513,6 +29532,10 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-name { font-weight: 650; }
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
 .field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
+.message-group { margin: 1rem 0; }
+.message-group-title { margin: 0 0 0.4rem; font-weight: 600; }
+.message-group-title span { margin-left: 0.3rem; font-size: 0.78rem; font-weight: 500; color: var(--muted); padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); }
+table.messages td:first-child { width: 55%; }
 .options { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0; margin: 0.45rem 0 0; }
 .options li { font-size: 0.82rem; padding: 0.05rem 0.55rem; border-radius: 999px; color: var(--muted); border: 1px dashed var(--line-strong); }
 .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-size: 0.74rem; font-weight: 500; line-height: 1; white-space: nowrap; }

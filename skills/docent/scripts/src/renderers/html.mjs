@@ -301,10 +301,23 @@ ${s.actions
   .join('\n')}
 </ul>`
     : empty;
+  // 묶음(group)이 없는 문구는 알림 상자로, 같은 묶음의 문구는 표 하나로(상태 코드마다 문구가 있는 화면이 길어지지 않게)
+  const groups = new Map();
+  for (const m of s.messages) if (m.group) groups.set(m.group, [...(groups.get(m.group) ?? []), m]);
   const messages = s.messages.length
-    ? s.messages
-        .map((m) => `<aside class="callout note"><p class="callout-title">${h(m.text)}${ev(m.evidence)}</p><p>${h(m.when)}</p></aside>`)
-        .join('\n')
+    ? [
+        ...s.messages
+          .filter((m) => !m.group)
+          .map((m) => `<aside class="callout note"><p class="callout-title">${h(m.text)}${ev(m.evidence)}</p><p>${h(m.when)}</p></aside>`),
+        ...[...groups].map(
+          ([name, list]) => `<div class="message-group">
+<p class="message-group-title">${h(name)} <span>${list.length}</span></p>
+<div class="table-wrap"><table class="messages"><thead><tr>${T.messageHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead><tbody>
+${list.map((m) => `<tr><td>${h(m.text)}${ev(m.evidence)}</td><td>${h(m.when)}</td></tr>`).join('\n')}
+</tbody></table></div>
+</div>`,
+        ),
+      ].join('\n')
     : empty;
   const children = inventory.screens.filter((x) => x.parentId === s.id);
   const childList = children.length ? `<h2>${T.children}</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join('')}</ul>` : '';
@@ -548,6 +561,10 @@ dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1
 .field-name { font-weight: 650; }
 .field-desc { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.94rem; }
 .field-section { font-size: 0.78rem; color: var(--muted); padding: 0 0.45rem; border-radius: 6px; background: var(--bg-soft); border: 1px solid var(--line); }
+.message-group { margin: 1rem 0; }
+.message-group-title { margin: 0 0 0.4rem; font-weight: 600; }
+.message-group-title span { margin-left: 0.3rem; font-size: 0.78rem; font-weight: 500; color: var(--muted); padding: 0 0.45rem; border-radius: 999px; border: 1px solid var(--line); }
+table.messages td:first-child { width: 55%; }
 .options { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0; margin: 0.45rem 0 0; }
 .options li { font-size: 0.82rem; padding: 0.05rem 0.55rem; border-radius: 999px; color: var(--muted); border: 1px dashed var(--line-strong); }
 .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-size: 0.74rem; font-weight: 500; line-height: 1; white-space: nowrap; }

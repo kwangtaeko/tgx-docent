@@ -195,3 +195,18 @@ test('입력 항목의 선택지와 같은 라벨을 구분하는 구획 표시'
   assert.match(html, /<span class="field-section">GitHub<\/span>/);
   assert.match(html, /<span class="field-section">GitLab<\/span>/);
 });
+
+test('같은 group의 메시지는 표 하나로, group 없는 메시지는 알림 상자로', async () => {
+  const input = await loadGolden();
+  const s = input.screens.get('orders-new');
+  const ev = s.messages[0].evidence;
+  s.messages = [
+    { text: '저장되었습니다.', when: '저장에 성공하면', evidence: ev },
+    { text: '검증 완료', when: 'CI가 통과하면', group: 'CI 검증 상태', evidence: ev },
+    { text: '검증 실패', when: 'CI가 실패하면', group: 'CI 검증 상태', evidence: ev },
+  ];
+  const html = renderSite(input).get('screens/orders-new.html');
+  assert.equal((html.match(/class="callout note"/g) ?? []).length, 1);
+  assert.match(html, /<p class="message-group-title">CI 검증 상태 <span>2<\/span><\/p>/);
+  assert.match(html, /<tr><td>검증 완료[^<]*(<!--[^>]*-->)?<\/td><td>CI가 통과하면<\/td><\/tr>/);
+});

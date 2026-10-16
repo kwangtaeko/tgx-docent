@@ -250,6 +250,11 @@
           },
           "evidence": {
             "$ref": "#/$defs/evidence"
+          },
+          "group": {
+            "type": "string",
+            "minLength": 1,
+            "description": "같은 종류의 문구 묶음 이름(상태 코드·검사 결과 문구 표 등). 같은 group은 표 하나로 보인다"
           }
         }
       }
