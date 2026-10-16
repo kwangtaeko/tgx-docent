@@ -22,9 +22,9 @@ function evidenceChecks(s) {
   for (const x of [...s.roles, ...s.sections]) checks.push([x.evidence]);
   for (const f of s.fields) {
     checks.push([f.evidence, f.label]);
-    // 선택지도 화면 문구 그대로, 근거(따로 적었으면 optionsEvidence) 근처에 있어야 한다
+    // 선택지도 화면 문구 그대로, 근거 근처에 있어야 한다(optionsEvidence가 있으면 두 근거 중 한 곳)
     if (f.optionsEvidence) checks.push([f.optionsEvidence]);
-    for (const option of f.options ?? []) checks.push([f.optionsEvidence ?? f.evidence, option]);
+    for (const option of f.options ?? []) checks.push([f.optionsEvidence ? [f.evidence, f.optionsEvidence] : f.evidence, option]);
   }
   for (const a of s.actions) {
     // 글자가 없는 동작(행 클릭 등)은 처리기 위치만 확인한다
@@ -57,7 +57,12 @@ async function checkMenuPath(projectDir, s, problems) {
 
 async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
-    const r = await checkEvidence(projectDir, ev, text === undefined ? {} : { expectText: text });
+    // 근거가 여럿이면 한 곳에서라도 글자가 보이면 된다(문제는 마지막 근거의 것으로 알린다)
+    let r;
+    for (const one of [ev].flat()) {
+      r = await checkEvidence(projectDir, one, text === undefined ? {} : { expectText: text });
+      if (r.ok) break;
+    }
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
   if (s.menuPath) await checkMenuPath(projectDir, s, problems);

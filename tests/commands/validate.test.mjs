@@ -199,6 +199,13 @@ test('optionsEvidence가 있으면 선택지를 그 근처에서 찾는다', asy
   s.fields[0].optionsEvidence = 'lib/order-schema.ts:5';
   await writeJsonFile(path, s);
   assert.deepEqual((await runValidate(dir)).problems, []);
+  // 선택지가 두 곳에 나뉘어 있으면 각각 한 곳에서 찾으면 된다(라벨 옆의 첫 선택지 + 상수)
+  s.fields[0].options = ['거래처', '납기일을 입력하세요.'];
+  await writeJsonFile(path, s);
+  assert.deepEqual((await runValidate(dir)).problems, []);
+  s.fields[0].options = ['거래처', '없는 선택지'];
+  await writeJsonFile(path, s);
+  assert.ok((await runValidate(dir)).problems.some((p) => p.includes('없는 선택지')));
 });
 
 test('unlabeled 동작은 라벨 글자를 찾지 않고, section은 sections의 제목이어야 한다', async () => {

@@ -35767,7 +35767,7 @@ function evidenceChecks(s) {
   for (const f of s.fields) {
     checks.push([f.evidence, f.label]);
     if (f.optionsEvidence) checks.push([f.optionsEvidence]);
-    for (const option of f.options ?? []) checks.push([f.optionsEvidence ?? f.evidence, option]);
+    for (const option of f.options ?? []) checks.push([f.optionsEvidence ? [f.evidence, f.optionsEvidence] : f.evidence, option]);
   }
   for (const a of s.actions) {
     checks.push(a.unlabeled ? [a.evidence] : [a.evidence, a.label]);
@@ -35794,7 +35794,11 @@ async function checkMenuPath(projectDir, s, problems) {
 }
 async function checkScreen(projectDir, s, ids, problems) {
   for (const [ev, text] of evidenceChecks(s)) {
-    const r = await checkEvidence(projectDir, ev, text === void 0 ? {} : { expectText: text });
+    let r;
+    for (const one of [ev].flat()) {
+      r = await checkEvidence(projectDir, one, text === void 0 ? {} : { expectText: text });
+      if (r.ok) break;
+    }
     if (!r.ok) problems.push(`${s.id}: ${r.reason}`);
   }
   if (s.menuPath) await checkMenuPath(projectDir, s, problems);
