@@ -28142,6 +28142,10 @@ var scenario_schema_default = {
             nth: {
               type: "integer",
               minimum: 0
+            },
+            popup: {
+              type: "boolean",
+              description: "\uB204\uB974\uBA74 \uC0C8 \uCC3D(window.open, target=_blank)\uC774 \uC5F4\uB9B0\uB2E4. \uB2E4\uC74C \uB2E8\uACC4\uB294 \uC0C8 \uCC3D\uC5D0\uC11C \uD558\uACE0, \uC0C8 \uCC3D\uC774 \uB2EB\uD788\uBA74 \uC6D0\uB798 \uCC3D\uC73C\uB85C \uB3CC\uC544\uC628\uB2E4"
             }
           }
         },
@@ -35733,7 +35737,19 @@ async function runStep(page2, step, env, timeoutMs) {
       return el.check({ timeout: timeoutMs });
     }
     case "click": {
-      return (await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
+      const el = await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
+      if (!step.popup) return el.click({ timeout: timeoutMs });
+      const opened = page2.waitForEvent("popup", { timeout: timeoutMs * 2 });
+      await el.click({ timeout: timeoutMs });
+      let popup;
+      try {
+        popup = await opened;
+      } catch {
+        throw new StepError(`${step.role} "${step.label}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4`);
+      }
+      await popup.waitForLoadState("load", { timeout: timeoutMs * 3 }).catch(() => {
+      });
+      return popup;
     }
     case "expectText":
       try {
@@ -35743,23 +35759,45 @@ async function runStep(page2, step, env, timeoutMs) {
       }
       return void 0;
     case "wait":
-      return page2.waitForTimeout(step.ms);
+      return new Promise((resolve4) => setTimeout(resolve4, step.ms));
     case "goto":
       return page2.goto(new URL(step.path, page2.url()).href, { timeout: timeoutMs * 3 });
     default:
       throw new StepError(`\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: ${step.do}`);
   }
 }
-async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep } = {}) {
+async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage } = {}) {
+  const opened = [];
+  let current = page2;
+  const back = async () => {
+    let moved = false;
+    while (current.isClosed() && opened.length) {
+      current = opened.pop();
+      moved = true;
+    }
+    if (moved && onPage) await onPage(current);
+  };
   for (let index = 0; index < steps.length; index++) {
     try {
-      await runStep(page2, steps[index], env, timeoutMs);
+      await back();
+      const result = await runStep(current, steps[index], env, timeoutMs);
+      if (steps[index].popup && result) {
+        opened.push(current);
+        current = result;
+        if (onPage) await onPage(current);
+      }
     } catch (err) {
+      if (current.isClosed() && opened.length) {
+        await back();
+        if (onStep) await onStep(index);
+        continue;
+      }
       const reason = err instanceof StepError ? err.message : `${steps[index].do} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328`;
       return { ok: false, index, reason };
     }
     if (onStep) await onStep(index);
   }
+  await back();
   return { ok: true };
 }
 async function maskContext(context, selectors) {
@@ -35815,7 +35853,7 @@ async function loadScenario(projectDir, id) {
     return void 0;
   }
 }
-async function openScreen(page2, { baseUrl, path, setup, loginPath }) {
+async function openScreen(page2, { baseUrl, path, setup, loginPath, onPage }) {
   let response;
   try {
     response = await page2.goto(new URL(path, baseUrl).href, { waitUntil: "load", timeout: 3e4 });
@@ -35830,7 +35868,7 @@ async function openScreen(page2, { baseUrl, path, setup, loginPath }) {
   await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
   });
   if (setup?.length) {
-    const r = await runSteps(page2, setup);
+    const r = await runSteps(page2, setup, { onPage });
     if (!r.ok) return `\uC900\uBE44 \uB2E8\uACC4 ${r.index + 1}\uBC88\uC9F8 \uC2E4\uD328: ${r.reason}`;
   }
   return void 0;
@@ -35862,20 +35900,23 @@ async function runCapture(projectDir, ids) {
         continue;
       }
       const page2 = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
+      let shown = page2;
       try {
-        const failure = await openScreen(page2, { baseUrl: run2.baseUrl, path, setup: scenario?.setup, loginPath });
+        const failure = await openScreen(page2, { baseUrl: run2.baseUrl, path, setup: scenario?.setup, loginPath, onPage: (p) => shown = p });
         if (failure) {
-          await page2.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {
+          await shown.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {
           });
           await recordFailure(projectDir, { id: screen.id, kind: "capture", reason: failure });
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
-        await prepareForFullPage(page2);
-        await page2.screenshot({ path: paths.img(screen.id), fullPage: true });
+        await prepareForFullPage(shown);
+        await shown.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, "capture");
         result.captured.push(screen.id);
       } finally {
+        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
+        });
         await page2.close();
       }
     }
@@ -36014,8 +36055,16 @@ function sharedPalette(decoded) {
 }
 function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
   if (!frames.length) throw new Error("GIF\uB85C \uB9CC\uB4E4 \uD504\uB808\uC784\uC774 \uC5C6\uC2B5\uB2C8\uB2E4");
-  const decoded = frames.map((buf) => import_pngjs2.PNG.sync.read(buf));
-  const { width, height } = decoded[0];
+  const first = import_pngjs2.PNG.sync.read(frames[0]);
+  const { width, height } = first;
+  const decoded = frames.map((buf, i) => {
+    const png = i ? import_pngjs2.PNG.sync.read(buf) : first;
+    if (png.width === width && png.height === height) return png;
+    const out = new import_pngjs2.PNG({ width, height });
+    out.data.fill(255);
+    import_pngjs2.PNG.bitblt(png, out, 0, 0, Math.min(width, png.width), Math.min(height, png.height), 0, 0);
+    return out;
+  });
   const palette = sharedPalette(decoded);
   const gif = GIFEncoder();
   decoded.forEach((png, i) => {
@@ -36074,13 +36123,14 @@ async function loadScreen(projectDir, id) {
 }
 async function recordSteps(page2, steps) {
   const frames = [];
+  let active = page2;
   let recording = true;
   const interval = 1e3 / FPS;
   const loop = (async () => {
     while (recording) {
       const started = Date.now();
       try {
-        frames.push(await page2.screenshot({ type: "png" }));
+        frames.push(await active.screenshot({ type: "png" }));
       } catch {
       }
       const wait = interval - (Date.now() - started);
@@ -36088,7 +36138,10 @@ async function recordSteps(page2, steps) {
     }
   })();
   const result = await runSteps(page2, steps, {
-    onStep: () => sleep3(300)
+    onStep: () => sleep3(300),
+    onPage: (p) => {
+      active = p;
+    }
   });
   if (result.ok) await sleep3(1e3);
   recording = false;
@@ -36138,18 +36191,19 @@ async function runRecord(projectDir, ids) {
         continue;
       }
       const page2 = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
+      let start = page2;
       try {
-        const opened = await openScreen(page2, { baseUrl: run2.baseUrl, path: scenario.path, setup: scenario.setup, loginPath });
+        const opened = await openScreen(page2, { baseUrl: run2.baseUrl, path: scenario.path, setup: scenario.setup, loginPath, onPage: (p) => start = p });
         if (opened) {
-          await page2.screenshot({ path: paths.fail(id) }).catch(() => {
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {
           });
           await recordFailure(projectDir, { id, kind: "record", reason: opened });
           result.failed.push({ id, reason: opened });
           continue;
         }
-        const { result: stepResult, frames } = await recordSteps(page2, scenario.steps);
+        const { result: stepResult, frames } = await recordSteps(start, scenario.steps);
         if (!stepResult.ok) {
-          await page2.screenshot({ path: paths.fail(id) }).catch(() => {
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {
           });
           await recordFailure(projectDir, { id, kind: "record", step: stepResult.index, reason: stepResult.reason });
           result.failed.push({ id, reason: `${stepResult.index + 1}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ${stepResult.reason}` });
@@ -36167,6 +36221,8 @@ async function runRecord(projectDir, ids) {
         await clearFailure(projectDir, id, "record");
         result.recorded.push(id);
       } finally {
+        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
+        });
         await page2.close();
       }
     }

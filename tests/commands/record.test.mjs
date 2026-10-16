@@ -86,3 +86,20 @@ test('환경변수 값을 입력하는 시나리오는 GIF로 만들지 않는�
     delete process.env.DOCENT_M_USER;
   }
 });
+
+test('새 창을 여는 단계도 이어서 녹화하고, 새 창이 닫히면 원래 창으로 돌아온다', async () => {
+  const popup = {
+    ...SAVE,
+    steps: [
+      { do: 'click', role: 'button', label: '새 창 찾기', popup: true, evidence: 'x.ts:1' },
+      { do: 'fill', label: '거래처명', value: '한빛상사', evidence: 'x.ts:1' },
+      { do: 'click', role: 'button', label: '선택', evidence: 'x.ts:1' },
+      { do: 'wait', ms: 600, evidence: 'x.ts:1' },
+      { do: 'expectText', text: '한빛상사', evidence: 'x.ts:1' },
+    ],
+  };
+  const dir = await project(popup);
+  const r = await runRecord(dir, ['home']);
+  assert.deepEqual(r.failed, []);
+  assert.deepEqual(r.recorded, ['home']);
+});

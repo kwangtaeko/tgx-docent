@@ -11,13 +11,19 @@ const HOME = page('홈', `
   <div id="dlg" role="dialog" hidden><h2>찾기 창</h2><label>검색어 <input name="q"></label></div>
   <form onsubmit="event.preventDefault(); document.getElementById('msg').textContent='저장되었습니다.'">
     <label>이름 <input name="name"></label><button type="submit">저장</button>
-  </form><p id="msg"></p>`);
+  </form><p id="msg"></p>
+  <button onclick="window.open('/picker', 'picker')">새 창 찾기</button><p>고른 값: <b id="picked"></b></p>`);
+
+// 새 창으로 뜨는 찾기 화면: 고르면 부모 창에 값을 넣고 스스로 닫힌다
+const PICKER = page('거래처 찾기', `<label>거래처명 <input name="q"></label>
+  <button onclick="window.opener.document.getElementById('picked').textContent = document.querySelector('input').value; setTimeout(() => window.close(), 300)">선택</button>`);
 
 export async function startMediaSite() {
   return startTestSite({
     pages: {
       '/': HOME,
       '/items/1': page('아이템 1'),
+      '/picker': PICKER,
       '/secret': page('비밀'),
       '/bounce': (req, res) => res.writeHead(302, { Location: '/' }).end(),
     },

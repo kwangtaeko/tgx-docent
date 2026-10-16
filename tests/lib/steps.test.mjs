@@ -186,3 +186,47 @@ test('정확한 이름의 요소가 늦게 나타나도 비슷한 이름의 다�
     await s.close();
   }
 });
+
+test('popup: 새 창에서 단계를 잇고, 새 창이 닫히면 원래 창으로 돌아온다', async () => {
+  const pop = await startTestSite({
+    pages: {
+      '/main': html('주문', `<button onclick="window.open('/find', 'find', 'width=500,height=400')">거래처 찾기</button>
+        <p>선택: <b id="picked"></b></p>`),
+      '/find': html('거래처 찾기', `<label>거래처명 <input name="q"></label>
+        <button onclick="window.opener.document.getElementById('picked').textContent = document.querySelector('input').value; window.close()">선택</button>`),
+    },
+  });
+  try {
+    const p = await (await browser()).newPage();
+    await p.goto(`${pop.url}/main`);
+    const seen = [];
+    const r = await runSteps(
+      p,
+      [
+        { do: 'click', role: 'button', label: '거래처 찾기', popup: true, evidence: ev },
+        { do: 'fill', label: '거래처명', value: '한빛상사', evidence: ev },
+        { do: 'click', role: 'button', label: '선택', evidence: ev },
+        { do: 'expectText', text: '한빛상사', evidence: ev },
+      ],
+      { timeoutMs: 3000, onPage: (page) => seen.push(new URL(page.url()).pathname) },
+    );
+    assert.deepEqual(r, { ok: true });
+    assert.deepEqual(seen, ['/find', '/main']);
+    assert.equal(await p.locator('#picked').textContent(), '한빛상사');
+  } finally {
+    await pop.close();
+  }
+});
+
+test('popup인데 새 창이 열리지 않으면 그 단계에서 실패', async () => {
+  const p = await open();
+  const r = await runSteps(p, [{ do: 'click', role: 'button', label: '저장', popup: true, evidence: ev }], { timeoutMs: 500 });
+  assert.equal(r.ok, false);
+  assert.match(r.reason, /새 창이 열리지 않았습니다/);
+});
+
+test('popup은 시나리오 스키마에서 click에만 쓴다', () => {
+  const base = { screenId: 'a', path: '/a', setup: [], sourceHash: 'sha256:' + 'a'.repeat(64) };
+  assert.equal(validateScenario({ ...base, steps: [{ do: 'click', role: 'button', label: 'a', popup: true, evidence: ev }] }).valid, true);
+  assert.equal(validateScenario({ ...base, steps: [{ do: 'fill', label: 'a', value: 'b', popup: true, evidence: ev }] }).valid, false);
+});

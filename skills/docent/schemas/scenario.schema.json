@@ -163,6 +163,10 @@
             "nth": {
               "type": "integer",
               "minimum": 0
+            },
+            "popup": {
+              "type": "boolean",
+              "description": "누르면 새 창(window.open, target=_blank)이 열린다. 다음 단계는 새 창에서 하고, 새 창이 닫히면 원래 창으로 돌아온다"
             }
           }
         },

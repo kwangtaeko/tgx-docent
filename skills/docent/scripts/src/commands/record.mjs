@@ -25,16 +25,17 @@ async function loadScreen(projectDir, id) {
   }
 }
 
-// 단계를 실행하는 동안 1000/fps 간격으로 화면을 찍는다
+// 단계를 실행하는 동안 1000/fps 간격으로 화면을 찍는다. 새 창이 열리면 그 창을 찍는다
 async function recordSteps(page, steps) {
   const frames = [];
+  let active = page;
   let recording = true;
   const interval = 1000 / FPS;
   const loop = (async () => {
     while (recording) {
       const started = Date.now();
       try {
-        frames.push(await page.screenshot({ type: 'png' }));
+        frames.push(await active.screenshot({ type: 'png' }));
       } catch {
         // 페이지 이동 중에는 한 프레임 건너뛴다
       }
@@ -44,6 +45,9 @@ async function recordSteps(page, steps) {
   })();
   const result = await runSteps(page, steps, {
     onStep: () => sleep(300),
+    onPage: (p) => {
+      active = p;
+    },
   });
   if (result.ok) await sleep(1000);
   recording = false;
@@ -97,17 +101,19 @@ export async function runRecord(projectDir, ids) {
       }
       // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
       const page = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
+      // 준비 단계에서 새 창이 열리면(새 창으로 뜨는 하위 화면) 그 창에서 녹화한다
+      let start = page;
       try {
-        const opened = await openScreen(page, { baseUrl: run.baseUrl, path: scenario.path, setup: scenario.setup, loginPath });
+        const opened = await openScreen(page, { baseUrl: run.baseUrl, path: scenario.path, setup: scenario.setup, loginPath, onPage: (p) => (start = p) });
         if (opened) {
-          await page.screenshot({ path: paths.fail(id) }).catch(() => {});
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {});
           await recordFailure(projectDir, { id, kind: 'record', reason: opened });
           result.failed.push({ id, reason: opened });
           continue;
         }
-        const { result: stepResult, frames } = await recordSteps(page, scenario.steps);
+        const { result: stepResult, frames } = await recordSteps(start, scenario.steps);
         if (!stepResult.ok) {
-          await page.screenshot({ path: paths.fail(id) }).catch(() => {});
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {});
           await recordFailure(projectDir, { id, kind: 'record', step: stepResult.index, reason: stepResult.reason });
           result.failed.push({ id, reason: `${stepResult.index + 1}번째 단계 — ${stepResult.reason}` });
           continue;
@@ -124,6 +130,8 @@ export async function runRecord(projectDir, ids) {
         await clearFailure(projectDir, id, 'record');
         result.recorded.push(id);
       } finally {
+        // 이 화면에서 열린 새 창도 닫는다(화면마다 창을 하나만 열어 두므로 나머지는 모두 이 화면의 것)
+        for (const p of page.context().pages()) if (p !== page) await p.close().catch(() => {});
         await page.close();
       }
     }

@@ -96,7 +96,19 @@ async function runStep(page, step, env, timeoutMs) {
       return el.check({ timeout: timeoutMs });
     }
     case 'click': {
-      return (await pick(await byRole(page, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs)).click({ timeout: timeoutMs });
+      const el = await pick(await byRole(page, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
+      if (!step.popup) return el.click({ timeout: timeoutMs });
+      // 새 창(window.open, target=_blank)으로 여는 버튼: 열린 창을 돌려주고 다음 단계는 그 창에서 한다
+      const opened = page.waitForEvent('popup', { timeout: timeoutMs * 2 });
+      await el.click({ timeout: timeoutMs });
+      let popup;
+      try {
+        popup = await opened;
+      } catch {
+        throw new StepError(`${step.role} "${step.label}"을(를) 눌렀지만 새 창이 열리지 않았습니다`);
+      }
+      await popup.waitForLoadState('load', { timeout: timeoutMs * 3 }).catch(() => {});
+      return popup;
     }
     case 'expectText':
       try {
@@ -106,7 +118,8 @@ async function runStep(page, step, env, timeoutMs) {
       }
       return undefined;
     case 'wait':
-      return page.waitForTimeout(step.ms);
+      // 창과 무관하게 기다린다(기다리는 동안 새 창이 스스로 닫힐 수 있다)
+      return new Promise((resolve) => setTimeout(resolve, step.ms));
     case 'goto':
       return page.goto(new URL(step.path, page.url()).href, { timeout: timeoutMs * 3 });
     default:
@@ -114,17 +127,42 @@ async function runStep(page, step, env, timeoutMs) {
   }
 }
 
-export async function runSteps(page, steps, { env = process.env, timeoutMs = 5000, onStep } = {}) {
+// onPage(page): 단계가 새 창으로 옮겨 가거나, 새 창이 닫혀 원래 창으로 돌아올 때 알린다(녹화·캡처할 창)
+export async function runSteps(page, steps, { env = process.env, timeoutMs = 5000, onStep, onPage } = {}) {
+  const opened = []; // 새 창을 연 창들(닫히면 여기로 돌아온다)
+  let current = page;
+  const back = async () => {
+    // 새 창이 스스로 닫히면(선택 후 window.close 등) 연 창으로 돌아온다
+    let moved = false;
+    while (current.isClosed() && opened.length) {
+      current = opened.pop();
+      moved = true;
+    }
+    if (moved && onPage) await onPage(current);
+  };
   for (let index = 0; index < steps.length; index++) {
     try {
-      await runStep(page, steps[index], env, timeoutMs);
+      await back();
+      const result = await runStep(current, steps[index], env, timeoutMs);
+      if (steps[index].popup && result) {
+        opened.push(current);
+        current = result;
+        if (onPage) await onPage(current);
+      }
     } catch (err) {
+      // 이 단계로 새 창이 닫혔으면(선택 후 window.close) 실패가 아니라 원래 창으로 돌아온 것
+      if (current.isClosed() && opened.length) {
+        await back();
+        if (onStep) await onStep(index);
+        continue;
+      }
       // Playwright 오류 메시지에는 입력값이 들어갈 수 있으므로 우리 메시지만 쓴다
       const reason = err instanceof StepError ? err.message : `${steps[index].do} 단계 실행 실패`;
       return { ok: false, index, reason };
     }
     if (onStep) await onStep(index);
   }
+  await back();
   return { ok: true };
 }
 

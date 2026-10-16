@@ -54,7 +54,8 @@ export async function loadScenario(projectDir, id) {
 }
 
 // 페이지를 시나리오 시작 상태로 연다. 실패 이유 문자열 또는 undefined
-export async function openScreen(page, { baseUrl, path, setup, loginPath }) {
+// 준비 단계가 새 창을 열면 onPage로 그 창을 알린다(새 창으로 뜨는 하위 화면은 그 창을 찍는다)
+export async function openScreen(page, { baseUrl, path, setup, loginPath, onPage }) {
   let response;
   try {
     response = await page.goto(new URL(path, baseUrl).href, { waitUntil: 'load', timeout: 30000 });
@@ -68,7 +69,7 @@ export async function openScreen(page, { baseUrl, path, setup, loginPath }) {
   if (trim(landed) !== trim(path.split('?')[0])) return `다른 화면(${landed})으로 이동했습니다 — 권한이 없거나 조건이 맞지 않습니다`;
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   if (setup?.length) {
-    const r = await runSteps(page, setup);
+    const r = await runSteps(page, setup, { onPage });
     if (!r.ok) return `준비 단계 ${r.index + 1}번째 실패: ${r.reason}`;
   }
   return undefined;
@@ -103,19 +104,21 @@ export async function runCapture(projectDir, ids) {
         continue;
       }
       const page = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
+      let shown = page;
       try {
-        const failure = await openScreen(page, { baseUrl: run.baseUrl, path, setup: scenario?.setup, loginPath });
+        const failure = await openScreen(page, { baseUrl: run.baseUrl, path, setup: scenario?.setup, loginPath, onPage: (p) => (shown = p) });
         if (failure) {
-          await page.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {});
+          await shown.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {});
           await recordFailure(projectDir, { id: screen.id, kind: 'capture', reason: failure });
           result.failed.push({ id: screen.id, reason: failure });
           continue;
         }
-        await prepareForFullPage(page);
-        await page.screenshot({ path: paths.img(screen.id), fullPage: true });
+        await prepareForFullPage(shown);
+        await shown.screenshot({ path: paths.img(screen.id), fullPage: true });
         await clearFailure(projectDir, screen.id, 'capture');
         result.captured.push(screen.id);
       } finally {
+        for (const p of page.context().pages()) if (p !== page) await p.close().catch(() => {});
         await page.close();
       }
     }

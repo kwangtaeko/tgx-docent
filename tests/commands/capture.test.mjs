@@ -166,3 +166,22 @@ test('무한 스크롤 화면은 처음 문서 높이까지만 스크롤한다',
     await closeBrowser();
   }
 });
+
+test('준비 단계가 새 창을 열면 그 창을 캡처한다(새 창으로 뜨는 하위 화면)', async () => {
+  const dir = await loggedIn();
+  const { PNG: Png } = await import('pngjs');
+  await runCapture(dir, ['home']);
+  const homeShot = Png.sync.read(await readFile(join(dir, '.docent', 'media', 'img', 'home.png')));
+  await writeJsonFile(join(dir, '.docent', 'scenarios', 'home--dialog.json'), {
+    screenId: 'home--dialog',
+    path: '/',
+    setup: [{ do: 'click', role: 'button', label: '새 창 찾기', popup: true, evidence: 'x.ts:1' }],
+    steps: [],
+    sourceHash: 'sha256:' + 'a'.repeat(64),
+  });
+  const r = await runCapture(dir, ['home--dialog']);
+  assert.deepEqual(r.captured, ['home--dialog']);
+  const popupShot = Png.sync.read(await readFile(join(dir, '.docent', 'media', 'img', 'home--dialog.png')));
+  // 찾기 창은 홈보다 내용이 적어 화면이 다르다
+  assert.ok(!popupShot.data.equals(homeShot.data));
+});

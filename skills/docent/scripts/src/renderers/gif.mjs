@@ -19,8 +19,17 @@ function sharedPalette(decoded) {
 
 export function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
   if (!frames.length) throw new Error('GIF로 만들 프레임이 없습니다');
-  const decoded = frames.map((buf) => PNG.sync.read(buf));
-  const { width, height } = decoded[0];
+  const first = PNG.sync.read(frames[0]);
+  const { width, height } = first;
+  // 새 창으로 옮겨 가 크기가 다른 프레임은 첫 프레임 크기에 맞춘다(왼쪽 위 기준, 남는 곳은 흰색)
+  const decoded = frames.map((buf, i) => {
+    const png = i ? PNG.sync.read(buf) : first;
+    if (png.width === width && png.height === height) return png;
+    const out = new PNG({ width, height });
+    out.data.fill(255);
+    PNG.bitblt(png, out, 0, 0, Math.min(width, png.width), Math.min(height, png.height), 0, 0);
+    return out;
+  });
   const palette = sharedPalette(decoded);
   const gif = GIFEncoder();
   decoded.forEach((png, i) => {
