@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { LANGUAGES } from '../renderers/i18n.mjs';
 import { normalizeRel } from './paths.mjs';
 
 export const DEFAULT_CONFIG = Object.freeze({
@@ -14,7 +15,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   analyze: { concurrency: 4 },
   mask: { selectors: [] },
   gif: { screens: { include: [], exclude: [] } },
-  output: { preset: 'handover', formats: ['html', 'readme'], title: '사용자 매뉴얼', organization: '', revisions: [] },
+  // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
+  output: { preset: 'handover', formats: ['html', 'readme'], organization: '', revisions: [] },
 });
 
 function isObject(v) {
@@ -50,6 +52,7 @@ function checkConfig(config) {
   for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, '목록');
   for (const path of STRING_KEYS) {
     const value = get(config, path);
+    if (value === undefined) continue;
     // title: 2026처럼 YAML이 숫자로 읽은 값은 문자열로 받는다
     if (typeof value === 'number') {
       const [head, key] = path.includes('.') ? path.split('.') : [undefined, path];
@@ -64,6 +67,7 @@ function checkConfig(config) {
       throw new Error(`config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 (${config.app})`);
     }
   }
+  if (!LANGUAGES.includes(config.language)) throw new Error(`config.yaml: language는 ${LANGUAGES.join(', ')} 중 하나여야 합니다 (${config.language})`);
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', '양의 정수');
   return config;

@@ -27449,6 +27449,145 @@ var import_yaml = __toESM(require_dist(), 1);
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+// skills/docent/scripts/src/renderers/i18n.mjs
+var LANGUAGES = ["ko", "en"];
+var ko = {
+  htmlLang: "ko",
+  types: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C\uBC15\uC2A4", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" },
+  typesShort: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" },
+  defaultTitle: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC",
+  defaultFileName: "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC",
+  noCapture: "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.",
+  flag: "\uD655\uC778 \uD544\uC694",
+  intro: "\uC18C\uAC1C",
+  screenList: "\uD654\uBA74 \uBAA9\uB85D",
+  workflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
+  footer: (date) => `docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${date}`,
+  draft: "\uCD08\uC548",
+  author: "\uC791\uC131",
+  baseDate: "\uAE30\uC900\uC77C",
+  version: "\uBC84\uC804",
+  toc: "\uBAA9\uCC28",
+  perScreen: "\uD654\uBA74\uBCC4 \uC124\uBA85",
+  revisions: "\uAC1C\uC815 \uC774\uB825",
+  revisionHead: ["\uBC84\uC804", "\uB0A0\uC9DC", "\uC791\uC131\uC790", "\uB0B4\uC6A9"],
+  noRoles: "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C",
+  preview: "\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30",
+  demoAlt: (t) => `${t} \uC870\uC791 \uC608\uC2DC`,
+  shotAlt: (t) => `${t} \uD654\uBA74`,
+  statScreens: "\uD654\uBA74",
+  statWorkflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
+  statRoles: "\uC5ED\uD560",
+  features: "\uC8FC\uC694 \uAE30\uB2A5",
+  roles: "\uC0AC\uC6A9\uC790 \uC5ED\uD560",
+  menu: "\uBA54\uB274 \uAD6C\uC870",
+  seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
+  childOf: (t) => `${t}\uC758 \uD558\uC704 \uD654\uBA74`,
+  totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
+  listHead: ["ID", "\uD654\uBA74", "\uACBD\uB85C", "\uBA54\uB274", "\uC5ED\uD560", "\uBAA9\uC801"],
+  noShot: "\uCEA1\uCC98 \uC5C6\uC74C",
+  watchDemo: "\uC870\uC791 \uC608\uC2DC \uBCF4\uAE30",
+  menuPath: "\uBA54\uB274 \uC704\uCE58",
+  route: "\uACBD\uB85C",
+  parent: "\uC0C1\uC704 \uD654\uBA74",
+  usedBy: "\uC0AC\uC6A9 \uC5ED\uD560",
+  sections: "\uAD6C\uC131",
+  none: "\uC5C6\uC74C",
+  required: "\uD544\uC218",
+  goTo: "\uC774\uB3D9",
+  opens: "\uC5F4\uAE30",
+  children: "\uD558\uC704 \uD654\uBA74",
+  unknownsTitle: "\uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4",
+  sources: "\uC18C\uC2A4 \uD30C\uC77C",
+  demo: "\uC870\uC791 \uC608\uC2DC",
+  fields: "\uC785\uB825 \uD56D\uBAA9",
+  actions: "\uBC84\uD2BC\uACFC \uB3D9\uC791",
+  messages: "\uC548\uB0B4 \uBA54\uC2DC\uC9C0",
+  workflowsLead: "\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.",
+  // PPTX
+  continued: " (\uACC4\uC18D)",
+  noMenu: "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C",
+  kindField: "\uC785\uB825",
+  kindAction: "\uBC84\uD2BC",
+  tableHead: ["\uAD6C\uBD84", "\uC774\uB984", "\uC124\uBA85"],
+  noRows: "\uC785\uB825 \uD56D\uBAA9\xB7\uBC84\uD2BC \uC5C6\uC74C",
+  requiredSuffix: " \xB7 \uD544\uC218",
+  flagPrefix: "[\uD655\uC778 \uD544\uC694] ",
+  // README
+  more: "\uB354 \uBCF4\uAE30",
+  systemIntro: "\uC2DC\uC2A4\uD15C \uC18C\uAC1C",
+  readmeNote: (date) => `docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`
+};
+var en = {
+  htmlLang: "en",
+  types: { text: "Text", textarea: "Multi-line text", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Single choice", file: "File", password: "Password", email: "Email", other: "Other" },
+  typesShort: { text: "Text", textarea: "Multi-line", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Choice", file: "File", password: "Password", email: "Email", other: "Other" },
+  defaultTitle: "User Manual",
+  defaultFileName: "UserManual",
+  noCapture: "Made from the source code only, without screenshots.",
+  flag: "Needs review",
+  intro: "Overview",
+  screenList: "Screens",
+  workflows: "Workflows",
+  footer: (date) => `Draft generated by docent \xB7 As of ${date}`,
+  draft: "Draft",
+  author: "Prepared by",
+  baseDate: "As of",
+  version: "Version",
+  toc: "Contents",
+  perScreen: "Screen guides",
+  revisions: "Revision history",
+  revisionHead: ["Version", "Date", "Author", "Changes"],
+  noRoles: "No roles found",
+  preview: "Screen previews",
+  demoAlt: (t) => `${t} walkthrough`,
+  shotAlt: (t) => `${t} screen`,
+  statScreens: "Screens",
+  statWorkflows: "Workflows",
+  statRoles: "Roles",
+  features: "Key features",
+  roles: "User roles",
+  menu: "Menu structure",
+  seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
+  childOf: (t) => `Inside ${t}`,
+  totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
+  listHead: ["ID", "Screen", "Path", "Menu", "Roles", "Purpose"],
+  noShot: "No screenshot",
+  watchDemo: "Watch walkthrough",
+  menuPath: "Menu",
+  route: "Path",
+  parent: "Parent screen",
+  usedBy: "Roles",
+  sections: "Sections",
+  none: "None",
+  required: "Required",
+  goTo: "Goes to",
+  opens: "Opens",
+  children: "Sub-screens",
+  unknownsTitle: "Could not be confirmed from the source code",
+  sources: "Source files",
+  demo: "Walkthrough",
+  fields: "Input fields",
+  actions: "Buttons and actions",
+  messages: "Messages",
+  workflowsLead: "Flows that move between screens to get a task done. Only links confirmed by button actions on the screens are drawn.",
+  continued: " (cont.)",
+  noMenu: "No menu information",
+  kindField: "Field",
+  kindAction: "Button",
+  tableHead: ["Type", "Name", "Description"],
+  noRows: "No fields or buttons",
+  requiredSuffix: " \xB7 required",
+  flagPrefix: "[Needs review] ",
+  more: "More",
+  systemIntro: "Overview",
+  readmeNote: (date) => `Draft generated by docent from the source code (as of ${date}).`
+};
+var STRINGS = { ko, en };
+var languageOf = (input) => input?.options?.language ?? "ko";
+var stringsFor = (language) => STRINGS[language] ?? ko;
+var textOf = (input) => stringsFor(languageOf(input));
+
 // skills/docent/scripts/src/lib/paths.mjs
 import { posix } from "node:path";
 function normalizeRel(p) {
@@ -27473,7 +27612,8 @@ var DEFAULT_CONFIG = Object.freeze({
   analyze: { concurrency: 4 },
   mask: { selectors: [] },
   gif: { screens: { include: [], exclude: [] } },
-  output: { preset: "handover", formats: ["html", "readme"], title: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", organization: "", revisions: [] }
+  // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
+  output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] }
 });
 function isObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -27502,6 +27642,7 @@ function checkConfig(config) {
   for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, "\uBAA9\uB85D");
   for (const path of STRING_KEYS) {
     const value = get(config, path);
+    if (value === void 0) continue;
     if (typeof value === "number") {
       const [head, key] = path.includes(".") ? path.split(".") : [void 0, path];
       if (head) config[head][key] = String(value);
@@ -27515,6 +27656,7 @@ function checkConfig(config) {
       throw new Error(`config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.app})`);
     }
   }
+  if (!LANGUAGES.includes(config.language)) throw new Error(`config.yaml: language\uB294 ${LANGUAGES.join(", ")} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 (${config.language})`);
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", "\uC591\uC758 \uC815\uC218");
   return config;
@@ -28836,21 +28978,7 @@ function orderedMenuEntries(inventory, screens) {
 }
 
 // skills/docent/scripts/src/renderers/html.mjs
-var TYPE_LABELS = {
-  text: "\uD14D\uC2A4\uD2B8",
-  textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8",
-  number: "\uC22B\uC790",
-  date: "\uB0A0\uC9DC",
-  select: "\uC120\uD0DD",
-  checkbox: "\uCCB4\uD06C\uBC15\uC2A4",
-  radio: "\uB2E8\uC77C \uC120\uD0DD",
-  file: "\uD30C\uC77C",
-  password: "\uBE44\uBC00\uBC88\uD638",
-  email: "\uC774\uBA54\uC77C",
-  other: "\uAE30\uD0C0"
-};
-var NO_CAPTURE = "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.";
-var flag = (item) => item.confidence === "low" ? '<mark class="flag">\uD655\uC778 \uD544\uC694</mark> ' : "";
+var flag = (item, T) => item.confidence === "low" ? `<mark class="flag">${T.flag}</mark> ` : "";
 var nodeId = (id) => `s_${id.replace(/-/g, "_")}`;
 var mediaOf = (input) => input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
 var presetOf = (input) => input.options?.preset ?? "handover";
@@ -28862,9 +28990,9 @@ function screenHref(input, id, from = "root") {
   return from === "screens" ? `${id}.html` : `screens/${id}.html`;
 }
 var NAV = [
-  ["index.html", "\uC18C\uAC1C"],
-  ["screens.html", "\uD654\uBA74 \uBAA9\uB85D"],
-  ["workflows.html", "\uC6CC\uD06C\uD50C\uB85C\uC6B0"]
+  ["index.html", "intro"],
+  ["screens.html", "screenList"],
+  ["workflows.html", "workflows"]
 ];
 var zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 <script>if (window.mediumZoom) mediumZoom('[data-zoomable]', { margin: 24, background: 'rgba(12, 12, 16, 0.86)' });</script>
@@ -28872,10 +29000,11 @@ var zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 function frame(img, url = "") {
   return `<figure class="frame"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${escapeHtml(url)}</span>` : ""}</div>${img}</figure>`;
 }
-function page({ title: title2, body, root, projectName: projectName2, date, scripts = "", active = "" }) {
-  const nav = NAV.map(([file, label]) => `<a href="${root}${file}"${file === active ? ' aria-current="page"' : ""}>${label}</a>`).join("");
+function page({ title: title2, body, root, projectName: projectName2, date, scripts = "", active = "", ...input }) {
+  const T = textOf(input);
+  const nav = NAV.map(([file, key]) => `<a href="${root}${file}"${file === active ? ' aria-current="page"' : ""}>${T[key]}</a>`).join("");
   return `<!doctype html>
-<html lang="ko">
+<html lang="${T.htmlLang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28892,7 +29021,7 @@ function page({ title: title2, body, root, projectName: projectName2, date, scri
 <main>
 ${body}
 </main>
-<footer class="site"><div class="site-inner">docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${escapeHtml(date)}</div></footer>
+<footer class="site"><div class="site-inner">${escapeHtml(T.footer(date))}</div></footer>
 ${scripts}${zoomScript(root)}</body>
 </html>
 `;
@@ -28921,36 +29050,39 @@ function menuTree(input, from) {
 }
 function revisionRows(input) {
   const list = input.options?.revisions ?? [];
-  return list.length ? list : [{ version: "0.1", date: input.date, author: "", note: "\uCD08\uC548" }];
+  return list.length ? list : [{ version: "0.1", date: input.date, author: "", note: textOf(input).draft }];
 }
 function coverBody(input) {
   const o = input.options ?? {};
+  const T = textOf(input);
   return `<section class="cover">
 <h1>${escapeHtml(input.projectName)}</h1>
-<p class="doc-title">${escapeHtml(o.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC")}</p>
-<dl>${o.organization ? `<dt>\uC791\uC131</dt><dd>${escapeHtml(o.organization)}</dd>` : ""}<dt>\uAE30\uC900\uC77C</dt><dd>${escapeHtml(input.date)}</dd><dt>\uBC84\uC804</dt><dd>${escapeHtml(revisionRows(input).at(-1).version)}</dd></dl>
+<p class="doc-title">${escapeHtml(o.title ?? T.defaultTitle)}</p>
+<dl>${o.organization ? `<dt>${T.author}</dt><dd>${escapeHtml(o.organization)}</dd>` : ""}<dt>${T.baseDate}</dt><dd>${escapeHtml(input.date)}</dd><dt>${T.version}</dt><dd>${escapeHtml(revisionRows(input).at(-1).version)}</dd></dl>
 </section>`;
 }
 function tocBody(input, { anchors = false } = {}) {
   const at = (file, anchor) => anchors ? `#${anchor}` : file;
   const screens = input.inventory.screens.map((e) => `<li><a href="${anchors ? `#screen-${escapeHtml(e.id)}` : screenHref(input, e.id)}">${escapeHtml(screenTitle(input.screens, e.id))}</a></li>`).join("");
+  const T = textOf(input);
   return `<nav class="toc">
-<h2>\uBAA9\uCC28</h2>
+<h2>${T.toc}</h2>
 <ol>
-<li><a href="${at("index.html", "intro")}">\uC18C\uAC1C</a></li>
-<li><a href="${at("screens.html", "screen-list")}">\uD654\uBA74 \uBAA9\uB85D</a></li>
-<li><a href="${at("workflows.html", "workflows")}">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a></li>
-<li>\uD654\uBA74\uBCC4 \uC124\uBA85<ol>${screens}</ol></li>
-<li><a href="${at("index.html#revisions", "revisions")}">\uAC1C\uC815 \uC774\uB825</a></li>
+<li><a href="${at("index.html", "intro")}">${T.intro}</a></li>
+<li><a href="${at("screens.html", "screen-list")}">${T.screenList}</a></li>
+<li><a href="${at("workflows.html", "workflows")}">${T.workflows}</a></li>
+<li>${T.perScreen}<ol>${screens}</ol></li>
+<li><a href="${at("index.html#revisions", "revisions")}">${T.revisions}</a></li>
 </ol>
 </nav>`;
 }
 function revisionsBody(input) {
   const rows = revisionRows(input).map((r) => `<tr><td>${escapeHtml(r.version)}</td><td>${escapeHtml(r.date)}</td><td>${escapeHtml(r.author)}</td><td>${escapeHtml(r.note)}</td></tr>`).join("\n");
+  const T = textOf(input);
   return `<section id="revisions">
-<h2>\uAC1C\uC815 \uC774\uB825</h2>
+<h2>${T.revisions}</h2>
 <table>
-<thead><tr><th>\uBC84\uC804</th><th>\uB0A0\uC9DC</th><th>\uC791\uC131\uC790</th><th>\uB0B4\uC6A9</th></tr></thead>
+<thead><tr>${T.revisionHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
 <tbody>
 ${rows}
 </tbody>
@@ -28959,64 +29091,67 @@ ${rows}
 }
 function introBody(input, { from = "root", heading = true } = {}) {
   const { inventory, screens, summary } = input;
+  const T = textOf(input);
   const features = summary.features.map((f) => `<article class="feature"><h3>${escapeHtml(f.menu)}</h3><p>${escapeHtml(f.value)}${screensNote(input, f.screens)}</p></article>`).join("\n");
   const roleList = rolesOf(screens);
-  const roles = roleList.map((r) => `<li>${escapeHtml(r)}</li>`).join("") || "<li>\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C</li>";
+  const roles = roleList.map((r) => `<li>${escapeHtml(r)}</li>`).join("") || `<li>${T.noRoles}</li>`;
   const media = mediaOf(input);
   const limit = presetOf(input) === "portfolio" ? 6 : 3;
   const prefix = from === "screens" ? "../" : "";
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id) && (!input.printAnchors || media.images.has(e.id))).slice(0, limit);
-  const preview = gifs.length ? `<h2>\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30</h2>
+  const preview = gifs.length ? `<h2>${T.preview}</h2>
 <div class="preview">${gifs.map((e) => {
     const title2 = escapeHtml(screenTitle(screens, e.id));
     const src = input.printAnchors ? `${prefix}media/img/${escapeHtml(e.id)}.png` : `${prefix}media/gif/${escapeHtml(e.id)}.gif`;
-    return `<div class="preview-item">${frame(`<img src="${src}" alt="${title2} \uC870\uC791 \uC608\uC2DC" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title2}</a></div>`;
+    return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title2)}" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title2}</a></div>`;
   }).join("")}</div>` : "";
-  const notice = media.images.size || media.gifs.size ? "" : `<p class="notice">${NO_CAPTURE}</p>
+  const notice = media.images.size || media.gifs.size ? "" : `<p class="notice">${T.noCapture}</p>
 `;
   const stats = [
-    [inventory.screens.length, "\uD654\uBA74"],
-    [summary.workflows.length, "\uC6CC\uD06C\uD50C\uB85C\uC6B0"],
-    [roleList.length, "\uC5ED\uD560"]
+    [inventory.screens.length, T.statScreens],
+    [summary.workflows.length, T.statWorkflows],
+    [roleList.length, T.statRoles]
   ].map(([n, label]) => `<li><b>${n}</b><span>${label}</span></li>`).join("");
   return `<section class="hero">
-<p class="eyebrow">${escapeHtml(input.options?.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC")}</p>
+<p class="eyebrow">${escapeHtml(input.options?.title ?? T.defaultTitle)}</p>
 ${heading ? `<h1>${escapeHtml(input.projectName)}</h1>
 ` : ""}<p class="lead">${escapeHtml(summary.oneLiner.value)}${screensNote(input, summary.oneLiner.screens)}</p>
 <ul class="stats">${stats}</ul>
 </section>
-${notice}<h2>\uC8FC\uC694 \uAE30\uB2A5</h2>
+${notice}<h2>${T.features}</h2>
 <div class="feature-grid">
 ${features}
 </div>
 ${preview}
-<h2>\uC0AC\uC6A9\uC790 \uC5ED\uD560</h2>
+<h2>${T.roles}</h2>
 <ul class="chips">${roles}</ul>
-<h2>\uBA54\uB274 \uAD6C\uC870</h2>
+<h2>${T.menu}</h2>
 ${menuTree(input, from)}`;
 }
 function renderIndex(input) {
   const delivery = presetOf(input) === "delivery";
+  const T = textOf(input);
   const body = `${delivery ? `${coverBody(input)}
 ${tocBody(input)}
 ` : ""}${introBody(input)}
-<p>\uC804\uCCB4 \uD654\uBA74\uC740 <a href="screens.html">\uD654\uBA74 \uBAA9\uB85D</a>, \uC5C5\uBB34 \uD750\uB984\uC740 <a href="workflows.html">\uC6CC\uD06C\uD50C\uB85C\uC6B0</a>\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.</p>${delivery ? `
+<p>${T.seeMore(`<a href="screens.html">${T.screenList}</a>`, `<a href="workflows.html">${T.workflows}</a>`)}</p>${delivery ? `
 ${revisionsBody(input)}` : ""}`;
-  return page({ ...input, title: "\uC18C\uAC1C", body, root: "", active: "index.html" });
+  return page({ ...input, title: T.intro, body, root: "", active: "index.html" });
 }
 function listBody(input) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const rows = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
     const menu = s.menuPath?.value.join(" \u203A ") ?? "";
-    const where = entry.route ?? `${screenTitle(screens, entry.parentId)}\uC758 \uD558\uC704 \uD654\uBA74`;
-    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</td></tr>`;
+    const where = entry.route ?? T.childOf(screenTitle(screens, entry.parentId));
+    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</td></tr>`;
   }).join("\n");
-  return `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
-<p class="lead">\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
+  return `<h1>${T.screenList}</h1>
+<p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>\uD654\uBA74</th><th>\uACBD\uB85C</th><th>\uBA54\uB274</th><th>\uC5ED\uD560</th><th>\uBAA9\uC801</th></tr></thead>
+<thead><tr>${T.listHead.map((x) => `<th>${x}</th>`).join("")}</tr></thead>
 <tbody>
 ${rows}
 </tbody>
@@ -29025,86 +29160,89 @@ ${rows}
 }
 function cardsBody(input, { prefix = "" } = {}) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const media = mediaOf(input);
   const cards = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
-    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74" data-zoomable>`, entry.route ?? "") : '<p class="no-shot">\uCEA1\uCC98 \uC5C6\uC74C</p>';
-    const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">\uC870\uC791 \uC608\uC2DC \uBCF4\uAE30</a>` : "";
+    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, entry.route ?? "") : `<p class="no-shot">${T.noShot}</p>`;
+    const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">${T.watchDemo}</a>` : "";
     return `<article class="card" id="${escapeHtml(entry.id)}">
 ${shot}
 <div class="card-body">
 <h2>${escapeHtml(s.title.value)}</h2>
-<p>${flag(s.purpose)}${escapeHtml(s.purpose.value)}</p>
+<p>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</p>
 ${gif}</div>
 </article>`;
   }).join("\n");
-  return `<h1>\uD654\uBA74 \uBAA9\uB85D</h1>
-<p class="lead">\uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74</p>
+  return `<h1>${T.screenList}</h1>
+<p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="cards">
 ${cards}
 </div>`;
 }
 function renderList(input) {
   const body = presetOf(input) === "portfolio" ? cardsBody(input) : listBody(input);
-  return page({ ...input, title: "\uD654\uBA74 \uBAA9\uB85D", body, root: "", active: "screens.html" });
+  return page({ ...input, title: textOf(input).screenList, body, root: "", active: "screens.html" });
 }
 function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const ev = evOf(input);
   const s = screens.get(entry.id);
   const link = (id) => `<a href="${from === "root" && input.printAnchors ? `#screen-${escapeHtml(id)}` : screenHref(input, id, from)}">${escapeHtml(screenTitle(screens, id))}</a>`;
   const prefix = from === "screens" ? "../" : "";
   const meta = [];
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
-  if (s.menuPath) meta.push(item("\uBA54\uB274 \uC704\uCE58", `${escapeHtml(s.menuPath.value.join(" \u203A "))}${ev(s.menuPath.evidence)}`));
-  meta.push(s.route ? item("\uACBD\uB85C", `<code>${escapeHtml(s.route)}</code>`) : item("\uC0C1\uC704 \uD654\uBA74", link(s.parentId)));
+  if (s.menuPath) meta.push(item(T.menuPath, `${escapeHtml(s.menuPath.value.join(" \u203A "))}${ev(s.menuPath.evidence)}`));
+  meta.push(s.route ? item(T.route, `<code>${escapeHtml(s.route)}</code>`) : item(T.parent, link(s.parentId)));
   const evTight = evOf(input, "");
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C";
-  meta.push(item("\uC0AC\uC6A9 \uC5ED\uD560", roles));
-  const sections = s.sections.length ? `<h2>\uAD6C\uC131</h2><ul class="chips">${s.sections.map((x) => `<li>${escapeHtml(x.title)}${ev(x.evidence)}</li>`).join("")}</ul>` : "";
-  const empty = '<p class="empty">\uC5C6\uC74C</p>';
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r, T)}${escapeHtml(r.value)}${evTight(r.evidence)}`).join(", ") : T.noRoles;
+  meta.push(item(T.usedBy, roles));
+  const sections = s.sections.length ? `<h2>${T.sections}</h2><ul class="chips">${s.sections.map((x) => `<li>${escapeHtml(x.title)}${ev(x.evidence)}</li>`).join("")}</ul>` : "";
+  const empty = `<p class="empty">${T.none}</p>`;
   const fields = s.fields.length ? `<ul class="fields">
 ${s.fields.map(
-    (f) => `<li><div class="field-head">${flag(f)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}<span class="badge">${escapeHtml(TYPE_LABELS[f.type])}</span>${f.required ? '<span class="badge required">\uD544\uC218</span>' : ""}</div></li>`
+    (f) => `<li><div class="field-head">${flag(f, T)}<span class="field-name">${escapeHtml(f.label)}</span>${ev(f.evidence)}<span class="badge">${escapeHtml(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ""}</div></li>`
   ).join("\n")}
 </ul>` : empty;
   const actions = s.actions.length ? `<ul class="fields actions">
 ${s.actions.map((a) => {
-    const next = [a.navigatesTo && `<span class="next">\uC774\uB3D9 \u2192 ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">\uC5F4\uAE30 \u2192 ${link(a.opens)}</span>`].filter(Boolean).join("");
-    return `<li><div class="field-head"><span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
+    const next = [a.navigatesTo && `<span class="next">${T.goTo} \u2192 ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} \u2192 ${link(a.opens)}</span>`].filter(Boolean).join("");
+    return `<li><div class="field-head"><span class="field-name">${escapeHtml(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${escapeHtml(a.effect)}${ev(a.evidence)}</p></li>`;
   }).join("\n")}
 </ul>` : empty;
   const messages = s.messages.length ? s.messages.map((m) => `<aside class="callout note"><p class="callout-title">${escapeHtml(m.text)}${ev(m.evidence)}</p><p>${escapeHtml(m.when)}</p></aside>`).join("\n") : empty;
   const children = inventory.screens.filter((x) => x.parentId === s.id);
-  const childList = children.length ? `<h2>\uD558\uC704 \uD654\uBA74</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join("")}</ul>` : "";
-  const unknowns = s.unknowns.length ? `<h2>\uD655\uC778 \uD544\uC694</h2>
-<aside class="callout caution"><p class="callout-title">\uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul></aside>` : "";
-  const sources = presetOf(input) === "handover" ? `<h2>\uC18C\uC2A4 \uD30C\uC77C</h2><ul class="sources">${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
+  const childList = children.length ? `<h2>${T.children}</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join("")}</ul>` : "";
+  const unknowns = s.unknowns.length ? `<h2>${T.flag}</h2>
+<aside class="callout caution"><p class="callout-title">${T.unknownsTitle}</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul></aside>` : "";
+  const sources = presetOf(input) === "handover" ? `<h2>${T.sources}</h2><ul class="sources">${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
   const media = mediaOf(input);
-  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(s.title.value)} \uD654\uBA74" data-zoomable>`, s.route ?? "")}
-` : input.printAnchors ? '<p class="no-shot">\uCEA1\uCC98 \uC5C6\uC74C</p>\n' : "";
-  const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>\uC870\uC791 \uC608\uC2DC</h2>
-${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(s.title.value)} \uC870\uC791 \uC608\uC2DC" data-zoomable>`, s.route ?? "")}
+  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, s.route ?? "")}
+` : input.printAnchors ? `<p class="no-shot">${T.noShot}</p>
+` : "";
+  const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>${T.demo}</h2>
+${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, s.route ?? "")}
 ` : "";
   return `<${headingTag}>${escapeHtml(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
-<p class="lead">${flag(s.purpose)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</p>
+<p class="lead">${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</p>
 ${shot}
 <dl class="meta">
 ${meta.join("\n")}
 </dl>
 ${sections}
-${gif}<h2>\uC785\uB825 \uD56D\uBAA9</h2>
+${gif}<h2>${T.fields}</h2>
 ${fields}
-<h2>\uBC84\uD2BC\uACFC \uB3D9\uC791</h2>
+<h2>${T.actions}</h2>
 ${actions}
-<h2>\uC548\uB0B4 \uBA54\uC2DC\uC9C0</h2>
+<h2>${T.messages}</h2>
 ${messages}
 ${childList}
 ${unknowns}
 ${sources}`;
 }
 function renderScreen(input, entry) {
-  const body = `<p class="crumb"><a href="../screens.html">\uD654\uBA74 \uBAA9\uB85D</a> \u203A <code>${escapeHtml(entry.id)}</code></p>
+  const body = `<p class="crumb"><a href="../screens.html">${textOf(input).screenList}</a> \u203A <code>${escapeHtml(entry.id)}</code></p>
 ${screenBody(input, entry)}`;
   return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: "../", active: "screens.html" });
 }
@@ -29130,6 +29268,7 @@ var MERMAID_INIT = `(() => {
 })()`;
 function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
+  const T = textOf(input);
   const blocks = summary.workflows.map((wf) => {
     const steps = wf.steps.map((id) => `<li><a href="${linkToScreen(id)}">${escapeHtml(screenTitle(screens, id))}</a></li>`).join("");
     return `<section class="workflow">
@@ -29141,15 +29280,15 @@ ${workflowMermaid(input, wf)}
 <ol class="steps">${steps}</ol>
 </section>`;
   }).join("\n");
-  return `<h1>\uC6CC\uD06C\uD50C\uB85C\uC6B0</h1>
-<p>\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.</p>
+  return `<h1>${T.workflows}</h1>
+<p>${T.workflowsLead}</p>
 ${blocks}`;
 }
 function renderWorkflows(input) {
   const scripts = `<script src="assets/mermaid.min.js"></script>
 <script>mermaid.initialize(${MERMAID_INIT});</script>
 `;
-  return page({ ...input, title: "\uC6CC\uD06C\uD50C\uB85C\uC6B0", body: workflowsBody(input), root: "", scripts, active: "workflows.html" });
+  return page({ ...input, title: textOf(input).workflows, body: workflowsBody(input), root: "", scripts, active: "workflows.html" });
 }
 var STYLE = `/* docent \uC0B0\uCD9C\uBB3C \uC2A4\uD0C0\uC77C. \uAE00\uAF34: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */
 @font-face {
@@ -29393,13 +29532,14 @@ function menuLines(inventory, screens) {
   walk2(root, 0);
   return lines;
 }
-function previewLines(inventory, screens, media, limit) {
+function previewLines(inventory, screens, media, limit, T) {
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
-  return ["## \uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30", "", ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, "\\$&")}](html/media/gif/${e.id}.gif)`), ""];
+  return [`## ${T.preview}`, "", ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, "\\$&")}](html/media/gif/${e.id}.gif)`), ""];
 }
 function renderReadme({ inventory, screens, summary, date, projectName: projectName2, media = { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() }, options = {} }) {
   const preset = options.preset ?? "handover";
+  const T = textOf({ options });
   const note = (ids) => preset === "handover" ? ` <!-- screens: ${ids.join(", ")} -->` : "";
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
   const lines = [
@@ -29407,27 +29547,27 @@ function renderReadme({ inventory, screens, summary, date, projectName: projectN
     "",
     `${md(summary.oneLiner.value)}${note(summary.oneLiner.screens)}`,
     "",
-    ...media.images.size || media.gifs.size ? [] : ["> \uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.", ""],
-    "## \uC8FC\uC694 \uAE30\uB2A5",
+    ...media.images.size || media.gifs.size ? [] : [`> ${T.noCapture}`, ""],
+    `## ${T.features}`,
     "",
     ...summary.features.map((f) => `- **${md(f.menu)}** \u2014 ${md(f.value)}${note(f.screens)}`),
     "",
-    ...previewLines(inventory, screens, media, preset === "portfolio" ? 6 : 3),
-    "## \uBA54\uB274 \uAD6C\uC870",
+    ...previewLines(inventory, screens, media, preset === "portfolio" ? 6 : 3, T),
+    `## ${T.menu}`,
     "",
     ...menuLines(inventory, screens),
     "",
-    "## \uC0AC\uC6A9\uC790 \uC5ED\uD560",
+    `## ${T.roles}`,
     "",
-    ...roles.length ? roles.map((r) => `- ${md(r)}`) : ["- \uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C"],
+    ...roles.length ? roles.map((r) => `- ${md(r)}`) : [`- ${T.noRoles}`],
     "",
-    "## \uB354 \uBCF4\uAE30",
+    `## ${T.more}`,
     "",
-    "- [\uC2DC\uC2A4\uD15C \uC18C\uAC1C](html/index.html)",
-    `- [\uD654\uBA74 \uBAA9\uB85D](html/screens.html) \u2014 \uC804\uCCB4 ${inventory.screens.length}\uAC1C \uD654\uBA74`,
-    "- [\uC6CC\uD06C\uD50C\uB85C\uC6B0](html/workflows.html)",
+    `- [${T.systemIntro}](html/index.html)`,
+    `- [${T.screenList}](html/screens.html) \u2014 ${T.totalScreens(inventory.screens.length)}`,
+    `- [${T.workflows}](html/workflows.html)`,
     "",
-    `> docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`,
+    `> ${T.readmeNote(date)}`,
     ""
   ];
   return lines.join("\n");
@@ -34831,8 +34971,7 @@ var ROW_PAD_IN = 0.12;
 var TABLE_BUDGET_IN = 5.2;
 var COL_W = [0.8, 1.8, 3.4];
 var SHOT_BOX = { x: 0.5, y: 1.5, w: 6, h: 5.6 };
-var TYPE_LABELS2 = { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", other: "\uAE30\uD0C0" };
-var low = (x) => x.confidence === "low" ? "[\uD655\uC778 \uD544\uC694] " : "";
+var low = (x, T) => x.confidence === "low" ? T.flagPrefix : "";
 var BG_W = 1333;
 var BG_H = 750;
 var hex = (c) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
@@ -34962,10 +35101,10 @@ function menuLines2(input) {
   }
   return lines;
 }
-function screenRows(s) {
+function screenRows(s, T) {
   return [
-    ...s.fields.map((f) => ["\uC785\uB825", `${low(f)}${f.label}`, `${TYPE_LABELS2[f.type] ?? f.type}${f.required ? " \xB7 \uD544\uC218" : ""}`]),
-    ...s.actions.map((a) => ["\uBC84\uD2BC", a.label, `${low(a)}${a.effect}`])
+    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ""}`]),
+    ...s.actions.map((a) => [T.kindAction, a.label, `${low(a, T)}${a.effect}`])
   ];
 }
 async function renderPptx(input, { diagrams, mediaDir } = {}) {
@@ -34974,7 +35113,8 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   const media = input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
-  pptx.title = `${input.projectName} ${options.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC"}`;
+  const T = textOf(input);
+  pptx.title = `${input.projectName} ${options.title ?? T.defaultTitle}`;
   if (options.organization) pptx.company = options.organization;
   pptx.defineSlideMaster({
     title: "DOCENT",
@@ -34985,17 +35125,17 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   const addSlide = () => pptx.addSlide({ masterName: "DOCENT" });
   const cover = pptx.addSlide();
   cover.background = { data: backdrop("cover") };
-  cover.addText(options.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC", { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: "roundRect", rectRadius: 0.2, fill: { color: "FFFFFF", transparency: 82 }, line: { color: "FFFFFF", transparency: 65, width: 0.75 }, align: "center", fontFace: FONT, fontSize: 13, bold: true, color: "FFFFFF", fit: "shrink" });
+  cover.addText(options.title ?? T.defaultTitle, { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: "roundRect", rectRadius: 0.2, fill: { color: "FFFFFF", transparency: 82 }, line: { color: "FFFFFF", transparency: 65, width: 0.75 }, align: "center", fontFace: FONT, fontSize: 13, bold: true, color: "FFFFFF", fit: "shrink" });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: "FFFFFF" });
   cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1, fontFace: FONT, fontSize: 16, color: C.onInk, valign: "top", fit: "shrink" });
-  const stats = [[input.inventory.screens.length, "\uD654\uBA74"], [input.summary.workflows.length, "\uC6CC\uD06C\uD50C\uB85C\uC6B0"]];
+  const stats = [[input.inventory.screens.length, T.statScreens], [input.summary.workflows.length, T.statWorkflows]];
   stats.forEach(([n, label], i) => {
     cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: "FFFFFF", breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5, w: 1.7, h: 1, shape: "roundRect", rectRadius: 0.12, fill: { color: "FFFFFF", transparency: 86 }, line: { color: "FFFFFF", transparency: 70, width: 0.75 }, fontFace: FONT, valign: "middle", margin: 10 });
   });
-  cover.addText([options.organization, `\uAE30\uC900\uC77C ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
+  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join("  \xB7  "), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
   splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
     const intro = addSlide();
-    title(intro, `\uC18C\uAC1C${i ? " (\uACC4\uC18D)" : ""}`, input.summary.oneLiner.value);
+    title(intro, `${T.intro}${i ? T.continued : ""}`, input.summary.oneLiner.value);
     const cols = 3;
     const rows = Math.max(1, Math.ceil(features.length / cols));
     const gap = 0.2;
@@ -35005,14 +35145,14 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
   });
   splitEvery(menuLines2(input), MENU_LINES).forEach((lines, i) => {
     const menu = addSlide();
-    title(menu, `\uBA54\uB274 \uAD6C\uC870${i ? " (\uACC4\uC18D)" : ""}`);
+    title(menu, `${T.menu}${i ? T.continued : ""}`);
     const boxH = Math.min(5.75, 0.5 + Math.max(1, lines.length) * 0.3);
     menu.addShape("roundRect", { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: C.line, width: 0.75 } });
-    menu.addText(lines.join("\n") || "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C", { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: "top" });
+    menu.addText(lines.join("\n") || T.noMenu, { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: "top" });
   });
   input.summary.workflows.forEach((wf, i) => {
     const slide = addSlide();
-    title(slide, `\uC6CC\uD06C\uD50C\uB85C\uC6B0 \xB7 ${wf.name}`, wf.description);
+    title(slide, `${T.workflows} \xB7 ${wf.name}`, wf.description);
     const png = diagrams?.[i];
     if (png) {
       slide.addShape("roundRect", { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: "FFFFFF" }, line: { color: C.line, width: 0.75 } });
@@ -35038,28 +35178,28 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
       if (gif) framed(slide, gif, "image/gif", { x: 0.6, y: 1.5, w: W - 1.2, h: 5.4 });
       continue;
     }
-    const rows = screenRows(s);
+    const rows = screenRows(s, T);
     const chunks = chunkRows(rows);
     const raw = media.images.has(entry.id) ? await readMaybe(join8(mediaDir, "img", `${entry.id}.png`)) : void 0;
     const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = addSlide();
-      title(slide, `${s.title.value}${i ? " (\uACC4\uC18D)" : ""}`, `${low(s.purpose)}${s.purpose.value}`);
+      title(slide, `${s.title.value}${i ? T.continued : ""}`, `${low(s.purpose, T)}${s.purpose.value}`);
       const box = SHOT_BOX;
       if (shot) framed(slide, shot, "image/png", box);
       else {
         slide.addShape("roundRect", { ...box, rectRadius: 0.1, line: { color: C.line, dashType: "dash" }, fill: { color: C.soft } });
-        slide.addText("\uCEA1\uCC98 \uC5C6\uC74C", { ...box, align: "center", valign: "middle", fontFace: FONT, fontSize: 16, color: C.muted });
+        slide.addText(T.noShot, { ...box, align: "center", valign: "middle", fontFace: FONT, fontSize: 16, color: C.muted });
       }
-      const header = ["\uAD6C\uBD84", "\uC774\uB984", "\uC124\uBA85"].map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
-      const body = (chunk.length ? chunk : [["", "\uC785\uB825 \uD56D\uBAA9\xB7\uBC84\uD2BC \uC5C6\uC74C", ""]]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === "\uC785\uB825" ? C.accent : "7C3AED" } }, ...rest]);
+      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+      const body = (chunk.length ? chunk : [["", T.noRows, ""]]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? C.accent : "7C3AED" } }, ...rest]);
       slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 }, valign: "top" });
     });
   }
   if (preset === "delivery") {
     const slide = addSlide();
-    title(slide, "\uAC1C\uC815 \uC774\uB825");
-    const header = ["\uBC84\uC804", "\uB0A0\uC9DC", "\uC791\uC131\uC790", "\uB0B4\uC6A9"].map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+    title(slide, T.revisions);
+    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
     const rows = revisionRows(input).map((r) => [r.version, r.date, r.author, r.note]);
     slide.addTable([header, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: "solid", color: C.line, pt: 0.75 } });
   }
@@ -35094,9 +35234,10 @@ function renderPrint(input) {
     }
   }
   if (preset === "delivery") parts.push(revisionsBody(input));
-  const title2 = input.options?.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC";
+  const T = textOf(input);
+  const title2 = input.options?.title ?? T.defaultTitle;
   return `<!doctype html>
-<html lang="ko">
+<html lang="${T.htmlLang}">
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(input.projectName)} ${escapeHtml(title2)}</title>
@@ -35144,10 +35285,12 @@ function resolveOutputOptions(config, cli = {}) {
       if (typeof r?.[field] !== "string") throw new Error(`config.yaml: output.revisions[${i}]\uC758 ${field} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4`);
     }
   });
+  const language = config.language ?? "ko";
   return {
     preset,
     formats,
-    title: String(output.title ?? "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC"),
+    language,
+    title: String(output.title ?? stringsFor(language).defaultTitle),
     organization: String(output.organization ?? ""),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]])))
   };
@@ -35350,7 +35493,7 @@ function uncertainCount(screens) {
   }
   return n;
 }
-var safeFileName = (name5) => name5.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC";
+var safeFileName = (name5, language) => name5.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || stringsFor(language).defaultFileName;
 async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
   const { ok, problems } = await runValidate(projectDir);
   if (!ok) throw new Error(`\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:
@@ -35359,7 +35502,6 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
   const options = resolveOutputOptions(config, { preset, formats });
   const warnings2 = [];
   const skipped = [];
-  if (config.language !== "ko") warnings2.push(`language "${config.language}"\uB294 \uC544\uC9C1 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544 \uD55C\uAD6D\uC5B4\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4`);
   const dir = docentDir(projectDir);
   const inventory = await readJson(join11(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
@@ -35411,7 +35553,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
       if (!(err instanceof PlaywrightMissing)) throw err;
     }
     try {
-      const base = safeFileName(options.title);
+      const base = safeFileName(options.title, options.language);
       if (wants("pdf")) {
         if (!browser) skipped.push({ format: "pdf", reason: "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)" });
         else {
@@ -36972,7 +37114,7 @@ var GITIGNORE_HEADER = "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9
 function configYaml(detectors, app) {
   const list = detectors.length ? detectors.map((d) => `  - ${d}`).join("\n") : "  []";
   return `# docent \uC124\uC815 \u2014 \uD56D\uBAA9 \uC124\uBA85\uC740 docent \uC124\uACC4 \uBB38\uC11C\uB97C \uCC38\uACE0\uD558\uC138\uC694
-language: ko
+language: ko  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)
 ${app ? `# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)
 app: ${app}
 ` : ""}# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)

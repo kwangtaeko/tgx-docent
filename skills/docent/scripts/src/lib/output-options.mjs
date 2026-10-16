@@ -1,4 +1,5 @@
 // 산출물 옵션: config.yaml의 output + CLI 인자(우선). (설계 문서 3장 용도 프리셋)
+import { stringsFor } from '../renderers/i18n.mjs';
 export const PRESETS = ['delivery', 'handover', 'portfolio'];
 export const FORMATS = ['html', 'readme', 'pdf', 'pptx'];
 const REVISION_FIELDS = ['version', 'date', 'author', 'note'];
@@ -20,10 +21,12 @@ export function resolveOutputOptions(config, cli = {}) {
       if (typeof r?.[field] !== 'string') throw new Error(`config.yaml: output.revisions[${i}]의 ${field} 값이 없거나 문자열이 아닙니다`);
     }
   });
+  const language = config.language ?? 'ko';
   return {
     preset,
     formats,
-    title: String(output.title ?? '사용자 매뉴얼'),
+    language,
+    title: String(output.title ?? stringsFor(language).defaultTitle),
     organization: String(output.organization ?? ''),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]]))),
   };

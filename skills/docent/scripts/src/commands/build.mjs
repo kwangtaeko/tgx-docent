@@ -5,6 +5,7 @@ import { loadConfig } from '../lib/config.mjs';
 import { projectDate } from '../lib/project-date.mjs';
 import { docentDir, readJson } from '../lib/workspace.mjs';
 import { renderSite } from '../renderers/html.mjs';
+import { stringsFor } from '../renderers/i18n.mjs';
 import { renderReadme } from '../renderers/readme.mjs';
 import { renderDiagrams } from '../renderers/diagrams.mjs';
 import { renderPdf } from '../renderers/pdf.mjs';
@@ -55,8 +56,8 @@ function uncertainCount(screens) {
   return n;
 }
 
-// 파일 이름: 경로·예약 문자는 _로, 공백은 뺀다(사용자 매뉴얼 → 사용자매뉴얼)
-const safeFileName = (name) => name.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '') || '사용자매뉴얼';
+// 파일 이름: 경로·예약 문자는 _로, 공백은 뺀다(사용자 매뉴얼 → 사용자매뉴얼, User Manual → UserManual)
+const safeFileName = (name, language) => name.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '') || stringsFor(language).defaultFileName;
 
 export async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
   const { ok, problems } = await runValidate(projectDir);
@@ -66,7 +67,6 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
   const options = resolveOutputOptions(config, { preset, formats });
   const warnings = [];
   const skipped = [];
-  if (config.language !== 'ko') warnings.push(`language "${config.language}"는 아직 지원하지 않아 한국어로 만들었습니다`);
   const dir = docentDir(projectDir);
   const inventory = await readJson(join(dir, 'inventory.json'));
   const screens = new Map();
@@ -122,7 +122,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
       if (!(err instanceof PlaywrightMissing)) throw err;
     }
     try {
-      const base = safeFileName(options.title);
+      const base = safeFileName(options.title, options.language);
       if (wants('pdf')) {
         if (!browser) skipped.push({ format: 'pdf', reason: 'Playwright가 없어 PDF를 만들지 못했습니다(docent runtime install)' });
         else {

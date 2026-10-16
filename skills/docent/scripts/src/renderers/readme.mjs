@@ -1,4 +1,5 @@
 // 처음 보는 사람에게 "이 시스템이 무엇을 하는가"를 설명하는 소개 README. 개발자용 설치 안내는 쓰지 않는다. (설계 문서 4·10장)
+import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 
 // 값에 든 <!--·태그가 GitHub 렌더링에서 뒤 내용을 숨기지 않게 한다
@@ -24,14 +25,15 @@ function menuLines(inventory, screens) {
   return lines;
 }
 
-function previewLines(inventory, screens, media, limit) {
+function previewLines(inventory, screens, media, limit, T) {
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id)).slice(0, limit);
   if (!gifs.length) return [];
-  return ['## 화면 미리보기', '', ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, '\\$&')}](html/media/gif/${e.id}.gif)`), ''];
+  return [`## ${T.preview}`, '', ...gifs.map((e) => `![${md(screens.get(e.id).title.value).replace(/[[\]]/g, '\\$&')}](html/media/gif/${e.id}.gif)`), ''];
 }
 
 export function renderReadme({ inventory, screens, summary, date, projectName, media = { images: new Set(), gifs: new Set() }, options = {} }) {
   const preset = options.preset ?? 'handover';
+  const T = textOf({ options });
   // 근거 주석은 인수인계용에만 남긴다
   const note = (ids) => (preset === 'handover' ? ` <!-- screens: ${ids.join(', ')} -->` : '');
   const roles = [...new Set([...screens.values()].flatMap((s) => s.roles.map((r) => r.value)))];
@@ -40,27 +42,27 @@ export function renderReadme({ inventory, screens, summary, date, projectName, m
     '',
     `${md(summary.oneLiner.value)}${note(summary.oneLiner.screens)}`,
     '',
-    ...(media.images.size || media.gifs.size ? [] : ['> 화면 캡처 없이 소스만으로 만들었습니다.', '']),
-    '## 주요 기능',
+    ...(media.images.size || media.gifs.size ? [] : [`> ${T.noCapture}`, '']),
+    `## ${T.features}`,
     '',
     ...summary.features.map((f) => `- **${md(f.menu)}** — ${md(f.value)}${note(f.screens)}`),
     '',
-    ...previewLines(inventory, screens, media, preset === 'portfolio' ? 6 : 3),
-    '## 메뉴 구조',
+    ...previewLines(inventory, screens, media, preset === 'portfolio' ? 6 : 3, T),
+    `## ${T.menu}`,
     '',
     ...menuLines(inventory, screens),
     '',
-    '## 사용자 역할',
+    `## ${T.roles}`,
     '',
-    ...(roles.length ? roles.map((r) => `- ${md(r)}`) : ['- 확인된 역할 없음']),
+    ...(roles.length ? roles.map((r) => `- ${md(r)}`) : [`- ${T.noRoles}`]),
     '',
-    '## 더 보기',
+    `## ${T.more}`,
     '',
-    '- [시스템 소개](html/index.html)',
-    `- [화면 목록](html/screens.html) — 전체 ${inventory.screens.length}개 화면`,
-    '- [워크플로우](html/workflows.html)',
+    `- [${T.systemIntro}](html/index.html)`,
+    `- [${T.screenList}](html/screens.html) — ${T.totalScreens(inventory.screens.length)}`,
+    `- [${T.workflows}](html/workflows.html)`,
     '',
-    `> docent로 소스 코드를 분석해 만든 초안입니다 (기준일 ${date}).`,
+    `> ${T.readmeNote(date)}`,
     '',
   ];
   return lines.join('\n');

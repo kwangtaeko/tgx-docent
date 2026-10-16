@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { PNG } from 'pngjs';
 import PptxGenJS from 'pptxgenjs';
 import { presetOf, revisionRows, screenTitle } from './html.mjs';
+import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 
 const FONT = 'Malgun Gothic';
@@ -21,8 +22,7 @@ const ROW_PAD_IN = 0.12;
 const TABLE_BUDGET_IN = 5.2;
 const COL_W = [0.8, 1.8, 3.4];
 const SHOT_BOX = { x: 0.5, y: 1.5, w: 6.0, h: 5.6 };
-const TYPE_LABELS = { text: '텍스트', textarea: '여러 줄', number: '숫자', date: '날짜', select: '선택', checkbox: '체크', radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타' };
-const low = (x) => (x.confidence === 'low' ? '[확인 필요] ' : '');
+const low = (x, T) => (x.confidence === 'low' ? T.flagPrefix : '');
 
 // 슬라이드 배경 그림(HTML 산출물의 배경과 같은 느낌): 바탕색 위에 타원형 색 번짐을 겹치고, 본문 배경에는 아래로 흐려지는 점 격자를 찍는다
 const BG_W = 1333;
@@ -174,10 +174,10 @@ function menuLines(input) {
   return lines;
 }
 
-function screenRows(s) {
+function screenRows(s, T) {
   return [
-    ...s.fields.map((f) => ['입력', `${low(f)}${f.label}`, `${TYPE_LABELS[f.type] ?? f.type}${f.required ? ' · 필수' : ''}`]),
-    ...s.actions.map((a) => ['버튼', a.label, `${low(a)}${a.effect}`]),
+    ...s.fields.map((f) => [T.kindField, `${low(f, T)}${f.label}`, `${T.typesShort[f.type] ?? f.type}${f.required ? T.requiredSuffix : ''}`]),
+    ...s.actions.map((a) => [T.kindAction, a.label, `${low(a, T)}${a.effect}`]),
   ];
 }
 
@@ -187,7 +187,8 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   const media = input.media ?? { images: new Set(), gifs: new Set() };
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.title = `${input.projectName} ${options.title ?? '사용자 매뉴얼'}`;
+  const T = textOf(input);
+  pptx.title = `${input.projectName} ${options.title ?? T.defaultTitle}`;
   if (options.organization) pptx.company = options.organization;
 
   // 표지
@@ -201,19 +202,19 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
 
   const cover = pptx.addSlide();
   cover.background = { data: backdrop('cover') };
-  cover.addText(options.title ?? '사용자 매뉴얼', { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: 'FFFFFF', transparency: 82 }, line: { color: 'FFFFFF', transparency: 65, width: 0.75 }, align: 'center', fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', fit: 'shrink' });
+  cover.addText(options.title ?? T.defaultTitle, { x: 0.9, y: 1.9, w: 2.4, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: 'FFFFFF', transparency: 82 }, line: { color: 'FFFFFF', transparency: 65, width: 0.75 }, align: 'center', fontFace: FONT, fontSize: 13, bold: true, color: 'FFFFFF', fit: 'shrink' });
   cover.addText(input.projectName, { x: 0.9, y: 2.5, w: W - 1.8, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: 'FFFFFF' });
   cover.addText(input.summary.oneLiner.value, { x: 0.9, y: 3.75, w: W - 3, h: 1.0, fontFace: FONT, fontSize: 16, color: C.onInk, valign: 'top', fit: 'shrink' });
-  const stats = [[input.inventory.screens.length, '화면'], [input.summary.workflows.length, '워크플로우']];
+  const stats = [[input.inventory.screens.length, T.statScreens], [input.summary.workflows.length, T.statWorkflows]];
   stats.forEach(([n, label], i) => {
     cover.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: 'FFFFFF', breakLine: true } }, { text: label, options: { fontSize: 11, color: C.onInk } }], { x: 0.9 + i * 1.9, y: 5.0, w: 1.7, h: 1.0, shape: 'roundRect', rectRadius: 0.12, fill: { color: 'FFFFFF', transparency: 86 }, line: { color: 'FFFFFF', transparency: 70, width: 0.75 }, fontFace: FONT, valign: 'middle', margin: 10 });
   });
-  cover.addText([options.organization, `기준일 ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
+  cover.addText([options.organization, `${T.baseDate} ${input.date}`].filter(Boolean).join('  ·  '), { x: 0.9, y: 6.5, w: W - 1.8, h: 0.4, fontFace: FONT, fontSize: 12, color: C.onInk });
 
   // 소개(주요 기능이 많으면 여러 장)
   splitEvery(input.summary.features, FEATURES_PER_SLIDE).forEach((features, i) => {
     const intro = addSlide();
-    title(intro, `소개${i ? ' (계속)' : ''}`, input.summary.oneLiner.value);
+    title(intro, `${T.intro}${i ? T.continued : ''}`, input.summary.oneLiner.value);
     const cols = 3;
     const rows = Math.max(1, Math.ceil(features.length / cols));
     const gap = 0.2;
@@ -225,17 +226,17 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   // 메뉴 구조(길면 여러 장)
   splitEvery(menuLines(input), MENU_LINES).forEach((lines, i) => {
     const menu = addSlide();
-    title(menu, `메뉴 구조${i ? ' (계속)' : ''}`);
+    title(menu, `${T.menu}${i ? T.continued : ''}`);
     // 상자 높이는 줄 수에 맞춘다(15pt 한 줄 약 0.3in)
     const boxH = Math.min(5.75, 0.5 + Math.max(1, lines.length) * 0.3);
     menu.addShape('roundRect', { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
-    menu.addText(lines.join('\n') || '메뉴 정보 없음', { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: 'top' });
+    menu.addText(lines.join('\n') || T.noMenu, { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: 'top' });
   });
 
   // 워크플로우
   input.summary.workflows.forEach((wf, i) => {
     const slide = addSlide();
-    title(slide, `워크플로우 · ${wf.name}`, wf.description);
+    title(slide, `${T.workflows} · ${wf.name}`, wf.description);
     const png = diagrams?.[i];
     if (png) {
       slide.addShape('roundRect', { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
@@ -264,29 +265,29 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
       if (gif) framed(slide, gif, 'image/gif', { x: 0.6, y: 1.5, w: W - 1.2, h: 5.4 });
       continue;
     }
-    const rows = screenRows(s);
+    const rows = screenRows(s, T);
     const chunks = chunkRows(rows);
     const raw = media.images.has(entry.id) ? await readMaybe(join(mediaDir, 'img', `${entry.id}.png`)) : undefined;
     const shot = raw && cropForSlide(raw, SHOT_BOX.w, SHOT_BOX.h);
     chunks.forEach((chunk, i) => {
       const slide = addSlide();
-      title(slide, `${s.title.value}${i ? ' (계속)' : ''}`, `${low(s.purpose)}${s.purpose.value}`);
+      title(slide, `${s.title.value}${i ? T.continued : ''}`, `${low(s.purpose, T)}${s.purpose.value}`);
       const box = SHOT_BOX;
       if (shot) framed(slide, shot, 'image/png', box);
       else {
         slide.addShape('roundRect', { ...box, rectRadius: 0.1, line: { color: C.line, dashType: 'dash' }, fill: { color: C.soft } });
-        slide.addText('캡처 없음', { ...box, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 16, color: C.muted });
+        slide.addText(T.noShot, { ...box, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 16, color: C.muted });
       }
-      const header = ['구분', '이름', '설명'].map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
-      const body = (chunk.length ? chunk : [['', '입력 항목·버튼 없음', '']]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === '입력' ? C.accent : '7C3AED' } }, ...rest]);
+      const header = T.tableHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+      const body = (chunk.length ? chunk : [['', T.noRows, '']]).map(([kind, ...rest]) => [{ text: kind, options: { bold: true, color: kind === T.kindField ? C.accent : '7C3AED' } }, ...rest]);
       slide.addTable([header, ...body], { x: 6.8, y: 1.5, w: 6.0, colW: COL_W, fontFace: FONT, fontSize: 11, color: C.fg, border: { type: 'solid', color: C.line, pt: 0.75 }, valign: 'top' });
     });
   }
 
   if (preset === 'delivery') {
     const slide = addSlide();
-    title(slide, '개정 이력');
-    const header = ['버전', '날짜', '작성자', '내용'].map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
+    title(slide, T.revisions);
+    const header = T.revisionHead.map((t) => ({ text: t, options: { bold: true, color: C.ink, fill: { color: C.accentSoft } } }));
     const rows = revisionRows(input).map((r) => [r.version, r.date, r.author, r.note]);
     slide.addTable([header, ...rows], { x: 0.6, y: 1.3, w: W - 1.2, colW: [1.2, 1.8, 2.0, W - 6.2], fontFace: FONT, fontSize: 12, color: C.fg, border: { type: 'solid', color: C.line, pt: 0.75 } });
   }

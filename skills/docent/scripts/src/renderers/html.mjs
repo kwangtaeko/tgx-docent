@@ -1,15 +1,10 @@
 // 화면 JSON·inventory·summary → 정적 HTML 사이트. 외부 URL을 쓰지 않는다. (설계 문서 3·10장)
 // 용도 프리셋(input.options.preset): delivery 납품 / handover 인수인계(기본) / portfolio 포트폴리오
 import { escapeComment, escapeHtml as h } from './escape.mjs';
+import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 
-const TYPE_LABELS = {
-  text: '텍스트', textarea: '여러 줄 텍스트', number: '숫자', date: '날짜', select: '선택', checkbox: '체크박스',
-  radio: '단일 선택', file: '파일', password: '비밀번호', email: '이메일', other: '기타',
-};
-
-const NO_CAPTURE = '화면 캡처 없이 소스만으로 만들었습니다.';
-const flag = (item) => (item.confidence === 'low' ? '<mark class="flag">확인 필요</mark> ' : '');
+const flag = (item, T) => (item.confidence === 'low' ? `<mark class="flag">${T.flag}</mark> ` : '');
 // Mermaid 예약어(end, class, style 등)와 겹치지 않게 접두어를 붙인다
 const nodeId = (id) => `s_${id.replace(/-/g, '_')}`;
 const mediaOf = (input) => input.media ?? { images: new Set(), gifs: new Set() };
@@ -27,9 +22,9 @@ export function screenHref(input, id, from = 'root') {
 }
 
 const NAV = [
-  ['index.html', '소개'],
-  ['screens.html', '화면 목록'],
-  ['workflows.html', '워크플로우'],
+  ['index.html', 'intro'],
+  ['screens.html', 'screenList'],
+  ['workflows.html', 'workflows'],
 ];
 
 // 캡처를 누르면 크게 본다(medium-zoom, 산출물 assets에 함께 들어감)
@@ -42,10 +37,11 @@ function frame(img, url = '') {
   return `<figure class="frame"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${h(url)}</span>` : ''}</div>${img}</figure>`;
 }
 
-function page({ title, body, root, projectName, date, scripts = '', active = '' }) {
-  const nav = NAV.map(([file, label]) => `<a href="${root}${file}"${file === active ? ' aria-current="page"' : ''}>${label}</a>`).join('');
+function page({ title, body, root, projectName, date, scripts = '', active = '', ...input }) {
+  const T = textOf(input);
+  const nav = NAV.map(([file, key]) => `<a href="${root}${file}"${file === active ? ' aria-current="page"' : ''}>${T[key]}</a>`).join('');
   return `<!doctype html>
-<html lang="ko">
+<html lang="${T.htmlLang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -62,7 +58,7 @@ function page({ title, body, root, projectName, date, scripts = '', active = '' 
 <main>
 ${body}
 </main>
-<footer class="site"><div class="site-inner">docent로 생성한 초안입니다 · 기준일 ${h(date)}</div></footer>
+<footer class="site"><div class="site-inner">${h(T.footer(date))}</div></footer>
 ${scripts}${zoomScript(root)}</body>
 </html>
 `;
@@ -100,15 +96,16 @@ function menuTree(input, from) {
 
 export function revisionRows(input) {
   const list = input.options?.revisions ?? [];
-  return list.length ? list : [{ version: '0.1', date: input.date, author: '', note: '초안' }];
+  return list.length ? list : [{ version: '0.1', date: input.date, author: '', note: textOf(input).draft }];
 }
 
 export function coverBody(input) {
   const o = input.options ?? {};
+  const T = textOf(input);
   return `<section class="cover">
 <h1>${h(input.projectName)}</h1>
-<p class="doc-title">${h(o.title ?? '사용자 매뉴얼')}</p>
-<dl>${o.organization ? `<dt>작성</dt><dd>${h(o.organization)}</dd>` : ''}<dt>기준일</dt><dd>${h(input.date)}</dd><dt>버전</dt><dd>${h(revisionRows(input).at(-1).version)}</dd></dl>
+<p class="doc-title">${h(o.title ?? T.defaultTitle)}</p>
+<dl>${o.organization ? `<dt>${T.author}</dt><dd>${h(o.organization)}</dd>` : ''}<dt>${T.baseDate}</dt><dd>${h(input.date)}</dd><dt>${T.version}</dt><dd>${h(revisionRows(input).at(-1).version)}</dd></dl>
 </section>`;
 }
 
@@ -117,14 +114,15 @@ export function tocBody(input, { anchors = false } = {}) {
   const screens = input.inventory.screens
     .map((e) => `<li><a href="${anchors ? `#screen-${h(e.id)}` : screenHref(input, e.id)}">${h(screenTitle(input.screens, e.id))}</a></li>`)
     .join('');
+  const T = textOf(input);
   return `<nav class="toc">
-<h2>목차</h2>
+<h2>${T.toc}</h2>
 <ol>
-<li><a href="${at('index.html', 'intro')}">소개</a></li>
-<li><a href="${at('screens.html', 'screen-list')}">화면 목록</a></li>
-<li><a href="${at('workflows.html', 'workflows')}">워크플로우</a></li>
-<li>화면별 설명<ol>${screens}</ol></li>
-<li><a href="${at('index.html#revisions', 'revisions')}">개정 이력</a></li>
+<li><a href="${at('index.html', 'intro')}">${T.intro}</a></li>
+<li><a href="${at('screens.html', 'screen-list')}">${T.screenList}</a></li>
+<li><a href="${at('workflows.html', 'workflows')}">${T.workflows}</a></li>
+<li>${T.perScreen}<ol>${screens}</ol></li>
+<li><a href="${at('index.html#revisions', 'revisions')}">${T.revisions}</a></li>
 </ol>
 </nav>`;
 }
@@ -133,10 +131,11 @@ export function revisionsBody(input) {
   const rows = revisionRows(input)
     .map((r) => `<tr><td>${h(r.version)}</td><td>${h(r.date)}</td><td>${h(r.author)}</td><td>${h(r.note)}</td></tr>`)
     .join('\n');
+  const T = textOf(input);
   return `<section id="revisions">
-<h2>개정 이력</h2>
+<h2>${T.revisions}</h2>
 <table>
-<thead><tr><th>버전</th><th>날짜</th><th>작성자</th><th>내용</th></tr></thead>
+<thead><tr>${T.revisionHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead>
 <tbody>
 ${rows}
 </tbody>
@@ -146,71 +145,74 @@ ${rows}
 
 export function introBody(input, { from = 'root', heading = true } = {}) {
   const { inventory, screens, summary } = input;
+  const T = textOf(input);
   const features = summary.features
     .map((f) => `<article class="feature"><h3>${h(f.menu)}</h3><p>${h(f.value)}${screensNote(input, f.screens)}</p></article>`)
     .join('\n');
   const roleList = rolesOf(screens);
-  const roles = roleList.map((r) => `<li>${h(r)}</li>`).join('') || '<li>확인된 역할 없음</li>';
+  const roles = roleList.map((r) => `<li>${h(r)}</li>`).join('') || `<li>${T.noRoles}</li>`;
   const media = mediaOf(input);
   const limit = presetOf(input) === 'portfolio' ? 6 : 3;
   const prefix = from === 'screens' ? '../' : '';
   // 인쇄(PDF)에서는 GIF가 첫 장면만 찍히므로 캡처 PNG를 쓴다
   const gifs = inventory.screens.filter((e) => media.gifs.has(e.id) && (!input.printAnchors || media.images.has(e.id))).slice(0, limit);
   const preview = gifs.length
-    ? `<h2>화면 미리보기</h2>\n<div class="preview">${gifs
+    ? `<h2>${T.preview}</h2>\n<div class="preview">${gifs
         .map((e) => {
           const title = h(screenTitle(screens, e.id));
           const src = input.printAnchors ? `${prefix}media/img/${h(e.id)}.png` : `${prefix}media/gif/${h(e.id)}.gif`;
-          return `<div class="preview-item">${frame(`<img src="${src}" alt="${title} 조작 예시" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title}</a></div>`;
+          return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title)}" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title}</a></div>`;
         })
         .join('')}</div>`
     : '';
-  const notice = media.images.size || media.gifs.size ? '' : `<p class="notice">${NO_CAPTURE}</p>\n`;
+  const notice = media.images.size || media.gifs.size ? '' : `<p class="notice">${T.noCapture}</p>\n`;
   const stats = [
-    [inventory.screens.length, '화면'],
-    [summary.workflows.length, '워크플로우'],
-    [roleList.length, '역할'],
+    [inventory.screens.length, T.statScreens],
+    [summary.workflows.length, T.statWorkflows],
+    [roleList.length, T.statRoles],
   ]
     .map(([n, label]) => `<li><b>${n}</b><span>${label}</span></li>`)
     .join('');
   return `<section class="hero">
-<p class="eyebrow">${h(input.options?.title ?? '사용자 매뉴얼')}</p>
+<p class="eyebrow">${h(input.options?.title ?? T.defaultTitle)}</p>
 ${heading ? `<h1>${h(input.projectName)}</h1>\n` : ''}<p class="lead">${h(summary.oneLiner.value)}${screensNote(input, summary.oneLiner.screens)}</p>
 <ul class="stats">${stats}</ul>
 </section>
-${notice}<h2>주요 기능</h2>
+${notice}<h2>${T.features}</h2>
 <div class="feature-grid">
 ${features}
 </div>
 ${preview}
-<h2>사용자 역할</h2>
+<h2>${T.roles}</h2>
 <ul class="chips">${roles}</ul>
-<h2>메뉴 구조</h2>
+<h2>${T.menu}</h2>
 ${menuTree(input, from)}`;
 }
 
 function renderIndex(input) {
   const delivery = presetOf(input) === 'delivery';
+  const T = textOf(input);
   const body = `${delivery ? `${coverBody(input)}\n${tocBody(input)}\n` : ''}${introBody(input)}
-<p>전체 화면은 <a href="screens.html">화면 목록</a>, 업무 흐름은 <a href="workflows.html">워크플로우</a>에서 볼 수 있습니다.</p>${delivery ? `\n${revisionsBody(input)}` : ''}`;
-  return page({ ...input, title: '소개', body, root: '', active: 'index.html' });
+<p>${T.seeMore(`<a href="screens.html">${T.screenList}</a>`, `<a href="workflows.html">${T.workflows}</a>`)}</p>${delivery ? `\n${revisionsBody(input)}` : ''}`;
+  return page({ ...input, title: T.intro, body, root: '', active: 'index.html' });
 }
 
 export function listBody(input) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const rows = inventory.screens
     .map((entry) => {
       const s = screens.get(entry.id);
       const menu = s.menuPath?.value.join(' › ') ?? '';
-      const where = entry.route ?? `${screenTitle(screens, entry.parentId)}의 하위 화면`;
-      return `<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose)}${h(s.purpose.value)}</td></tr>`;
+      const where = entry.route ?? T.childOf(screenTitle(screens, entry.parentId));
+      return `<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose, T)}${h(s.purpose.value)}</td></tr>`;
     })
     .join('\n');
-  return `<h1>화면 목록</h1>
-<p class="lead">전체 ${inventory.screens.length}개 화면</p>
+  return `<h1>${T.screenList}</h1>
+<p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="table-wrap">
 <table>
-<thead><tr><th>ID</th><th>화면</th><th>경로</th><th>메뉴</th><th>역할</th><th>목적</th></tr></thead>
+<thead><tr>${T.listHead.map((x) => `<th>${x}</th>`).join('')}</tr></thead>
 <tbody>
 ${rows}
 </tbody>
@@ -221,25 +223,26 @@ ${rows}
 // portfolio: 화면을 캡처·목적 카드로
 export function cardsBody(input, { prefix = '' } = {}) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const media = mediaOf(input);
   const cards = inventory.screens
     .map((entry) => {
       const s = screens.get(entry.id);
       const shot = media.images.has(entry.id)
-        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(s.title.value)} 화면" data-zoomable>`, entry.route ?? '')
-        : '<p class="no-shot">캡처 없음</p>';
-      const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">조작 예시 보기</a>` : '';
+        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, entry.route ?? '')
+        : `<p class="no-shot">${T.noShot}</p>`;
+      const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">${T.watchDemo}</a>` : '';
       return `<article class="card" id="${h(entry.id)}">
 ${shot}
 <div class="card-body">
 <h2>${h(s.title.value)}</h2>
-<p>${flag(s.purpose)}${h(s.purpose.value)}</p>
+<p>${flag(s.purpose, T)}${h(s.purpose.value)}</p>
 ${gif}</div>
 </article>`;
     })
     .join('\n');
-  return `<h1>화면 목록</h1>
-<p class="lead">전체 ${inventory.screens.length}개 화면</p>
+  return `<h1>${T.screenList}</h1>
+<p class="lead">${T.totalScreens(inventory.screens.length)}</p>
 <div class="cards">
 ${cards}
 </div>`;
@@ -247,32 +250,33 @@ ${cards}
 
 function renderList(input) {
   const body = presetOf(input) === 'portfolio' ? cardsBody(input) : listBody(input);
-  return page({ ...input, title: '화면 목록', body, root: '', active: 'screens.html' });
+  return page({ ...input, title: textOf(input).screenList, body, root: '', active: 'screens.html' });
 }
 
 // 화면 상세 본문. from: 'screens'(screens/ 폴더의 페이지) | 'root'(인쇄용 단일 문서)
 export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' } = {}) {
   const { inventory, screens } = input;
+  const T = textOf(input);
   const ev = evOf(input);
   const s = screens.get(entry.id);
   const link = (id) => `<a href="${from === 'root' && input.printAnchors ? `#screen-${h(id)}` : screenHref(input, id, from)}">${h(screenTitle(screens, id))}</a>`;
   const prefix = from === 'screens' ? '../' : '';
   const meta = [];
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
-  if (s.menuPath) meta.push(item('메뉴 위치', `${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}`));
-  meta.push(s.route ? item('경로', `<code>${h(s.route)}</code>`) : item('상위 화면', link(s.parentId)));
+  if (s.menuPath) meta.push(item(T.menuPath, `${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}`));
+  meta.push(s.route ? item(T.route, `<code>${h(s.route)}</code>`) : item(T.parent, link(s.parentId)));
   const evTight = evOf(input, '');
-  const roles = s.roles.length ? s.roles.map((r) => `${flag(r)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : '확인된 역할 없음';
-  meta.push(item('사용 역할', roles));
+  const roles = s.roles.length ? s.roles.map((r) => `${flag(r, T)}${h(r.value)}${evTight(r.evidence)}`).join(', ') : T.noRoles;
+  meta.push(item(T.usedBy, roles));
 
-  const sections = s.sections.length ? `<h2>구성</h2><ul class="chips">${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';
-  const empty = '<p class="empty">없음</p>';
+  const sections = s.sections.length ? `<h2>${T.sections}</h2><ul class="chips">${s.sections.map((x) => `<li>${h(x.title)}${ev(x.evidence)}</li>`).join('')}</ul>` : '';
+  const empty = `<p class="empty">${T.none}</p>`;
   const fields = s.fields.length
     ? `<ul class="fields">
 ${s.fields
   .map(
     (f) =>
-      `<li><div class="field-head">${flag(f)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(TYPE_LABELS[f.type])}</span>${f.required ? '<span class="badge required">필수</span>' : ''}</div></li>`,
+      `<li><div class="field-head">${flag(f, T)}<span class="field-name">${h(f.label)}</span>${ev(f.evidence)}<span class="badge">${h(T.types[f.type])}</span>${f.required ? `<span class="badge required">${T.required}</span>` : ''}</div></li>`,
   )
   .join('\n')}
 </ul>`
@@ -281,10 +285,10 @@ ${s.fields
     ? `<ul class="fields actions">
 ${s.actions
   .map((a) => {
-    const next = [a.navigatesTo && `<span class="next">이동 → ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">열기 → ${link(a.opens)}</span>`]
+    const next = [a.navigatesTo && `<span class="next">${T.goTo} → ${link(a.navigatesTo)}</span>`, a.opens && `<span class="next">${T.opens} → ${link(a.opens)}</span>`]
       .filter(Boolean)
       .join('');
-    return `<li><div class="field-head"><span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
+    return `<li><div class="field-head"><span class="field-name">${h(a.label)}</span>${next}</div><p class="field-desc">${flag(a, T)}${h(a.effect)}${ev(a.evidence)}</p></li>`;
   })
   .join('\n')}
 </ul>`
@@ -295,36 +299,36 @@ ${s.actions
         .join('\n')
     : empty;
   const children = inventory.screens.filter((x) => x.parentId === s.id);
-  const childList = children.length ? `<h2>하위 화면</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join('')}</ul>` : '';
+  const childList = children.length ? `<h2>${T.children}</h2><ul class="chips">${children.map((c) => `<li>${link(c.id)}</li>`).join('')}</ul>` : '';
   const unknowns = s.unknowns.length
-    ? `<h2>확인 필요</h2>
-<aside class="callout caution"><p class="callout-title">소스만으로 확정하지 못한 내용입니다</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${h(u)}</li>`).join('')}</ul></aside>`
+    ? `<h2>${T.flag}</h2>
+<aside class="callout caution"><p class="callout-title">${T.unknownsTitle}</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${h(u)}</li>`).join('')}</ul></aside>`
     : '';
   const sources =
-    presetOf(input) === 'handover' ? `<h2>소스 파일</h2><ul class="sources">${entry.files.map((f) => `<li><code>${h(f)}</code></li>`).join('')}</ul>` : '';
+    presetOf(input) === 'handover' ? `<h2>${T.sources}</h2><ul class="sources">${entry.files.map((f) => `<li><code>${h(f)}</code></li>`).join('')}</ul>` : '';
 
   const media = mediaOf(input);
   const shot = media.images.has(s.id)
-    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(s.title.value)} 화면" data-zoomable>`, s.route ?? '')}\n`
+    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, s.route ?? '')}\n`
     : input.printAnchors
-      ? '<p class="no-shot">캡처 없음</p>\n'
+      ? `<p class="no-shot">${T.noShot}</p>\n`
       : '';
   const gif =
     media.gifs.has(s.id) && !input.printAnchors
-      ? `<h2>조작 예시</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(s.title.value)} 조작 예시" data-zoomable>`, s.route ?? '')}\n`
+      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, s.route ?? '')}\n`
       : '';
   return `<${headingTag}>${h(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
-<p class="lead">${flag(s.purpose)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>
+<p class="lead">${flag(s.purpose, T)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>
 ${shot}
 <dl class="meta">
 ${meta.join('\n')}
 </dl>
 ${sections}
-${gif}<h2>입력 항목</h2>
+${gif}<h2>${T.fields}</h2>
 ${fields}
-<h2>버튼과 동작</h2>
+<h2>${T.actions}</h2>
 ${actions}
-<h2>안내 메시지</h2>
+<h2>${T.messages}</h2>
 ${messages}
 ${childList}
 ${unknowns}
@@ -332,7 +336,7 @@ ${sources}`;
 }
 
 function renderScreen(input, entry) {
-  const body = `<p class="crumb"><a href="../screens.html">화면 목록</a> › <code>${h(entry.id)}</code></p>
+  const body = `<p class="crumb"><a href="../screens.html">${textOf(input).screenList}</a> › <code>${h(entry.id)}</code></p>
 ${screenBody(input, entry)}`;
   return page({ ...input, title: input.screens.get(entry.id).title.value, body, root: '../', active: 'screens.html' });
 }
@@ -364,6 +368,7 @@ export const MERMAID_INIT = `(() => {
 
 export function workflowsBody(input, { linkToScreen = (id) => screenHref(input, id) } = {}) {
   const { screens, summary } = input;
+  const T = textOf(input);
   const blocks = summary.workflows
     .map((wf) => {
       const steps = wf.steps.map((id) => `<li><a href="${linkToScreen(id)}">${h(screenTitle(screens, id))}</a></li>`).join('');
@@ -377,14 +382,14 @@ ${workflowMermaid(input, wf)}
 </section>`;
     })
     .join('\n');
-  return `<h1>워크플로우</h1>
-<p>화면 사이를 오가며 업무를 처리하는 흐름입니다. 화면의 버튼 동작으로 확인된 연결만 그렸습니다.</p>
+  return `<h1>${T.workflows}</h1>
+<p>${T.workflowsLead}</p>
 ${blocks}`;
 }
 
 function renderWorkflows(input) {
   const scripts = `<script src="assets/mermaid.min.js"></script>\n<script>mermaid.initialize(${MERMAID_INIT});</script>\n`;
-  return page({ ...input, title: '워크플로우', body: workflowsBody(input), root: '', scripts, active: 'workflows.html' });
+  return page({ ...input, title: textOf(input).workflows, body: workflowsBody(input), root: '', scripts, active: 'workflows.html' });
 }
 
 const STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fonts/Pretendard-OFL.txt) */

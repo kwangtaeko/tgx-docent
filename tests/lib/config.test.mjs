@@ -75,3 +75,12 @@ test('app은 프로젝트 안 상대 경로로 정리하고, 밖을 가리키면
   await writeFile(join(dir, '.docent', 'config.yaml'), 'app: ../other\n');
   await assert.rejects(loadConfig(dir), /app은 프로젝트 안의 폴더/);
 });
+
+test('language는 ko·en만 받는다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'docent-cfg-'));
+  await mkdir(join(dir, '.docent'));
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'language: en\n');
+  assert.equal((await loadConfig(dir)).language, 'en');
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'language: ja\n');
+  await assert.rejects(loadConfig(dir), /language는 ko, en 중 하나/);
+});

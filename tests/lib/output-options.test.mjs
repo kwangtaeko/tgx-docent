@@ -14,10 +14,19 @@ test('기본값', () => {
   assert.deepEqual(resolveOutputOptions(structuredClone(DEFAULT_CONFIG), {}), {
     preset: 'handover',
     formats: ['html', 'readme'],
+    language: 'ko',
     title: '사용자 매뉴얼',
     organization: '',
     revisions: [],
   });
+});
+
+test('language: en이면 기본 제목이 영어', () => {
+  const config = structuredClone(DEFAULT_CONFIG);
+  config.language = 'en';
+  const r = resolveOutputOptions(config, {});
+  assert.equal(r.language, 'en');
+  assert.equal(r.title, 'User Manual');
 });
 
 test('CLI 값이 우선하고 형식은 정렬·중복 제거', () => {

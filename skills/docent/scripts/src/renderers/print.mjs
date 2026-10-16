@@ -1,5 +1,6 @@
 // PDF용 인쇄 HTML: 모든 내용을 한 문서로 잇는다. Mermaid 렌더가 끝나면 body[data-ready="1"]. (설계 문서 10장)
 import { escapeHtml as h } from './escape.mjs';
+import { textOf } from './i18n.mjs';
 import { cardsBody, coverBody, introBody, listBody, MERMAID_INIT, presetOf, revisionsBody, screenBody, STYLE, tocBody, workflowsBody } from './html.mjs';
 
 const PRINT_STYLE = `
@@ -31,9 +32,10 @@ export function renderPrint(input) {
     }
   }
   if (preset === 'delivery') parts.push(revisionsBody(input));
-  const title = input.options?.title ?? '사용자 매뉴얼';
+  const T = textOf(input);
+  const title = input.options?.title ?? T.defaultTitle;
   return `<!doctype html>
-<html lang="ko">
+<html lang="${T.htmlLang}">
 <head>
 <meta charset="utf-8">
 <title>${h(input.projectName)} ${h(title)}</title>

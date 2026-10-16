@@ -134,3 +134,13 @@ test('실제 자산 폴더에 글꼴·라이선스·확대 스크립트가 있�
   const { stat } = await import('node:fs/promises');
   for (const f of ['zoom.min.js', 'fonts/PretendardVariable.woff2', 'fonts/Pretendard-OFL.txt']) assert.ok((await stat(join('skills/docent/assets', f))).size > 0, f);
 });
+
+test('language: en이면 영어 산출물과 영어 파일 이름, 경고 없음', async () => {
+  const { dir, docent } = await prepared();
+  await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\nlanguage: en\ndetectors: [nextjs]\n');
+  const r = await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['html', 'readme', 'pptx'] });
+  assert.ok(r.files.includes('UserManual.pptx'), r.files.join(','));
+  assert.ok(!r.warnings.some((w) => w.includes('language')), r.warnings.join('\n'));
+  assert.match(await readFile(join(docent, 'out', 'README.md'), 'utf8'), /^## Key features$/m);
+  assert.match(await readFile(join(docent, 'out', 'html', 'index.html'), 'utf8'), /<html lang="en">/);
+});
