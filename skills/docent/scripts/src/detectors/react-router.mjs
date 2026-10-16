@@ -1,6 +1,7 @@
 // React Router 화면 감지기: v7 프레임워크 모드(app/routes.ts, flatRoutes() 포함), Remix v2(app/routes/ 파일 이름), 코드 라우터(createBrowserRouter·useRoutes·<Route>). (설계 문서 6장 1번)
 import { readFile } from 'node:fs/promises';
 import { join, posix } from 'node:path';
+import { t } from '../lib/cli-text.mjs';
 import { flatRouteScreens, flatRoutesCalls, remixIgnoredRouteFiles } from './flat-routes.mjs';
 import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath } from './route-tree.mjs';
 import { byRoute, hasDependency, isDir, isFile, isTestFile, loadAliases, resolveImport, screenFiles, walk } from './shared.mjs';
@@ -67,7 +68,7 @@ export async function warnings(projectDir) {
   const calls = flatRoutesCalls(await readFile(join(projectDir, config), 'utf8'));
   if (!calls.length || (await listScreens(projectDir)).length) return [];
   const dirs = calls.map((c) => `${posix.join(posix.dirname(config), c.dir)}/`).join(', ');
-  return [`${config}의 flatRoutes()가 가리키는 ${dirs}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)`];
+  return [t('{0}의 flatRoutes()가 가리키는 {1}에서 라우트 파일을 찾지 못했습니다 — route-explorer로 화면을 찾으세요(references/stacks/js-routers.md)', config, dirs)];
 }
 
 export async function listScreens(projectDir) {

@@ -1,4 +1,5 @@
 // 시나리오 단계 실행기. 요소는 셀렉터가 아니라 라벨·role로 찾는다. (설계 문서 9장)
+import { t } from './cli-text.mjs';
 
 const VAR = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
@@ -7,7 +8,7 @@ class StepError extends Error {}
 // 값의 ${NAME}을 환경변수로 바꾼다. 없으면 이름만 담은 오류(값은 담지 않음)
 function substitute(value, env) {
   return value.replace(VAR, (_, name) => {
-    if (env[name] === undefined) throw new StepError(`환경변수 없음: ${name}`);
+    if (env[name] === undefined) throw new StepError(t('환경변수 없음: {0}', name));
     return env[name];
   });
 }
@@ -16,10 +17,10 @@ async function single(locator, describe, timeoutMs) {
   try {
     await locator.first().waitFor({ state: 'visible', timeout: timeoutMs });
   } catch {
-    throw new StepError(`${describe}을(를) 찾을 수 없습니다`);
+    throw new StepError(t('{0}을(를) 찾을 수 없습니다', describe));
   }
   const count = await locator.count();
-  if (count !== 1) throw new StepError(`${describe}이(가) ${count}개 있습니다. nth로 몇 번째인지 지정하세요`);
+  if (count !== 1) throw new StepError(t('{0}이(가) {1}개 있습니다. nth로 몇 번째인지 지정하세요', describe, count));
   return locator;
 }
 
@@ -74,7 +75,7 @@ async function pick(locator, nth, describe, timeoutMs) {
   try {
     await el.waitFor({ state: 'visible', timeout: timeoutMs });
   } catch {
-    throw new StepError(`${describe}의 ${nth}번째 요소를 찾을 수 없습니다`);
+    throw new StepError(t('{0}의 {1}번째 요소를 찾을 수 없습니다', describe, nth));
   }
   return el;
 }
@@ -83,16 +84,16 @@ async function runStep(page, step, env, timeoutMs) {
   switch (step.do) {
     case 'fill': {
       const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `입력 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, t('입력 항목 "{0}"', step.label), timeoutMs);
       return el.fill(value, { timeout: timeoutMs });
     }
     case 'select': {
       const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `선택 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, t('선택 항목 "{0}"', step.label), timeoutMs);
       return el.selectOption({ label: value }, { timeout: timeoutMs });
     }
     case 'check': {
-      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, `체크 항목 "${step.label}"`, timeoutMs);
+      const el = await pick(await byLabel(page, step.label, timeoutMs), step.nth, t('체크 항목 "{0}"', step.label), timeoutMs);
       return el.check({ timeout: timeoutMs });
     }
     case 'click': {
@@ -115,7 +116,7 @@ async function runStep(page, step, env, timeoutMs) {
       try {
         popup = await opened;
       } catch {
-        throw new StepError(`${step.role} "${step.label}"을(를) 눌렀지만 새 창이 열리지 않았습니다`);
+        throw new StepError(t('{0} "{1}"을(를) 눌렀지만 새 창이 열리지 않았습니다', step.role, step.label));
       }
       await popup.waitForLoadState('load', { timeout: timeoutMs * 3 }).catch(() => {});
       return popup;
@@ -124,7 +125,7 @@ async function runStep(page, step, env, timeoutMs) {
       try {
         await page.getByText(step.text, { exact: false }).first().waitFor({ state: 'visible', timeout: timeoutMs });
       } catch {
-        throw new StepError(`문구 "${step.text}"가 나타나지 않았습니다`);
+        throw new StepError(t('문구 "{0}"가 나타나지 않았습니다', step.text));
       }
       return undefined;
     case 'wait':
@@ -133,7 +134,7 @@ async function runStep(page, step, env, timeoutMs) {
     case 'goto':
       return page.goto(new URL(step.path, page.url()).href, { timeout: timeoutMs * 3 });
     default:
-      throw new StepError(`알 수 없는 단계: ${step.do}`);
+      throw new StepError(t('알 수 없는 단계: {0}', step.do));
   }
 }
 
@@ -173,7 +174,7 @@ export async function runSteps(page, steps, { env = process.env, timeoutMs = 500
         }
       }
       // Playwright 오류 메시지에는 입력값이 들어갈 수 있으므로 우리 메시지만 쓴다
-      const reason = err instanceof StepError ? err.message : `${steps[index].do} 단계 실행 실패`;
+      const reason = err instanceof StepError ? err.message : t('{0} 단계 실행 실패', steps[index].do);
       return { ok: false, index, reason };
     }
     if (onStep) await onStep(index);

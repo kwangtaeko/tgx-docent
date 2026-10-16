@@ -1,6 +1,7 @@
 // 근거(evidence)가 실제 소스 위치를 가리키는지 검사한다. (설계 문서 11장)
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve, sep } from 'node:path';
+import { t } from './cli-text.mjs';
 
 export const TEXT_WINDOW = 5;
 // 문구 안의 자리 표시({버전}, {name})와 그 자리에 올 수 있는 소스 글자 수
@@ -53,7 +54,7 @@ export function parseEvidence(s) {
     return { file, startLine, endLine: range[2] ? Number(range[2]) : startLine };
   }
   if (file && SYMBOL.test(loc)) return { file, symbol: loc };
-  throw new Error(`근거 형식 오류: ${s}`);
+  throw new Error(t('근거 형식 오류: {0}', s));
 }
 
 function escapeRegExp(text) {
@@ -71,22 +72,22 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
   const rootPath = resolve(rootDir);
   const target = resolve(rootPath, ev.file);
   if (ev.file.includes('\\') || isAbsolute(ev.file) || !target.startsWith(rootPath + sep)) {
-    return { ok: false, reason: `project root 밖의 경로: ${ev.file}` };
+    return { ok: false, reason: t('project root 밖의 경로: {0}', ev.file) };
   }
 
   // 루트 안의 심볼릭 링크가 루트 밖 파일을 가리키는 경우도 막는다
   try {
     const [realRoot, realTarget] = await Promise.all([realpath(rootPath), realpath(target)]);
-    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: `project root 밖의 경로: ${ev.file}` };
+    if (!realTarget.startsWith(realRoot + sep)) return { ok: false, reason: t('project root 밖의 경로: {0}', ev.file) };
   } catch {
-    return { ok: false, reason: `파일 없음: ${ev.file}` };
+    return { ok: false, reason: t('파일 없음: {0}', ev.file) };
   }
 
   let lines;
   try {
     lines = (await readFile(target, 'utf8')).split(/\r\n|\r|\n/);
   } catch {
-    return { ok: false, reason: `파일 없음: ${ev.file}` };
+    return { ok: false, reason: t('파일 없음: {0}', ev.file) };
   }
   if (lines.at(-1) === '') lines.pop();
 
@@ -95,14 +96,14 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
     const pattern = new RegExp(`(^|[^\\w$])${escapeRegExp(ev.symbol)}($|[^\\w$])`);
     const hits = lines.flatMap((line, i) => (pattern.test(line) ? [i] : []));
     if (hits.length === 0) {
-      return { ok: false, reason: `${ev.file}에 ${ev.symbol} 없음` };
+      return { ok: false, reason: t('{0}에 {1} 없음', ev.file, ev.symbol) };
     }
     // 심볼이 나오는 각 위치의 ±TEXT_WINDOW줄
     window = lines.filter((_, i) => hits.some((h) => Math.abs(i - h) <= TEXT_WINDOW));
   } else {
     const { startLine, endLine } = ev;
     if (startLine < 1 || startLine > endLine || endLine > lines.length) {
-      return { ok: false, reason: `${ev.file}의 라인 범위 오류: ${startLine}-${endLine} (전체 ${lines.length}줄)` };
+      return { ok: false, reason: t('{0}의 라인 범위 오류: {1}-{2} (전체 {3}줄)', ev.file, startLine, endLine, lines.length) };
     }
     window = lines.slice(Math.max(0, startLine - 1 - TEXT_WINDOW), endLine + TEXT_WINDOW);
   }
@@ -116,7 +117,7 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
     return matchesWithPlaceholders(squash(text), joined);
   };
   if (opts.expectText !== undefined && !found(opts.expectText)) {
-    return { ok: false, reason: `${evidence} 근처(±${TEXT_WINDOW}줄)에 "${opts.expectText}" 없음` };
+    return { ok: false, reason: t('{0} 근처(±{1}줄)에 "{2}" 없음', evidence, TEXT_WINDOW, opts.expectText) };
   }
   return { ok: true };
 }

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { LANGUAGES } from '../renderers/i18n.mjs';
+import { t } from './cli-text.mjs';
 import { normalizeRel } from './paths.mjs';
 
 export const DEFAULT_CONFIG = Object.freeze({
@@ -43,13 +44,13 @@ const get = (obj, path) => path.split('.').reduce((o, k) => (isObject(o) ? o[k] 
 function checkConfig(config) {
   const fail = (path, kind) => {
     const code = kind.charCodeAt(kind.length - 1) - 0xac00;
-    const copula = code >= 0 && code % 28 ? '이어야' : '여야'; // 받침이 있으면 '이어야'
-    throw new Error(`config.yaml: ${path}는 ${kind}${copula} 합니다`);
+    // 받침이 있으면 '이어야'. 영어 문구에는 쓰이지 않는다(kind가 이미 번역돼 있어 받침 판단도 무관)
+    throw new Error(code >= 0 && code % 28 ? t('config.yaml: {0}는 {1}이어야 합니다', path, kind) : t('config.yaml: {0}는 {1}여야 합니다', path, kind));
   };
-  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, '객체');
+  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, t('객체'));
   // 형식 하나만 적은 경우(formats: pdf)는 목록으로 받는다
   if (typeof config.output.formats === 'string') config.output.formats = [config.output.formats];
-  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, '목록');
+  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, t('목록'));
   for (const path of STRING_KEYS) {
     const value = get(config, path);
     if (value === undefined) continue;
@@ -58,18 +59,18 @@ function checkConfig(config) {
       const [head, key] = path.includes('.') ? path.split('.') : [undefined, path];
       if (head) config[head][key] = String(value);
       else config[key] = String(value);
-    } else if (typeof value !== 'string') fail(path, '문자열');
+    } else if (typeof value !== 'string') fail(path, t('문자열'));
   }
   if (config.app) {
     try {
       config.app = normalizeRel(config.app.replace(/\\/g, '/'));
     } catch {
-      throw new Error(`config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 (${config.app})`);
+      throw new Error(t('config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 ({0})', config.app));
     }
   }
-  if (!LANGUAGES.includes(config.language)) throw new Error(`config.yaml: language는 ${LANGUAGES.join(', ')} 중 하나여야 합니다 (${config.language})`);
+  if (!LANGUAGES.includes(config.language)) throw new Error(t('config.yaml: language는 {0} 중 하나여야 합니다 ({1})', LANGUAGES.join(', '), config.language));
   const n = config.analyze.concurrency;
-  if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', '양의 정수');
+  if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', t('양의 정수'));
   return config;
 }
 
@@ -86,7 +87,7 @@ export async function loadConfig(projectDir) {
   try {
     data = parse(text);
   } catch (err) {
-    throw new Error(`.docent/config.yaml 형식 오류: ${err.message}`);
+    throw new Error(t('.docent/config.yaml 형식 오류: {0}', err.message));
   }
   return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
 }
