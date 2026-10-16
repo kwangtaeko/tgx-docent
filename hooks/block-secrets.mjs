@@ -92,7 +92,9 @@ function main() {
   }
   if (!blocked) return 0;
   process.stderr.write(
-    `docent: 비밀 파일(${blocked})은 분석하지 않습니다. 환경변수 이름은 .env.example이나 코드의 process.env 참조에서 확인하세요.\n`,
+    // 이 문구는 에이전트가 읽으므로 한국어·영어를 함께 쓴다
+    `docent: 비밀 파일(${blocked})은 분석하지 않습니다. 환경변수 이름은 .env.example이나 코드의 process.env 참조에서 확인하세요.\n` +
+      `docent: secret files (${blocked}) are not read during analysis. Find environment variable names in .env.example or process.env references in the code.\n`,
   );
   return 2;
 }
