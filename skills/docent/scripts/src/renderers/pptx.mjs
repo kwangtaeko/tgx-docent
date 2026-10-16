@@ -149,7 +149,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
   // 표지
   pptx.defineSlideMaster({
     title: 'DOCENT',
-    background: { color: 'FFFFFF' },
+    background: { color: 'F6F6FB' },
     objects: [{ line: { x: 0.5, y: 7.05, w: W - 1, h: 0, line: { color: C.line, width: 0.75 } } }, { text: { text: input.projectName, options: { x: 0.5, y: 7.08, w: 6, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted } } }],
     slideNumber: { x: W - 1.2, y: 7.08, w: 0.7, h: 0.3, fontFace: FONT, fontSize: 9, color: C.muted, align: 'right' },
   });
@@ -185,7 +185,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
     title(menu, `메뉴 구조${i ? ' (계속)' : ''}`);
     // 상자 높이는 줄 수에 맞춘다(15pt 한 줄 약 0.3in)
     const boxH = Math.min(5.75, 0.5 + Math.max(1, lines.length) * 0.3);
-    menu.addShape('roundRect', { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: C.soft }, line: { color: C.line, width: 0.75 } });
+    menu.addShape('roundRect', { x: 0.6, y: 1.15, w: W - 1.2, h: boxH, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
     menu.addText(lines.join('\n') || '메뉴 정보 없음', { x: 0.9, y: 1.3, w: W - 1.8, h: boxH - 0.25, fontFace: FONT, fontSize: 15, color: C.fg, valign: 'top' });
   });
 
@@ -195,7 +195,7 @@ export async function renderPptx(input, { diagrams, mediaDir } = {}) {
     title(slide, `워크플로우 · ${wf.name}`, wf.description);
     const png = diagrams?.[i];
     if (png) {
-      slide.addShape('roundRect', { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: C.soft }, line: { color: C.line, width: 0.75 } });
+      slide.addShape('roundRect', { x: 0.6, y: 1.6, w: W - 1.2, h: 3.5, rectRadius: 0.1, fill: { color: 'FFFFFF' }, line: { color: C.line, width: 0.75 } });
       slide.addImage({ data: dataUri(png, 'image/png'), ...fit(png, { x: 0.8, y: 1.75, w: W - 1.6, h: 3.2 }) });
     }
     // 단계 칩: 번호 + 화면 이름, 사이에 화살표

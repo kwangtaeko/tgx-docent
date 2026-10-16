@@ -396,7 +396,8 @@ const STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fo
   src: url("fonts/PretendardVariable.woff2") format("woff2-variations");
 }
 :root {
-  --bg: #ffffff; --bg-soft: #f6f6f8; --card: #ffffff;
+  --bg: #f6f6fb; --bg-soft: #f1f1f6; --card: #ffffff;
+  --glow-1: rgba(99, 102, 241, 0.16); --glow-2: rgba(236, 72, 153, 0.10); --glow-3: rgba(14, 165, 233, 0.10); --dot: rgba(15, 15, 30, 0.07);
   --fg: #17171c; --muted: #6a6a76; --faint: #9a9aa6;
   --line: rgba(15, 15, 30, 0.08); --line-strong: rgba(15, 15, 30, 0.14);
   --accent: #4f46e5; --accent-soft: rgba(79, 70, 229, 0.08); --accent-fg: #ffffff;
@@ -413,7 +414,8 @@ const STYLE = `/* docent 산출물 스타일. 글꼴: Pretendard(SIL OFL 1.1, fo
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0d0d10; --bg-soft: #141418; --card: #16161b;
+    --bg: #0b0b10; --bg-soft: #15151b; --card: #17171d;
+    --glow-1: rgba(99, 102, 241, 0.22); --glow-2: rgba(236, 72, 153, 0.12); --glow-3: rgba(14, 165, 233, 0.10); --dot: rgba(255, 255, 255, 0.06);
     --fg: #ececf1; --muted: #a2a2ae; --faint: #6f6f7b;
     --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
     --accent: #8b8cf8; --accent-soft: rgba(139, 140, 248, 0.12); --accent-fg: #0d0d10;
@@ -432,6 +434,14 @@ body {
   color: var(--fg); background: var(--bg); word-break: keep-all; overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
+/* 배경: 위쪽의 은은한 색 번짐과 점 격자(아래로 갈수록 흐려짐) */
+body { position: relative; background:
+  radial-gradient(1000px 520px at 8% -120px, var(--glow-1), transparent 65%),
+  radial-gradient(820px 460px at 96% -80px, var(--glow-2), transparent 62%),
+  radial-gradient(700px 420px at 50% 520px, var(--glow-3), transparent 65%) var(--bg) no-repeat; }
+body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 900px; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent); mask-image: linear-gradient(to bottom, #000, transparent); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 code { font-family: var(--mono); font-size: 0.86em; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 6px; padding: 0.08em 0.4em; }
@@ -452,16 +462,24 @@ header.site nav { display: flex; gap: 0.25rem; margin-left: auto; }
 header.site nav a { color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.92rem; font-weight: 500; }
 header.site nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
 header.site nav a[aria-current="page"] { color: var(--fg); background: var(--bg-soft); box-shadow: inset 0 0 0 1px var(--line); }
-footer.site { margin-top: 5rem; border-top: 1px solid var(--line); color: var(--faint); font-size: 0.85rem; }
+footer.site { margin-top: 5rem; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--card) 55%, transparent); color: var(--faint); font-size: 0.85rem; }
 footer.site .site-inner { padding-top: 1.6rem; padding-bottom: 2.4rem; }
 main { max-width: var(--content); margin: 0 auto; padding: 2.2rem 1.5rem 0; }
 
 /* 소개 */
-.hero { position: relative; padding: 3.2rem 2.4rem 2.4rem; margin: 0 0 1rem; border-radius: 22px; border: 1px solid var(--line); background:
-  radial-gradient(900px 340px at 0% 0%, var(--accent-soft), transparent 60%),
-  radial-gradient(700px 300px at 100% 0%, rgba(168, 85, 247, 0.08), transparent 60%), var(--bg-soft); overflow: hidden; }
-.hero h1 { font-size: clamp(2.2rem, 4.6vw, 3.4rem); margin: 0.3rem 0 0.8rem; }
-.hero .lead { font-size: 1.2rem; color: var(--fg); opacity: 0.8; }
+.hero { position: relative; padding: 3.4rem 2.6rem 2.6rem; margin: 0 0 1rem; border-radius: 24px; color: #fff; overflow: hidden; isolation: isolate;
+  box-shadow: 0 30px 60px -24px rgba(79, 70, 229, 0.55); background:
+  radial-gradient(600px 320px at 100% 0%, rgba(236, 72, 153, 0.55), transparent 62%),
+  radial-gradient(520px 300px at 0% 100%, rgba(14, 165, 233, 0.45), transparent 60%),
+  linear-gradient(135deg, #312e81 0%, #4f46e5 48%, #7c3aed 100%); }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.35;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px); background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); mask-image: radial-gradient(ellipse at 70% 0%, #000, transparent 70%); }
+.hero h1 { font-size: clamp(2.2rem, 4.6vw, 3.4rem); margin: 0.3rem 0 0.8rem; color: #fff; }
+.hero .lead { font-size: 1.2rem; color: rgba(255, 255, 255, 0.88); }
+.hero .eyebrow { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.28); color: #fff; }
+.hero .stats li { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.24); box-shadow: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.hero .stats span { color: rgba(255, 255, 255, 0.78); }
 .eyebrow { display: inline-block; margin: 0; padding: 0.2rem 0.7rem; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--accent); font-size: 0.8rem; font-weight: 600; letter-spacing: 0; }
 .stats { list-style: none; display: flex; flex-wrap: wrap; gap: 0.8rem; padding: 0; margin: 1.6rem 0 0; }
 .stats li { min-width: 120px; padding: 0.8rem 1.1rem; border-radius: 12px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
@@ -473,7 +491,7 @@ main { max-width: var(--content); margin: 0 auto; padding: 2.2rem 1.5rem 0; }
 .feature h3::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; vertical-align: 0.12em; background: var(--accent); }
 .feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 .chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0 0 1rem; }
-.chips li { padding: 0.25rem 0.8rem; border-radius: 999px; background: var(--bg-soft); border: 1px solid var(--line); font-size: 0.9rem; }
+.chips li { padding: 0.25rem 0.8rem; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 0.9rem; }
 .notice { padding: 0.8rem 1rem; border-radius: var(--radius-sm); background: var(--bg-soft); border: 1px dashed var(--line-strong); color: var(--muted); }
 .preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
 .preview-title { display: inline-block; margin-top: 0.55rem; font-weight: 600; }
@@ -512,7 +530,7 @@ tbody tr:hover td { background: var(--bg-soft); }
 /* 화면별 매뉴얼 */
 .crumb { color: var(--muted); font-size: 0.88rem; margin: 0; }
 dl.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.7rem; margin: 0 0 0.5rem; }
-.meta-item { padding: 0.75rem 1rem; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); }
+.meta-item { padding: 0.75rem 1rem; border-radius: 12px; background: var(--card); box-shadow: var(--shadow); border: 1px solid var(--line); }
 .meta-item dt { color: var(--muted); font-size: 0.78rem; font-weight: 600; }
 .meta-item dd { margin: 0.1rem 0 0; }
 .fields { list-style: none; padding: 0; margin: 0 0 0.5rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
@@ -566,7 +584,9 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
 }
 @media print {
   :root { color-scheme: light; --bg: #fff; --bg-soft: #f6f6f8; --card: #fff; --fg: #17171c; --muted: #555561; --line: #e3e3e8; --line-strong: #d0d0d8; --shadow: none; --shadow-lg: none; }
-  header.site, .crumb, footer.site { display: none; }
+  header.site, .crumb, footer.site, body::before { display: none; }
+  body { background: #fff; }
+  .hero { box-shadow: none; }
   main { max-width: none; padding: 0; }
   a { color: var(--fg); }
   h1, h2 { break-after: avoid; }

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderSite } from '../../skills/docent/scripts/src/renderers/html.mjs';
+import { renderSite, STYLE } from '../../skills/docent/scripts/src/renderers/html.mjs';
 import { loadGolden } from '../helpers/golden.mjs';
 
 const withMedia = async () => {
@@ -54,4 +54,11 @@ test('워크플로우 다이어그램은 산출물 색에 맞춘 테마로 그�
   const html = renderSite(await loadGolden()).get('workflows.html');
   assert.ok(html.includes("theme: 'base'") && html.includes('themeVariables'));
   assert.match(html, /<ol class="steps">/);
+});
+
+test('배경은 흰색 대신 옅은 색 번짐·점 격자, 소개 머리는 그라데이션 배너', () => {
+  assert.match(STYLE, /--glow-1:/);
+  assert.match(STYLE, /body::before \{[^}]*background-size: 22px 22px/);
+  assert.match(STYLE, /\.hero \{[^}]*linear-gradient\(135deg/);
+  assert.match(STYLE, /@media print \{[\s\S]*body::before \{ display: none; \}/);
 });
