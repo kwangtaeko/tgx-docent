@@ -28,7 +28,9 @@ const code = (text) =>
 
 // t('…') · t("…") · t(`…`)의 첫 인자(문자열 리터럴)
 const T_CALL = /\bt\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g;
-const unescape = (s, q) => (q === '`' ? s : s.replace(/\\(['"\\])/g, '$1'));
+// 소스의 문자열 리터럴 → 실행 중 값(\n·\t·\'·\\ 등 이스케이프를 풀어 t()가 찾는 열쇠와 같게)
+const ESCAPES = { n: '\n', t: '\t', r: '\r' };
+const unescape = (s) => s.replace(/\\(.)/g, (_, c) => ESCAPES[c] ?? c);
 
 test('명령줄 문구의 한국어 문자열은 모두 t()로 감싼다', async () => {
   const missing = [];
@@ -49,7 +51,7 @@ test('t()로 감싼 문구는 모두 영어 번역이 있고, {n} 자리가 같�
   for (const file of await sourceFiles()) {
     const body = code(await readFile(join(SRC, file), 'utf8'));
     for (const m of body.matchAll(T_CALL)) {
-      const key = unescape(m[2], m[1]);
+      const key = unescape(m[2]);
       if (m[1] === '`' && key.includes('${')) {
         problems.push(`${file}: t()의 문구에 \${…}를 쓰지 말고 {0} 자리와 인자로: ${key.slice(0, 60)}`);
         continue;
@@ -74,4 +76,18 @@ test('t(): 기본은 한국어, en이면 번역, 인자 자리 채우기', () =>
     setCliLanguage('ko');
   }
   assert.equal(t('파일 {0}·{1}', 'a', 'b'), '파일 a·b');
+});
+
+test('여러 번역표에 같은 열쇠가 있으면 영어도 같다', async () => {
+  const dir = 'skills/docent/scripts/src/lib/cli-text';
+  const seen = new Map();
+  const conflicts = [];
+  for (const file of (await readdir(dir)).sort()) {
+    const table = (await import(`../../${dir}/${file}`)).default;
+    for (const [key, value] of Object.entries(table)) {
+      if (seen.has(key) && seen.get(key).value !== value) conflicts.push(`${seen.get(key).file} ↔ ${file}: ${key}`);
+      seen.set(key, { file, value });
+    }
+  }
+  assert.deepEqual(conflicts, []);
 });
