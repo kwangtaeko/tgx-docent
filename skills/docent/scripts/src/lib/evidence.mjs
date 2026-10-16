@@ -4,7 +4,7 @@ import { isAbsolute, resolve, sep } from 'node:path';
 
 export const TEXT_WINDOW = 5;
 // 문구 안의 자리 표시({버전}, {name})와 그 자리에 올 수 있는 소스 글자 수
-const PLACEHOLDER = /\{[^{}\s]{1,30}\}/;
+const PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 const PLACEHOLDER_GAP = 80;
 
 const LINE_RANGE = /^(\d+)(?:-(\d+))?$/;

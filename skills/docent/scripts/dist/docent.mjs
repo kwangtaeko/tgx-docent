@@ -28913,7 +28913,7 @@ function escapeComment(value) {
 import { readFile as readFile4, realpath } from "node:fs/promises";
 import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
-var PLACEHOLDER = /\{[^{}\s]{1,30}\}/;
+var PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 var PLACEHOLDER_GAP = 80;
 var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 var SYMBOL = /^[A-Za-z_$][\w$.]*$/;

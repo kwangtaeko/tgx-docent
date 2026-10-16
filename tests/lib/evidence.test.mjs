@@ -130,6 +130,7 @@ test('{이름} 자리 표시: 실행 중 값이 채워지는 문구도 근거와
   assert.equal(await ok('{항목}을(를) 선택해야 합니다.', 4), true);
   // 자리 표시 밖의 글자는 그대로 있어야 한다
   assert.equal(await ok('현재 버전 {버전}이 오래되었습니다.'), false);
+  assert.equal(await ok('현재 버전 {현재 버전}이 최신입니다.'), true);
   // 자리 표시만 있는 문구는 아무것과도 맞지 않는다
   assert.equal(await ok('{버전}'), false);
 });
