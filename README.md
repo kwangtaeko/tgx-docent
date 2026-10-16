@@ -47,7 +47,7 @@
 | ASP.NET WebForms | 에이전트 탐색 + 힌트 | 주소 받기만(IIS·Windows 필요) |
 | 데스크톱 앱(Electron·Tauri, 메뉴로 바뀌는 화면 포함) | 에이전트 탐색 | 지원 안 함(소스만으로) |
 
-npm·pnpm·yarn, docker compose, Maven·Gradle, Django·Flask 실행 계획을 안내합니다(`skills/docent/references/run-guide.md`). 실제 레포(개인 사이트, 데스크톱 앱 모노레포)에 적용한 기록은 `docs/field-tests/`에 있습니다.
+npm·pnpm·yarn, docker compose, Maven·Gradle, Django·Flask 실행 계획을 안내합니다(`skills/docent/references/run-guide.md`). 실제 레포(개인 사이트, 데스크톱 앱 모노레포, 메뉴 권한형 업무 앱)에 적용한 기록은 `docs/field-tests/`에 있습니다.
 
 ## 알아 둘 점
 

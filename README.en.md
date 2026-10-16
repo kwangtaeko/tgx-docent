@@ -47,7 +47,7 @@ When the code changes, `/docent-update` redoes only the screens that changed.
 | ASP.NET WebForms | agent exploration with hints | URL only (needs IIS and Windows) |
 | Desktop apps (Electron, Tauri, including menu-switched screens) | agent exploration | not supported (source only) |
 
-The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). Records of running docent on real repositories (a personal site and a desktop-app monorepo) are in `docs/field-tests/`.
+The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). Records of running docent on real repositories (a personal site, a desktop-app monorepo and a menu-permission business app) are in `docs/field-tests/`.
 
 ## Good to know
 
