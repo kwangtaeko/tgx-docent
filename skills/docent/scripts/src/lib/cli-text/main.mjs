@@ -9,8 +9,8 @@ export default {
   '  inventory      화면 목록(.docent/inventory.json)을 만듭니다': '  inventory      Build the screen list (.docent/inventory.json)',
   '  update         코드가 바뀐 뒤 다시 할 일(새 화면·삭제 후보·재분석·시나리오·재캡처)':
     '  update         Show follow-up work after code changes (new screens, removal candidates, re-analysis, scenarios, re-capture)',
-  '  pending        다시 분석할 화면(결과 없음·소스 변경·확인 항목 답변)을 보여 줍니다':
-    '  pending        List screens to re-analyze (no result, source changed, review item answered)',
+  '  pending        다시 분석할 화면(결과 없음·소스 변경·검사 문제·확인 항목 답변)을 보여 줍니다':
+    '  pending        List screens to re-analyze (no result, source changed, check problems, review item answered)',
   '  validate [ID…] 분석 결과의 스키마·근거·연결을 검사합니다(화면 ID를 주면 그 화면만)':
     '  validate [ID…] Check analysis results for schema, evidence and links (only the given screen IDs, if any)',
   '  review         확인 필요 항목(.docent/review.md)을 모읍니다': '  review         Collect review items (.docent/review.md)',
