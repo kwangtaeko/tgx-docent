@@ -156,4 +156,6 @@ test('JSX 인라인 태그·{" "}로 끊긴 문장도 화면 글자 그대로 �
   assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '이후에는 1회가 차감됩니다.' })).ok, true);
   assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '취소 가능한 시간은 {마감}까지예요. 이후에는 1회가 차감됩니다.' })).ok, true);
   assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '이후에는 2회가 차감됩니다.' })).ok, false);
+  await writeFile(join(dir, 'b.tsx'), '<p>\n  예약을 {/* 주석 */}\n  취소했어요.<br />\n  다시 예약하세요.\n</p>\n');
+  assert.equal((await checkEvidence(dir, 'b.tsx:2', { expectText: '예약을 취소했어요. 다시 예약하세요.' })).ok, true);
 });

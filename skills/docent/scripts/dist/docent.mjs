@@ -30229,6 +30229,7 @@ var TEXT_WINDOW = 5;
 var PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 var PLACEHOLDER_GAP = 160;
 var INLINE_TAG = /<\/?(?:b|strong|em|i|u|s|mark|small|span|code|kbd|sup|sub|a|br)(?:\s[^<>]*)?\/?>/g;
+var JSX_COMMENT = /\{\s*\/\*[\s\S]*?\*\/\s*\}/g;
 var JSX_SPACE = /\{\s*(?:"\s*"|'\s*'|`\s*`)\s*\}/g;
 var MAX_PLACEHOLDERS = 20;
 var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
@@ -30318,7 +30319,7 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   }
   const squash = (t2) => t2.replace(/\s+/g, " ").trim();
   const joined = squash(window2.join(" "));
-  const plain = squash(joined.replace(INLINE_TAG, "").replace(JSX_SPACE, " "));
+  const plain = squash(joined.replace(JSX_COMMENT, "").replace(INLINE_TAG, "").replace(JSX_SPACE, " "));
   const found = (text) => {
     if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text)) || plain.includes(squash(text))) return true;
     return matchesWithPlaceholders(squash(text), joined) || matchesWithPlaceholders(squash(text), plain);
