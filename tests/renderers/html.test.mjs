@@ -242,3 +242,13 @@ test('인쇄(PDF)에서는 표가 가로로 넘치지 않고 모든 칸이 줄�
     assert.ok(print.includes(rule), rule);
   }
 });
+
+test('산출물의 경로는 주소창 경로(route group을 뺀 것)로 보인다', async () => {
+  const input = await loadGolden();
+  const entry = input.inventory.screens.find((s) => s.id === 'orders');
+  entry.route = '/(shop)/orders';
+  input.screens.get('orders').route = '/(shop)/orders';
+  const site = renderSite(input);
+  assert.ok(!site.get('screens.html').includes('(shop)'));
+  assert.ok(site.get('screens/orders.html').includes('<code>/orders</code>'));
+});

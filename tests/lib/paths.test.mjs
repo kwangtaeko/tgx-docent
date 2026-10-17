@@ -27,3 +27,12 @@ test('스키마의 relPath 패턴은 REL_PATH_PATTERN과 같다', async () => {
     assert.equal(schema.$defs.relPath.pattern, REL_PATH_PATTERN, name);
   }
 });
+
+test('urlPath: route group·병렬 슬롯은 주소에 없고, 가로챔과 동적 세그먼트는 그대로', async () => {
+  const { urlPath } = await import('../../skills/docent/scripts/src/lib/paths.mjs');
+  assert.equal(urlPath('/(admin)/admin/members'), '/admin/members');
+  assert.equal(urlPath('/(shop)'), '/');
+  assert.equal(urlPath('/@modal/(.)photo/[id]'), '/(.)photo/[id]');
+  assert.equal(urlPath('/orders/[id]'), '/orders/[id]');
+  assert.equal(urlPath(null), null);
+});

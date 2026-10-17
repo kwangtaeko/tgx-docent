@@ -4,6 +4,7 @@ import { escapeComment, escapeHtml as h } from './escape.mjs';
 import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 import { DEFAULT_THEME, mermaidInit, themeCss } from './theme.mjs';
+import { urlPath } from '../lib/paths.mjs';
 import { edgeKind } from '../lib/workflow.mjs';
 
 // 실행 중 값이 채워지는 자리({버전})는 흐린 칩으로 보인다
@@ -70,7 +71,8 @@ ${scripts}${zoomScript(root)}</body>
 `;
 }
 
-const routeOf = (inventory, id) => inventory.screens.find((x) => x.id === id)?.route ?? '';
+// 산출물에 보이는 경로는 주소창의 경로(route group 등을 뺀 것)
+const routeOf = (inventory, id) => urlPath(inventory.screens.find((x) => x.id === id)?.route) ?? '';
 
 export function screenTitle(screens, id) {
   return screens.get(id)?.title.value ?? id;
@@ -216,7 +218,7 @@ export function listBody(input) {
       const head = entry.app !== undefined && entry.app !== app ? `<tr class="app-row"><th colspan="6">${h((app = entry.app))}</th></tr>\n` : '';
       const path = s.menuPath?.value ?? [];
       const menu = (entry.app !== undefined && path[0] === entry.app ? path.slice(1) : path).join(' › ');
-      const where = entry.route ?? (entry.kind === 'view' ? `${routeOf(inventory, entry.parentId)} · ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
+      const where = urlPath(entry.route) ?? (entry.kind === 'view' ? `${routeOf(inventory, entry.parentId)} · ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
       return `${head}<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose, T)}${h(s.purpose.value)}</td></tr>`;
     })
     .join('\n');
@@ -241,7 +243,7 @@ export function cardsBody(input, { prefix = '' } = {}) {
     .map((entry) => {
       const s = screens.get(entry.id);
       const shot = media.images.has(entry.id)
-        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, entry.route ?? '')
+        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? '')
         : `<p class="no-shot">${T.noShot}</p>`;
       const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">${T.watchDemo}</a>` : '';
       return `<article class="card" id="${h(entry.id)}">
@@ -277,7 +279,7 @@ export function screenBody(input, entry, { from = 'screens', headingTag = 'h1' }
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
   if (s.menuPath) meta.push(item(T.menuPath, `${h(s.menuPath.value.join(' › '))}${ev(s.menuPath.evidence)}`));
   // view(같은 주소에서 메뉴로 바뀌는 화면)는 부모 주소를 경로로 보인다
-  if (s.route) meta.push(item(T.route, `<code>${h(s.route)}</code>`));
+  if (s.route) meta.push(item(T.route, `<code>${h(urlPath(s.route))}</code>`));
   else if (entry.kind === 'view') meta.push(item(T.route, `<code>${h(routeOf(inventory, s.parentId))}</code> · ${T.viewNote}`));
   else meta.push(item(T.parent, link(s.parentId)));
   const evTight = evOf(input, '');
@@ -342,13 +344,13 @@ ${messageTable(list)}
 
   const media = mediaOf(input);
   const shot = media.images.has(s.id)
-    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, s.route ?? '')}\n`
+    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '')}\n`
     : input.printAnchors
       ? `<p class="no-shot">${T.noShot}</p>\n`
       : '';
   const gif =
     media.gifs.has(s.id) && !input.printAnchors
-      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, s.route ?? '')}\n`
+      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '')}\n`
       : '';
   return `<${headingTag}>${h(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>

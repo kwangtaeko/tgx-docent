@@ -7859,6 +7859,11 @@ function normalizeRel(p) {
   }
   return n.replace(/\/$/, "");
 }
+function urlPath(route) {
+  if (!route) return route;
+  const segs = route.split("/").filter((seg) => seg && !(/^\([^.][^)]*\)$/.test(seg) || seg.startsWith("@")));
+  return "/" + segs.join("/");
+}
 var init_paths = __esm({
   "skills/docent/scripts/src/lib/paths.mjs"() {
     init_cli_text();
@@ -30382,6 +30387,9 @@ function mermaidInit(name5) {
 })()`;
 }
 
+// skills/docent/scripts/src/renderers/html.mjs
+init_paths();
+
 // skills/docent/scripts/src/lib/workflow.mjs
 var WINDOW = /* @__PURE__ */ new Set(["modal", "popup"]);
 function edgeKind(screens, a, b) {
@@ -30445,7 +30453,7 @@ ${scripts}${zoomScript(root)}</body>
 </html>
 `;
 }
-var routeOf = (inventory, id) => inventory.screens.find((x) => x.id === id)?.route ?? "";
+var routeOf = (inventory, id) => urlPath(inventory.screens.find((x) => x.id === id)?.route) ?? "";
 function screenTitle(screens, id) {
   return screens.get(id)?.title.value ?? id;
 }
@@ -30568,7 +30576,7 @@ function listBody(input) {
 ` : "";
     const path = s.menuPath?.value ?? [];
     const menu = (entry.app !== void 0 && path[0] === entry.app ? path.slice(1) : path).join(" \u203A ");
-    const where = entry.route ?? (entry.kind === "view" ? `${routeOf(inventory, entry.parentId)} \xB7 ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
+    const where = urlPath(entry.route) ?? (entry.kind === "view" ? `${routeOf(inventory, entry.parentId)} \xB7 ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
     return `${head}<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</td></tr>`;
   }).join("\n");
   return `<h1>${T.screenList}</h1>
@@ -30588,7 +30596,7 @@ function cardsBody(input, { prefix = "" } = {}) {
   const media = mediaOf(input);
   const cards = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
-    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, entry.route ?? "") : `<p class="no-shot">${T.noShot}</p>`;
+    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? "") : `<p class="no-shot">${T.noShot}</p>`;
     const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">${T.watchDemo}</a>` : "";
     return `<article class="card" id="${escapeHtml(entry.id)}">
 ${shot}
@@ -30618,7 +30626,7 @@ function screenBody(input, entry, { from = "screens", headingTag = "h1" } = {}) 
   const meta = [];
   const item = (label, value) => `<div class="meta-item"><dt>${label}</dt><dd>${value}</dd></div>`;
   if (s.menuPath) meta.push(item(T.menuPath, `${escapeHtml(s.menuPath.value.join(" \u203A "))}${ev(s.menuPath.evidence)}`));
-  if (s.route) meta.push(item(T.route, `<code>${escapeHtml(s.route)}</code>`));
+  if (s.route) meta.push(item(T.route, `<code>${escapeHtml(urlPath(s.route))}</code>`));
   else if (entry.kind === "view") meta.push(item(T.route, `<code>${escapeHtml(routeOf(inventory, s.parentId))}</code> \xB7 ${T.viewNote}`));
   else meta.push(item(T.parent, link(s.parentId)));
   const evTight = evOf(input, "");
@@ -30660,11 +30668,11 @@ ${messageTable(list)}
 <aside class="callout caution"><p class="callout-title">${T.unknownsTitle}</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul></aside>` : "";
   const sources = presetOf(input) === "handover" ? `<h2>${T.sources}</h2><ul class="sources">${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
   const media = mediaOf(input);
-  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, s.route ?? "")}
+  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "")}
 ` : input.printAnchors ? `<p class="no-shot">${T.noShot}</p>
 ` : "";
   const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>${T.demo}</h2>
-${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, s.route ?? "")}
+${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "")}
 ` : "";
   return `<${headingTag}>${escapeHtml(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</p>
