@@ -32,6 +32,7 @@ export default {
   'config.yaml: combine의 항목은 앱 작업 이름(소문자·숫자·-)이어야 합니다 ({0})': 'config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})',
   'config.yaml: combine에 같은 앱 작업이 두 번 있습니다': 'config.yaml: combine lists the same app workspace twice',
   'config.yaml: language는 {0} 중 하나여야 합니다 ({1})': 'config.yaml: language must be one of {0} ({1})',
+  'config.yaml: capture.device는 {0} 중 하나여야 합니다 ({1})': 'config.yaml: capture.device must be one of {0} ({1})',
   '.docent/config.yaml 형식 오류: {0}': 'Invalid .docent/config.yaml: {0}',
 
   // lib/output-options.mjs

@@ -84,3 +84,19 @@ test('language는 ko·en만 받는다', async () => {
   await writeFile(join(dir, '.docent', 'config.yaml'), 'language: ja\n');
   await assert.rejects(loadConfig(dir), /language는 ko, en 중 하나/);
 });
+
+test('capture.device는 desktop(기본) | mobile', async () => {
+  const { mkdtemp, mkdir, writeFile } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { loadConfig } = await import('../../skills/docent/scripts/src/lib/config.mjs');
+  const { captureContextOptions } = await import('../../skills/docent/scripts/src/commands/capture.mjs');
+  const dir = await mkdtemp(join(tmpdir(), 'docent-device-'));
+  await mkdir(join(dir, '.docent'));
+  assert.equal((await loadConfig(dir)).capture.device, 'desktop');
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'capture:\n  device: mobile\n');
+  assert.equal((await loadConfig(dir)).capture.device, 'mobile');
+  assert.deepEqual(captureContextOptions('mobile').viewport, { width: 390, height: 844 });
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'capture:\n  device: tablet\n');
+  await assert.rejects(loadConfig(dir), /capture\.device/);
+});

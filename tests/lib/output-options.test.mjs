@@ -16,6 +16,7 @@ test('기본값', () => {
     formats: ['html', 'readme'],
     language: 'ko',
     theme: 'indigo',
+    device: 'desktop',
     title: '사용자 매뉴얼',
     organization: '',
     revisions: [],

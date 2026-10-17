@@ -31,6 +31,8 @@ export function resolveOutputOptions(config, cli = {}) {
     formats,
     language,
     theme,
+    // 캡처를 휴대폰 크기로 찍었으면 산출물에서 휴대폰 폭으로 보인다
+    device: config.capture?.device === 'mobile' ? 'mobile' : 'desktop',
     title: String(output.title ?? stringsFor(language).defaultTitle),
     organization: String(output.organization ?? ''),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]]))),

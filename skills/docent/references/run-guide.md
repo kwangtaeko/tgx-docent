@@ -88,7 +88,11 @@ gif:
   screens:
     include: []            # 비우면 버튼 동작이 있는 화면 전부
     exclude: [admin-users] # GIF에서 뺄 화면 ID
+capture:
+  device: mobile           # desktop(기본, 1280 폭) | mobile(390 폭, 휴대폰 우선 웹앱·PWA). 산출물에서도 휴대폰 폭으로 보입니다
 ```
+
+- 화면이 휴대폰 크기를 기준으로 만든 앱(하단 탭바, `max-w-md` 같은 좁은 본문, PWA `manifest`)이면 `capture.device: mobile`을 권합니다. 데스크톱 폭으로 찍으면 화면 대부분이 빈 여백입니다
 
 산출물 설정(`output`: preset, formats, theme(indigo·blue·emerald·rose·slate), title, projectName, organization, revisions)과 최상위 `language`(ko·en)·`date`·`app`은 `.docent/config.yaml` 템플릿 주석을 참고하세요.
 

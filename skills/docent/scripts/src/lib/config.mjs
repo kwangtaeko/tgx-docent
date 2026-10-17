@@ -17,11 +17,15 @@ export const DEFAULT_CONFIG = Object.freeze({
   analyze: { concurrency: 4 },
   mask: { selectors: [] },
   gif: { screens: { include: [], exclude: [] } },
+  // 캡처·GIF 화면 크기: desktop(1280 폭) | mobile(390 폭, 휴대폰 우선 웹앱·PWA)
+  capture: { device: 'desktop' },
   // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
   output: { preset: 'handover', formats: ['html', 'readme'], organization: '', revisions: [] },
   // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
   combine: [],
 });
+
+export const DEVICES = ['desktop', 'mobile'];
 
 function isObject(v) {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -39,8 +43,8 @@ function merge(base, override) {
 }
 
 const ARRAY_KEYS = ['combine', 'detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
-const OBJECT_KEYS = ['screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
-const STRING_KEYS = ['language', 'app', 'output.preset', 'output.theme', 'output.projectName', 'output.title', 'output.organization'];
+const OBJECT_KEYS = ['capture', 'screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
+const STRING_KEYS = ['language', 'app', 'capture.device', 'output.preset', 'output.theme', 'output.projectName', 'output.title', 'output.organization'];
 
 const get = (obj, path) => path.split('.').reduce((o, k) => (isObject(o) ? o[k] : undefined), obj);
 
@@ -81,6 +85,7 @@ function checkConfig(config) {
     return { workspace: entry.workspace, ...(entry.title ? { title: entry.title } : {}) };
   });
   if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t('config.yaml: combine에 같은 앱 작업이 두 번 있습니다'));
+  if (!DEVICES.includes(config.capture.device)) throw new Error(t('config.yaml: capture.device는 {0} 중 하나여야 합니다 ({1})', DEVICES.join(', '), config.capture.device));
   if (!LANGUAGES.includes(config.language)) throw new Error(t('config.yaml: language는 {0} 중 하나여야 합니다 ({1})', LANGUAGES.join(', '), config.language));
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', t('양의 정수'));

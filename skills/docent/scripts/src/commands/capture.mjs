@@ -10,9 +10,13 @@ import { CONTEXT_PERMISSIONS, newContext } from './auth.mjs';
 import { loadRun } from './run.mjs';
 
 export const CAPTURE_VIEWPORT = { width: 1280, height: 800 };
+// 휴대폰 우선 웹앱(PWA): 390 폭, 글자가 또렷하게 2배 밀도
+export const MOBILE_VIEWPORT = { width: 390, height: 844 };
+const MOBILE = { isMobile: true, hasTouch: true };
 
 // 움직임 줄이기: 등장 애니메이션을 끄는 사이트가 많아 캡처에 내용이 다 찍힌다
-export function captureContextOptions() {
+export function captureContextOptions(device = 'desktop') {
+  if (device === 'mobile') return { viewport: MOBILE_VIEWPORT, deviceScaleFactor: 2, ...MOBILE, reducedMotion: 'reduce' };
   return { viewport: CAPTURE_VIEWPORT, reducedMotion: 'reduce' };
 }
 
@@ -92,10 +96,10 @@ export async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, captureContextOptions());
+    const context = await newContext(browser, projectDir, captureContextOptions(config.capture.device));
     await maskContext(context, config.mask.selectors);
     // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
-    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...captureContextOptions(config.capture.device), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);

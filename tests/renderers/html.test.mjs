@@ -252,3 +252,12 @@ test('산출물의 경로는 주소창 경로(route group을 뺀 것)로 보인�
   assert.ok(!site.get('screens.html').includes('(shop)'));
   assert.ok(site.get('screens/orders.html').includes('<code>/orders</code>'));
 });
+
+test('capture.device: mobile이면 캡처를 휴대폰 폭 틀로 보인다', async () => {
+  const input = await loadGolden();
+  input.media = { images: new Set(['orders']), gifs: new Set() };
+  input.options = { ...input.options, device: 'mobile' };
+  const html = renderSite(input).get('screens/orders.html');
+  assert.ok(html.includes('<figure class="frame phone">'));
+  assert.ok(renderSite(input).get('assets/style.css').includes('.frame.phone { max-width: 400px'));
+});

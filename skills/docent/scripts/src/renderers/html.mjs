@@ -40,8 +40,11 @@ const zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 `;
 
 // 브라우저 창 모양의 틀. 주소 칸에 화면 경로를 보인다
-function frame(img, url = '') {
-  return `<figure class="frame"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${h(url)}</span>` : ''}</div>${img}</figure>`;
+const isPhone = (input) => input.options?.device === 'mobile';
+
+// phone: 휴대폰 크기로 찍은 캡처는 휴대폰 폭으로(데스크톱 폭으로 늘리면 글자가 커지고 한 화면에 안 들어온다)
+function frame(img, url = '', phone = false) {
+  return `<figure class="frame${phone ? ' phone' : ''}"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${h(url)}</span>` : ''}</div>${img}</figure>`;
 }
 
 function page({ title, body, root, projectName, date, scripts = '', active = '', ...input }) {
@@ -243,7 +246,7 @@ export function cardsBody(input, { prefix = '' } = {}) {
     .map((entry) => {
       const s = screens.get(entry.id);
       const shot = media.images.has(entry.id)
-        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? '')
+        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? '', isPhone(input))
         : `<p class="no-shot">${T.noShot}</p>`;
       const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">${T.watchDemo}</a>` : '';
       return `<article class="card" id="${h(entry.id)}">
@@ -344,13 +347,13 @@ ${messageTable(list)}
 
   const media = mediaOf(input);
   const shot = media.images.has(s.id)
-    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '')}\n`
+    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input))}\n`
     : input.printAnchors
       ? `<p class="no-shot">${T.noShot}</p>\n`
       : '';
   const gif =
     media.gifs.has(s.id) && !input.printAnchors
-      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '')}\n`
+      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input))}\n`
       : '';
   return `<${headingTag}>${h(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>
@@ -541,6 +544,8 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .frame-bar i:nth-child(3) { background: #28c840; }
 .frame-url { margin: 0 auto; min-width: 40%; max-width: 70%; padding: 2px 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted); font: 12px/18px var(--mono); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.frame.phone { max-width: 400px; margin-inline: auto; }
+.card .frame.phone, .preview .frame.phone { max-width: none; }
 .medium-zoom-overlay, .medium-zoom-image--opened { z-index: 999; }
 
 /* 화면 목록 */

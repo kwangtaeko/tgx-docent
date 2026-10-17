@@ -14,6 +14,9 @@ import { loadRun } from './run.mjs';
 import { gifTargets } from './scenarios.mjs';
 
 export const GIF_VIEWPORT = { width: 800, height: 600 };
+// 휴대폰 화면 GIF(용량 때문에 1배 밀도)
+export const GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true };
+const gifContext = (device) => (device === 'mobile' ? GIF_MOBILE : { viewport: GIF_VIEWPORT });
 export const GIF_MAX_BYTES = 2 * 1024 * 1024;
 const FPS = 10;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -101,9 +104,9 @@ export async function runRecord(projectDir, ids, { electronLauncher } = {}) {
   const result = { recorded: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
+    const context = await newContext(browser, projectDir, gifContext(config.capture.device));
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...gifContext(config.capture.device), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);

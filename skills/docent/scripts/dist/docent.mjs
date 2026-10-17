@@ -7723,6 +7723,7 @@ var init_lib = __esm({
       "config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})",
       "config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4": "config.yaml: combine lists the same app workspace twice",
       "config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: language must be one of {0} ({1})",
+      "config.yaml: capture.device\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: capture.device must be one of {0} ({1})",
       ".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}": "Invalid .docent/config.yaml: {0}",
       // lib/output-options.mjs
       '\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown preset "{0}" \u2014 use one of {1}',
@@ -7964,6 +7965,7 @@ function checkConfig(config) {
     return { workspace: entry.workspace, ...entry.title ? { title: entry.title } : {} };
   });
   if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t("config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4"));
+  if (!DEVICES.includes(config.capture.device)) throw new Error(t("config.yaml: capture.device\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", DEVICES.join(", "), config.capture.device));
   if (!LANGUAGES.includes(config.language)) throw new Error(t("config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", LANGUAGES.join(", "), config.language));
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", t("\uC591\uC758 \uC815\uC218"));
@@ -7986,7 +7988,7 @@ async function loadConfig(projectDir, workspace) {
   }
   return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
 }
-var import_yaml, DEFAULT_CONFIG, ARRAY_KEYS, OBJECT_KEYS, STRING_KEYS, get;
+var import_yaml, DEFAULT_CONFIG, DEVICES, ARRAY_KEYS, OBJECT_KEYS, STRING_KEYS, get;
 var init_config = __esm({
   "skills/docent/scripts/src/lib/config.mjs"() {
     import_yaml = __toESM(require_dist(), 1);
@@ -8004,14 +8006,17 @@ var init_config = __esm({
       analyze: { concurrency: 4 },
       mask: { selectors: [] },
       gif: { screens: { include: [], exclude: [] } },
+      // 캡처·GIF 화면 크기: desktop(1280 폭) | mobile(390 폭, 휴대폰 우선 웹앱·PWA)
+      capture: { device: "desktop" },
       // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
       output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] },
       // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
       combine: []
     });
+    DEVICES = ["desktop", "mobile"];
     ARRAY_KEYS = ["combine", "detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
-    OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
-    STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
+    OBJECT_KEYS = ["capture", "screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
+    STRING_KEYS = ["language", "app", "capture.device", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
     get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
   }
 });
@@ -29835,9 +29840,9 @@ async function runRecord(projectDir, ids, { electronLauncher } = {}) {
   const result = { recorded: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
+    const context = await newContext(browser, projectDir, gifContext(config.capture.device));
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...gifContext(config.capture.device), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
@@ -29886,7 +29891,7 @@ async function runRecord(projectDir, ids, { electronLauncher } = {}) {
   }
   return result;
 }
-var GIF_VIEWPORT, GIF_MAX_BYTES, FPS, sleep3;
+var GIF_VIEWPORT, GIF_MOBILE, gifContext, GIF_MAX_BYTES, FPS, sleep3;
 var init_record = __esm({
   "skills/docent/scripts/src/commands/record.mjs"() {
     init_cli_text();
@@ -29901,6 +29906,8 @@ var init_record = __esm({
     init_run();
     init_scenarios();
     GIF_VIEWPORT = { width: 800, height: 600 };
+    GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true };
+    gifContext = (device) => device === "mobile" ? GIF_MOBILE : { viewport: GIF_VIEWPORT };
     GIF_MAX_BYTES = 2 * 1024 * 1024;
     FPS = 10;
     sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -30032,7 +30039,8 @@ var init_electron2 = __esm({
 
 // skills/docent/scripts/src/commands/capture.mjs
 import { join as join17 } from "node:path";
-function captureContextOptions() {
+function captureContextOptions(device = "desktop") {
+  if (device === "mobile") return { viewport: MOBILE_VIEWPORT, deviceScaleFactor: 2, ...MOBILE, reducedMotion: "reduce" };
   return { viewport: CAPTURE_VIEWPORT, reducedMotion: "reduce" };
 }
 async function prepareForFullPage(page2) {
@@ -30100,9 +30108,9 @@ async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await newContext(browser, projectDir, captureContextOptions());
+    const context = await newContext(browser, projectDir, captureContextOptions(config.capture.device));
     await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
+    const anonymous = await browser.newContext({ ...captureContextOptions(config.capture.device), permissions: CONTEXT_PERMISSIONS });
     await maskContext(anonymous, config.mask.selectors);
     for (const screen of targets) {
       const scenario = await loadScenario(projectDir, screen.id);
@@ -30141,7 +30149,7 @@ async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   }
   return result;
 }
-var CAPTURE_VIEWPORT;
+var CAPTURE_VIEWPORT, MOBILE_VIEWPORT, MOBILE;
 var init_capture = __esm({
   "skills/docent/scripts/src/commands/capture.mjs"() {
     init_cli_text();
@@ -30153,6 +30161,8 @@ var init_capture = __esm({
     init_auth();
     init_run();
     CAPTURE_VIEWPORT = { width: 1280, height: 800 };
+    MOBILE_VIEWPORT = { width: 390, height: 844 };
+    MOBILE = { isMobile: true, hasTouch: true };
   }
 });
 
@@ -30424,8 +30434,9 @@ var NAV = [
 var zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 <script>if (window.mediumZoom) mediumZoom('[data-zoomable]', { margin: 24, background: 'rgba(12, 12, 16, 0.86)' });</script>
 `;
-function frame(img, url = "") {
-  return `<figure class="frame"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${escapeHtml(url)}</span>` : ""}</div>${img}</figure>`;
+var isPhone = (input) => input.options?.device === "mobile";
+function frame(img, url = "", phone = false) {
+  return `<figure class="frame${phone ? " phone" : ""}"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${escapeHtml(url)}</span>` : ""}</div>${img}</figure>`;
 }
 function page({ title: title2, body, root, projectName: projectName2, date, scripts = "", active = "", ...input }) {
   const T = textOf(input);
@@ -30596,7 +30607,7 @@ function cardsBody(input, { prefix = "" } = {}) {
   const media = mediaOf(input);
   const cards = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
-    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? "") : `<p class="no-shot">${T.noShot}</p>`;
+    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? "", isPhone(input)) : `<p class="no-shot">${T.noShot}</p>`;
     const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">${T.watchDemo}</a>` : "";
     return `<article class="card" id="${escapeHtml(entry.id)}">
 ${shot}
@@ -30668,11 +30679,11 @@ ${messageTable(list)}
 <aside class="callout caution"><p class="callout-title">${T.unknownsTitle}</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul></aside>` : "";
   const sources = presetOf(input) === "handover" ? `<h2>${T.sources}</h2><ul class="sources">${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
   const media = mediaOf(input);
-  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "")}
+  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input))}
 ` : input.printAnchors ? `<p class="no-shot">${T.noShot}</p>
 ` : "";
   const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>${T.demo}</h2>
-${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "")}
+${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input))}
 ` : "";
   return `<${headingTag}>${escapeHtml(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</p>
@@ -30853,6 +30864,8 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .frame-bar i:nth-child(3) { background: #28c840; }
 .frame-url { margin: 0 auto; min-width: 40%; max-width: 70%; padding: 2px 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted); font: 12px/18px var(--mono); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.frame.phone { max-width: 400px; margin-inline: auto; }
+.card .frame.phone, .preview .frame.phone { max-width: none; }
 .medium-zoom-overlay, .medium-zoom-image--opened { z-index: 999; }
 
 /* \uD654\uBA74 \uBAA9\uB85D */
@@ -36778,6 +36791,8 @@ function resolveOutputOptions(config, cli = {}) {
     formats,
     language: language2,
     theme,
+    // 캡처를 휴대폰 크기로 찍었으면 산출물에서 휴대폰 폭으로 보인다
+    device: config.capture?.device === "mobile" ? "mobile" : "desktop",
     title: String(output.title ?? stringsFor(language2).defaultTitle),
     organization: String(output.organization ?? ""),
     revisions: revisions.map((r) => Object.fromEntries(REVISION_FIELDS.map((f) => [f, r[f]])))
