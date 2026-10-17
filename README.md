@@ -47,7 +47,7 @@
 | Next.js(App·Pages Router), React Router(v6·v7, `flatRoutes()`)·Remix v2, Vue Router·Nuxt, SvelteKit — 모노레포 하위 앱 포함 | 감지기(스크립트) | 자동 실행 또는 주소 받기 |
 | Spring MVC(JSP·Thymeleaf), Django·Flask, PHP, 그 밖의 JS 라우터 | 에이전트 탐색 + 스택별 힌트(`skills/docent/references/stacks/`) | 자동 실행 또는 주소 받기 |
 | ASP.NET WebForms | 에이전트 탐색 + 힌트 | 주소 받기만(IIS·Windows 필요) |
-| 데스크톱 앱(Electron·Tauri, 메뉴로 바뀌는 화면 포함) | 에이전트 탐색 | 지원 안 함(소스만으로) |
+| 데스크톱 앱(Electron·Tauri, 메뉴로 바뀌는 화면 포함) | 에이전트 탐색 | Electron은 화면마다 앱을 띄워 캡처, Tauri는 지원 안 함(소스만으로) |
 
 npm·pnpm·yarn, docker compose, Maven·Gradle, Django·Flask 실행 계획을 안내합니다(`skills/docent/references/run-guide.md`). 실제 레포(개인 사이트, 데스크톱 앱 모노레포, 메뉴 권한형 업무 앱)에 적용한 기록은 `docs/field-tests/`에 있습니다.
 

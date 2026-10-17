@@ -25,6 +25,25 @@ docent가 화면을 캡처하려면 대상 앱이 실행 중이어야 합니다.
 - `healthcheck.path`: 로그인 없이 응답하는 경로(로그인 화면 등). 리다이렉트(3xx)도 응답으로 봅니다
 - 사용자가 직접 띄운 앱을 쓸 때는 `{ "mode": "url", "baseUrl": "http://…" }`만 적습니다
 
+### Electron 앱
+
+```json
+{
+  "mode": "electron",
+  "install": ["pnpm install --frozen-lockfile", "pnpm --filter desktop build"],
+  "cwd": "apps/desktop",
+  "electron": { "main": "out/main/index.js" }
+}
+```
+
+- 띄워 둘 서버가 없습니다. `docent run start [--install]`은 승인 확인과 설치·빌드 명령만 하고 진입점이 있는지 봅니다. 캡처·녹화가 화면마다 앱을 새로 띄웁니다(Playwright Electron, 창 크기는 캡처 1280×800, GIF 800×600)
+- `electron.main`: `cwd` 기준 빌드된 main 스크립트(electron-vite·electron-forge의 `out/main/index.js`, `dist/main.js` 등)나 `package.json`의 `main`이 맞는 폴더(`.`). 빌드 명령은 `install`에 넣습니다(승인 대상)
+- `electron` 패키지는 `cwd`부터 위로(모노레포 루트 `node_modules` 포함) 찾습니다
+- Linux에서 root로 실행하거나 CI·컨테이너면 `"args": ["--no-sandbox"]`, 화면이 없는 서버면 `xvfb-run -a`로 감싸 실행합니다
+- 처음 뜨는 화면(주소 `/`의 page)은 그대로 찍고, 메뉴로 바뀌는 화면(`view`)·창(모달)은 시나리오의 `setup`(메뉴 클릭 등)으로 엽니다. 시나리오 `path`는 `"/"`로 둡니다
+- `crawl`·`auth`는 쓰지 않습니다. 로그인이 필요하면 시나리오 준비 단계에 적습니다(계정 값이 들어간 단계는 캡처하지 않음)
+- Tauri 앱은 지원하지 않습니다(소스만으로)
+
 ## 스택별 계획
 
 | 스택 | 판별 | install | start | 포트 |

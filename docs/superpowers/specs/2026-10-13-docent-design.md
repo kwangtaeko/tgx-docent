@@ -320,3 +320,9 @@ tgx-docent/
 - 앱마다 작업 폴더 `.docent/apps/<이름>/`(CLI `--workspace <이름>`)에서 지금의 흐름(init~capture)을 그대로 따로 진행한다. 비밀 파일 차단 세션 표시는 루트 `.docent/.session` 하나, 훅은 앱 작업의 `secrets.paths`도 읽는다
 - 루트 `.docent/config.yaml`의 `combine: [{ workspace, title? }]`이 있으면 `build`가 앱마다 검증한 뒤 합친다: 화면 ID는 `<작업>.<ID>`, 메뉴 경로·기능 메뉴·워크플로우 이름 앞에 앱 제목, 화면 목록은 앱별 줄로 나눈다. 언어·프리셋·테마·제목은 루트 설정
 - 앱을 넘나드는 워크플로우는 다루지 않는다(검증이 앱마다라 근거를 확인할 수 없음)
+
+## 추가 (2026-10-17): Electron 캡처
+
+- `run.json`의 `mode: "electron"`(`electron.main`, `args`): 띄워 둘 서버 없이 캡처·녹화가 화면마다 Playwright `_electron`으로 앱을 새로 띄운다(앞 화면 상태가 남지 않게). 창 내용 크기는 캡처 1280×800, GIF 800×600
+- 앱 코드를 실행하므로 `run approve` 승인이 있어야 띄운다(승인 해시에 `electron` 포함). 설치·빌드 명령은 `install`
+- 처음 뜨는 화면은 그대로, 메뉴로 바뀌는 화면은 시나리오 `setup`으로 연다. `crawl`·`auth`는 쓰지 않는다. Tauri는 소스만으로

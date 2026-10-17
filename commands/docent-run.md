@@ -2,4 +2,4 @@
 description: 대상 앱을 실행한다(단계별 방식: 자동 실행 → 실패 시 주소 받기 → 성공한 방법 저장)
 ---
 
-docent 스킬의 "실행·캡처" 단계 중 앱 실행 부분(1~3)만 수행하세요. $ARGUMENTS 데스크톱 앱(Electron·Tauri)이면 실행·캡처를 지원하지 않는다고 알리고 멈춥니다.
+docent 스킬의 "실행·캡처" 단계 중 앱 실행 부분(1~3)만 수행하세요. $ARGUMENTS Tauri 데스크톱 앱이면 실행·캡처를 지원하지 않는다고 알리고 멈춥니다(Electron은 `run.json`의 `mode: "electron"`으로 진행).

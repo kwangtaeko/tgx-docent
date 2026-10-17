@@ -47,7 +47,7 @@ When the code changes, `/docent-update` redoes only the screens that changed.
 | Next.js (App and Pages Router), React Router (v6, v7, `flatRoutes()`) and Remix v2, Vue Router and Nuxt, SvelteKit — including apps inside a monorepo | detector (script) | starts the app, or uses a URL you give |
 | Spring MVC (JSP, Thymeleaf), Django and Flask, PHP, other JS routers | agent exploration with per-stack hints (`skills/docent/references/stacks/`) | starts the app, or uses a URL you give |
 | ASP.NET WebForms | agent exploration with hints | URL only (needs IIS and Windows) |
-| Desktop apps (Electron, Tauri, including menu-switched screens) | agent exploration | not supported (source only) |
+| Desktop apps (Electron, Tauri, including menu-switched screens) | agent exploration | Electron: launches the app for each screen; Tauri: not supported (source only) |
 
 The run guide covers npm, pnpm, yarn, docker compose, Maven, Gradle, Django and Flask (`skills/docent/references/run-guide.md`). Records of running docent on real repositories (a personal site, a desktop-app monorepo and a menu-permission business app) are in `docs/field-tests/`.
 

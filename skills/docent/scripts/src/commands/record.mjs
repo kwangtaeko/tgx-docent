@@ -18,7 +18,7 @@ export const GIF_MAX_BYTES = 2 * 1024 * 1024;
 const FPS = 10;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function loadScreen(projectDir, id) {
+export async function loadScreen(projectDir, id) {
   try {
     return await readJsonIfExists(join(docentDir(projectDir), 'screens', `${id}.json`));
   } catch {
@@ -27,7 +27,7 @@ async function loadScreen(projectDir, id) {
 }
 
 // 단계를 실행하는 동안 1000/fps 간격으로 화면을 찍는다. 새 창이 열리면 그 창을 찍는다
-async function recordSteps(page, steps, openers = []) {
+export async function recordSteps(page, steps, openers = []) {
   const frames = [];
   let active = page;
   let recording = true;
@@ -57,23 +57,46 @@ async function recordSteps(page, steps, openers = []) {
   return { result, frames };
 }
 
-export async function runRecord(projectDir, ids) {
+// 프레임 → GIF. 2MB를 넘으면 프레임을 절반으로 줄여 다시, 그래도 넘으면 undefined
+export function framesToGif(frames) {
+  let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
+  if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
+  return gif.length > GIF_MAX_BYTES ? undefined : gif;
+}
+
+// 녹화할 화면: 지정한 ID, 없으면 GIF 대상
+export async function recordTargets(projectDir, config, ids) {
+  if (ids?.length) return ids;
+  const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
+  const screens = [];
+  for (const { id } of inventory.screens) {
+    const s = await loadScreen(projectDir, id);
+    if (s) screens.push(s);
+  }
+  return gifTargets(screens, config);
+}
+
+// 시나리오를 녹화할 수 있는지. 안 되면 건너뛸 이유
+export async function recordSkipReason(projectDir, id, scenario) {
+  if (!scenario) return t('시나리오가 없습니다');
+  if (!scenario.steps.length) return t('보여 줄 조작 단계가 없습니다');
+  if (usesEnvValue([...scenario.setup, ...scenario.steps])) return t('환경변수 값(계정 등)을 입력하는 단계가 있어 GIF로 만들지 않습니다');
+  const screen = await loadScreen(projectDir, id);
+  if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) return t('시나리오가 낡았습니다');
+  return undefined;
+}
+
+export async function runRecord(projectDir, ids, { electronLauncher } = {}) {
   const run = await loadRun(projectDir);
   const config = await loadConfig(projectDir);
-  const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
   const paths = mediaPaths(projectDir);
   const loginPath = config.auth?.loginPath ?? '/login';
-
-  let targetIds = ids;
-  if (!targetIds?.length) {
-    const screens = [];
-    for (const { id } of inventory.screens) {
-      const s = await loadScreen(projectDir, id);
-      if (s) screens.push(s);
-    }
-    targetIds = gifTargets(screens, config);
-  }
+  const targetIds = await recordTargets(projectDir, config, ids);
   await ensureMediaDirs(projectDir);
+  if (run.mode === 'electron') {
+    const { recordElectron } = await import('./electron.mjs');
+    return recordElectron(projectDir, run, config, targetIds, { launch: electronLauncher });
+  }
 
   const result = { recorded: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
@@ -84,21 +107,9 @@ export async function runRecord(projectDir, ids) {
     await maskContext(anonymous, config.mask.selectors);
     for (const id of targetIds) {
       const scenario = await loadScenario(projectDir, id);
-      if (!scenario) {
-        result.skipped.push({ id, reason: t('시나리오가 없습니다') });
-        continue;
-      }
-      if (!scenario.steps.length) {
-        result.skipped.push({ id, reason: t('보여 줄 조작 단계가 없습니다') });
-        continue;
-      }
-      if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
-        result.skipped.push({ id, reason: t('환경변수 값(계정 등)을 입력하는 단계가 있어 GIF로 만들지 않습니다') });
-        continue;
-      }
-      const screen = await loadScreen(projectDir, id);
-      if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
-        result.skipped.push({ id, reason: t('시나리오가 낡았습니다') });
+      const skip = await recordSkipReason(projectDir, id, scenario);
+      if (skip) {
+        result.skipped.push({ id, reason: skip });
         continue;
       }
       // 로그인 화면은 로그인하지 않은 상태로 연다(로그인 사용자를 다른 화면으로 보내는 앱이 많다)
@@ -120,9 +131,8 @@ export async function runRecord(projectDir, ids) {
           result.failed.push({ id, reason: t('{0}번째 단계 — {1}', stepResult.index + 1, stepResult.reason) });
           continue;
         }
-        let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
-        if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
-        if (gif.length > GIF_MAX_BYTES) {
+        const gif = framesToGif(frames);
+        if (!gif) {
           const reason = t('GIF가 2MB를 넘습니다. 시나리오 단계를 줄이세요');
           await recordFailure(projectDir, { id, kind: 'record', reason });
           result.failed.push({ id, reason });

@@ -97,7 +97,8 @@ async function main() {
       if (r.appIgnored) console.log(t('--app은 쓰지 않았습니다. 앱 폴더를 바꾸려면 .docent/config.yaml의 app을 고치세요.'));
       if (r.app) console.log(t('앱 폴더: {0}', r.app));
       console.log(t('감지된 프레임워크: {0}', r.detectors.length ? r.detectors.join(', ') : t('없음 (에이전트 탐색으로 화면을 찾습니다)')));
-      if (r.desktop) console.log(t('데스크톱 앱({0})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)', r.desktop));
+      if (r.desktop === 'electron') console.log(t('데스크톱 앱(electron)입니다: 실행·캡처는 run.json의 mode: "electron"으로 화면마다 앱을 띄워 합니다'));
+      else if (r.desktop) console.log(t('데스크톱 앱({0})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)', r.desktop));
       return 0;
     }
     case 'inventory': {
@@ -166,7 +167,8 @@ async function main() {
       }
       if (sub === 'start') {
         const r = await runStart(project, { install: args.includes('--install') });
-        console.log(r.reused ? t('이미 응답 중인 앱을 씁니다: {0}', r.baseUrl) : t('앱을 띄웠습니다: {0}', r.baseUrl));
+        if (r.electron) console.log(t('Electron 앱을 준비했습니다. 캡처·녹화가 화면마다 앱을 띄웁니다.'));
+        else console.log(r.reused ? t('이미 응답 중인 앱을 씁니다: {0}', r.baseUrl) : t('앱을 띄웠습니다: {0}', r.baseUrl));
         return 0;
       }
       if (sub === 'stop') {
@@ -176,7 +178,8 @@ async function main() {
       }
       if (sub === 'status') {
         const r = await runStatus(project);
-        console.log(r.configured ? `${r.baseUrl} — ${r.up ? t('응답 중') : t('응답 없음')}${r.pid ? ` (pid ${r.pid})` : ''}` : t('.docent/run.json 없음'));
+        if (r.electron) console.log(r.up ? t('Electron 앱 — 진입점 있음') : t('Electron 앱 — 진입점 없음(빌드 필요)'));
+        else console.log(r.configured ? `${r.baseUrl} — ${r.up ? t('응답 중') : t('응답 없음')}${r.pid ? ` (pid ${r.pid})` : ''}` : t('.docent/run.json 없음'));
         return 0;
       }
       break;

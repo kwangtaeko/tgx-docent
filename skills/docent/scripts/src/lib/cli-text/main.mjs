@@ -47,6 +47,8 @@ export default {
   '앱 폴더: {0}': 'App folder: {0}',
   '감지된 프레임워크: {0}': 'Detected frameworks: {0}',
   '없음 (에이전트 탐색으로 화면을 찾습니다)': 'none (the agent will search for screens)',
+  '데스크톱 앱(electron)입니다: 실행·캡처는 run.json의 mode: "electron"으로 화면마다 앱을 띄워 합니다':
+    'This is a desktop app (electron): run and capture use mode: "electron" in run.json and launch the app for each screen',
   '데스크톱 앱({0})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)':
     'This is a desktop app ({0}): screen analysis and outputs come from source only; capture and GIF recording are not supported (run and capture steps are skipped)',
 

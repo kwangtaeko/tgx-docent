@@ -60,4 +60,17 @@ export default {
     'Playwright, needed for capture and recording, is not installed. With the user\'s consent, install it with `docent runtime install` (downloads playwright@{1} and Chromium into {0}).',
   'Chromium을 찾을 수 없습니다. `docent runtime install`(또는 npx playwright install chromium)로 설치하세요.':
     'Chromium not found. Install it with `docent runtime install` (or npx playwright install chromium).',
+  // Electron(commands/run.mjs·electron.mjs·crawl.mjs·auth.mjs, lib/electron.mjs, docent.mjs)
+  'Electron 앱 — 진입점 없음(빌드 필요)': 'Electron app — entry point missing (build needed)',
+  'Electron 앱 — 진입점 있음': 'Electron app — entry point present',
+  'Electron 앱을 준비했습니다. 캡처·녹화가 화면마다 앱을 띄웁니다.': 'Electron app is ready. Capture and recording launch the app for each screen.',
+  'Electron 진입점이 없습니다: {0} — 앱을 빌드했는지 확인하세요(빌드 명령은 install에)': 'Electron entry point not found: {0} — check that the app is built (put the build command under install)',
+  'electron 패키지를 찾을 수 없습니다({0}). 앱의 의존성을 설치하세요(run.json의 install, docent run start --install)':
+    'Cannot find the electron package ({0}). Install the app dependencies (install in run.json, docent run start --install)',
+  '데스크톱 앱(Electron)은 로그인 상태를 저장하지 않습니다. 로그인이 필요하면 시나리오 준비 단계에 적으세요':
+    'Desktop apps (Electron) do not save a login state. If login is needed, put it in the scenario setup steps',
+  '데스크톱 앱(Electron)은 링크로 돌 수 없어 crawl을 하지 않습니다. 화면 목록은 소스 분석 결과를 씁니다':
+    'Desktop apps (Electron) cannot be crawled through links. The screen list comes from source analysis',
+  '데스크톱 앱에서 이 화면을 여는 준비 단계(메뉴 클릭 등)가 시나리오에 필요합니다': 'The scenario needs setup steps (menu clicks, etc.) that open this screen in the desktop app',
+  '실행: Electron {0}': 'Run: Electron {0}',
 };

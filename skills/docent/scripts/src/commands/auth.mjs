@@ -50,6 +50,7 @@ export async function authLogin(projectDir) {
   if (missing.length) throw new Error(t('로그인에 필요한 환경변수가 없습니다: {0}', missing.join(', ')));
 
   const run = await loadRun(projectDir);
+  noElectron(run);
   const browser = await launchBrowser();
   try {
     const context = await browser.newContext();
@@ -75,8 +76,14 @@ export async function authLogin(projectDir) {
 }
 
 // 화면이 있는 브라우저에서 사용자가 직접 로그인한 뒤 Enter를 누르면 상태를 저장한다(대화형)
+// 데스크톱 앱은 브라우저 로그인 상태를 쓰지 않는다(로그인이 필요하면 시나리오 준비 단계로)
+function noElectron(run) {
+  if (run.mode === 'electron') throw new Error(t('데스크톱 앱(Electron)은 로그인 상태를 저장하지 않습니다. 로그인이 필요하면 시나리오 준비 단계에 적으세요'));
+}
+
 export async function authSave(projectDir) {
   const run = await loadRun(projectDir);
+  noElectron(run);
   const browser = await launchBrowser({ headless: false });
   try {
     const context = await browser.newContext();

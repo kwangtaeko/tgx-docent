@@ -28,18 +28,18 @@ const approvalFile = (projectDir) => join(docentDir(projectDir), '.run-approved'
 
 // 이 컴퓨터에서 사용자가 승인한 명령인지: install·start·stop·cwd·env의 해시를 .run-approved(gitignore)에 둔다.
 // run.json은 커밋되므로, 레포에 들어 있던 명령을 확인 없이 실행하지 않기 위해서다.
-// stop은 있을 때만 해시에 넣어, stop이 없는 기존 승인이 깨지지 않게 한다.
+// stop·electron은 있을 때만 해시에 넣어, 그것이 없는 기존 승인이 깨지지 않게 한다.
 function commandsHash(run) {
-  const { install = [], start = '', cwd = '.', env = {}, stop } = run;
+  const { install = [], start = '', cwd = '.', env = {}, stop, electron } = run;
   return createHash('sha256')
-    .update(JSON.stringify({ install, start, cwd, env, ...(stop !== undefined ? { stop } : {}) }))
+    .update(JSON.stringify({ install, start, cwd, env, ...(stop !== undefined ? { stop } : {}), ...(electron !== undefined ? { electron } : {}) }))
     .digest('hex');
 }
 
 export function describeCommands(run) {
   return [
     ...(run.install ?? []).map((c) => t('설치: {0}', c)),
-    t('실행: {0}', run.start),
+    run.electron ? t('실행: Electron {0}', [run.electron.main, ...(run.electron.args ?? [])].join(' ')) : t('실행: {0}', run.start),
     ...(run.stop !== undefined ? [t('정리: {0}', run.stop)] : []),
     t('위치: {0}', run.cwd ?? '.'),
     ...Object.entries(run.env ?? {}).map(([k, v]) => t('환경: {0}={1}', k, v)),
@@ -52,7 +52,7 @@ export async function runApprove(projectDir) {
   return { commands: describeCommands(run) };
 }
 
-async function approved(projectDir, run) {
+export async function approved(projectDir, run) {
   try {
     return (await readFile(approvalFile(projectDir), 'utf8')).trim() === commandsHash(run);
   } catch {
@@ -137,33 +137,48 @@ async function logTail(projectDir, run, lines = 20) {
   }
 }
 
-function childEnv(run) {
+export const runCwd = (projectDir, run) => resolve(projectDir, run.cwd && run.cwd !== '.' ? normalizeRel(run.cwd) : '.');
+
+export function childEnv(run) {
   return { ...process.env, ...(run.env ?? {}) };
 }
 
-export async function runStart(projectDir, { install = false } = {}) {
-  const run = await loadRun(projectDir);
-  // 사용자가 직접 띄운 앱이면 이 셸에 환경변수가 없어도 그대로 쓴다
-  if ((await httpCheck(healthUrl(run), 2000)).ok) return { baseUrl: run.baseUrl, started: false, reused: true };
-  if (run.mode === 'url') throw new Error(t('{0}가 응답하지 않습니다. 앱을 띄운 뒤 다시 시도하세요', run.baseUrl));
+// 승인 확인 → (--install이면) 설치 명령. 웹 앱 실행과 Electron 준비가 함께 쓴다
+async function prepare(projectDir, run, install) {
   const missing = (run.envNames ?? []).filter((name) => !process.env[name]);
   if (missing.length) throw new Error(t('실행에 필요한 환경변수가 없습니다: {0}', missing.join(', ')));
-  const booting = await readPid(projectDir);
-  if (booting) throw new Error(t('이미 시작 중인 앱이 있습니다(pid {0}). 끝날 때까지 기다리거나 docent run stop을 실행하세요', booting));
   if (!(await approved(projectDir, run))) {
     throw new Error(
       t('.docent/run.json의 명령이 이 컴퓨터에서 아직 승인되지 않았습니다. 아래 명령을 사용자에게 보여 주고 동의를 받은 뒤 `docent run approve`를 실행하세요:') +
         `\n${describeCommands(run)}`,
     );
   }
-
-  const cwd = resolve(projectDir, run.cwd && run.cwd !== '.' ? normalizeRel(run.cwd) : '.');
+  const cwd = runCwd(projectDir, run);
   if (install) {
     for (const command of run.install ?? []) {
       const r = spawnSync(command, { cwd, shell: true, stdio: 'inherit', env: childEnv(run) });
       if (r.status !== 0) throw new Error(t('설치 명령 실패: {0} (exit {1})', command, r.status));
     }
   }
+  return cwd;
+}
+
+// 데스크톱 앱: 띄워 둘 서버가 없다. 승인·설치만 하고, 캡처·녹화가 화면마다 앱을 띄운다
+async function startElectron(projectDir, run, install) {
+  const cwd = await prepare(projectDir, run, install);
+  if (!existsSync(join(cwd, run.electron.main))) throw new Error(t('Electron 진입점이 없습니다: {0} — 앱을 빌드했는지 확인하세요(빌드 명령은 install에)', run.electron.main));
+  return { electron: true, started: false, reused: false };
+}
+
+export async function runStart(projectDir, { install = false } = {}) {
+  const run = await loadRun(projectDir);
+  if (run.mode === 'electron') return startElectron(projectDir, run, install);
+  // 사용자가 직접 띄운 앱이면 이 셸에 환경변수가 없어도 그대로 쓴다
+  if ((await httpCheck(healthUrl(run), 2000)).ok) return { baseUrl: run.baseUrl, started: false, reused: true };
+  if (run.mode === 'url') throw new Error(t('{0}가 응답하지 않습니다. 앱을 띄운 뒤 다시 시도하세요', run.baseUrl));
+  const booting = await readPid(projectDir);
+  if (booting) throw new Error(t('이미 시작 중인 앱이 있습니다(pid {0}). 끝날 때까지 기다리거나 docent run stop을 실행하세요', booting));
+  const cwd = await prepare(projectDir, run, install);
 
   const fd = openSync(logFile(projectDir), 'w');
   const child = spawn(run.start, { cwd, shell: true, detached: true, stdio: ['ignore', fd, fd], env: childEnv(run) });
@@ -203,7 +218,7 @@ export async function runStop(projectDir) {
     return { stopped: true };
   }
   if (run.stop && (await approved(projectDir, run))) {
-    const cwd = resolve(projectDir, run.cwd && run.cwd !== '.' ? normalizeRel(run.cwd) : '.');
+    const cwd = runCwd(projectDir, run);
     spawnSync(run.stop, { cwd, shell: true, stdio: 'ignore', env: childEnv(run) });
   }
   return { stopped: true };
@@ -215,6 +230,9 @@ export async function runStatus(projectDir) {
     run = await loadRun(projectDir);
   } catch {
     return { configured: false, up: false };
+  }
+  if (run.mode === 'electron') {
+    return { configured: true, electron: true, up: existsSync(join(runCwd(projectDir, run), run.electron.main)) };
   }
   const pid = await readPid(projectDir);
   const up = (await httpCheck(healthUrl(run), 2000)).ok;

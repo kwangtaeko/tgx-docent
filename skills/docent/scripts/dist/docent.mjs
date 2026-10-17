@@ -13,6 +13,14 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __commonJS = (cb, mod) => function __require2() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -7368,6 +7376,731 @@ var require_dist = __commonJS({
     exports.stringify = publicApi.stringify;
     exports.visit = visit.visit;
     exports.visitAsync = visit.visitAsync;
+  }
+});
+
+// skills/docent/scripts/src/renderers/i18n.mjs
+var LANGUAGES, ko, en, STRINGS, languageOf, stringsFor, textOf;
+var init_i18n = __esm({
+  "skills/docent/scripts/src/renderers/i18n.mjs"() {
+    LANGUAGES = ["ko", "en"];
+    ko = {
+      htmlLang: "ko",
+      types: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C\uBC15\uC2A4", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "\uC8FC\uC18C(URL)", tel: "\uC804\uD654\uBC88\uD638", other: "\uAE30\uD0C0" },
+      typesShort: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "URL", tel: "\uC804\uD654", other: "\uAE30\uD0C0" },
+      defaultTitle: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC",
+      defaultFileName: "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC",
+      noCapture: "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.",
+      flag: "\uD655\uC778 \uD544\uC694",
+      intro: "\uC18C\uAC1C",
+      screenList: "\uD654\uBA74 \uBAA9\uB85D",
+      workflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
+      footer: (date) => `docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${date}`,
+      draft: "\uCD08\uC548",
+      author: "\uC791\uC131",
+      baseDate: "\uAE30\uC900\uC77C",
+      version: "\uBC84\uC804",
+      toc: "\uBAA9\uCC28",
+      perScreen: "\uD654\uBA74\uBCC4 \uC124\uBA85",
+      revisions: "\uAC1C\uC815 \uC774\uB825",
+      revisionHead: ["\uBC84\uC804", "\uB0A0\uC9DC", "\uC791\uC131\uC790", "\uB0B4\uC6A9"],
+      noRoles: "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C",
+      preview: "\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30",
+      demoAlt: (t2) => `${t2} \uC870\uC791 \uC608\uC2DC`,
+      shotAlt: (t2) => `${t2} \uD654\uBA74`,
+      statScreens: "\uD654\uBA74",
+      statWorkflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
+      statRoles: "\uC5ED\uD560",
+      features: "\uC8FC\uC694 \uAE30\uB2A5",
+      roles: "\uC0AC\uC6A9\uC790 \uC5ED\uD560",
+      menu: "\uBA54\uB274 \uAD6C\uC870",
+      seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
+      childOf: (t2) => `${t2}\uC758 \uD558\uC704 \uD654\uBA74`,
+      viewNote: "\uBA54\uB274\uB85C \uC804\uD658",
+      messageHead: ["\uBB38\uAD6C", "\uB098\uC624\uB294 \uB54C"],
+      totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
+      listHead: ["ID", "\uD654\uBA74", "\uACBD\uB85C", "\uBA54\uB274", "\uC5ED\uD560", "\uBAA9\uC801"],
+      noShot: "\uCEA1\uCC98 \uC5C6\uC74C",
+      watchDemo: "\uC870\uC791 \uC608\uC2DC \uBCF4\uAE30",
+      menuPath: "\uBA54\uB274 \uC704\uCE58",
+      route: "\uACBD\uB85C",
+      parent: "\uC0C1\uC704 \uD654\uBA74",
+      usedBy: "\uC0AC\uC6A9 \uC5ED\uD560",
+      sections: "\uAD6C\uC131",
+      none: "\uC5C6\uC74C",
+      required: "\uD544\uC218",
+      goTo: "\uC774\uB3D9",
+      opens: "\uC5F4\uAE30",
+      children: "\uD558\uC704 \uD654\uBA74",
+      unknownsTitle: "\uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4",
+      sources: "\uC18C\uC2A4 \uD30C\uC77C",
+      demo: "\uC870\uC791 \uC608\uC2DC",
+      fields: "\uC785\uB825 \uD56D\uBAA9",
+      actions: "\uBC84\uD2BC\uACFC \uB3D9\uC791",
+      messages: "\uC548\uB0B4 \uBA54\uC2DC\uC9C0",
+      workflowsLead: "\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC774\uB098 \uBA54\uB274(\uC810\uC120)\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.",
+      menuEdge: "\uBA54\uB274",
+      // PPTX
+      continued: " (\uACC4\uC18D)",
+      noMenu: "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C",
+      kindField: "\uC785\uB825",
+      kindAction: "\uBC84\uD2BC",
+      tableHead: ["\uAD6C\uBD84", "\uC774\uB984", "\uC124\uBA85"],
+      noRows: "\uC785\uB825 \uD56D\uBAA9\xB7\uBC84\uD2BC \uC5C6\uC74C",
+      requiredSuffix: " \xB7 \uD544\uC218",
+      flagPrefix: "[\uD655\uC778 \uD544\uC694] ",
+      // README
+      more: "\uB354 \uBCF4\uAE30",
+      systemIntro: "\uC2DC\uC2A4\uD15C \uC18C\uAC1C",
+      readmeNote: (date) => `docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`
+    };
+    en = {
+      htmlLang: "en",
+      types: { text: "Text", textarea: "Multi-line text", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Single choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
+      typesShort: { text: "Text", textarea: "Multi-line", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
+      defaultTitle: "User Manual",
+      defaultFileName: "UserManual",
+      noCapture: "Made from the source code only, without screenshots.",
+      flag: "Needs review",
+      intro: "Overview",
+      screenList: "Screens",
+      workflows: "Workflows",
+      footer: (date) => `Draft generated by docent \xB7 As of ${date}`,
+      draft: "Draft",
+      author: "Prepared by",
+      baseDate: "As of",
+      version: "Version",
+      toc: "Contents",
+      perScreen: "Screen guides",
+      revisions: "Revision history",
+      revisionHead: ["Version", "Date", "Author", "Changes"],
+      noRoles: "No roles found",
+      preview: "Screen previews",
+      demoAlt: (t2) => `${t2} walkthrough`,
+      shotAlt: (t2) => `${t2} screen`,
+      statScreens: "Screens",
+      statWorkflows: "Workflows",
+      statRoles: "Roles",
+      features: "Key features",
+      roles: "User roles",
+      menu: "Menu structure",
+      seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
+      childOf: (t2) => `Inside ${t2}`,
+      viewNote: "switched from the menu",
+      messageHead: ["Message", "When"],
+      totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
+      listHead: ["ID", "Screen", "Path", "Menu", "Roles", "Purpose"],
+      noShot: "No screenshot",
+      watchDemo: "Watch walkthrough",
+      menuPath: "Menu",
+      route: "Path",
+      parent: "Parent screen",
+      usedBy: "Roles",
+      sections: "Sections",
+      none: "None",
+      required: "Required",
+      goTo: "Goes to",
+      opens: "Opens",
+      children: "Sub-screens",
+      unknownsTitle: "Could not be confirmed from the source code",
+      sources: "Source files",
+      demo: "Walkthrough",
+      fields: "Input fields",
+      actions: "Buttons and actions",
+      messages: "Messages",
+      workflowsLead: "Flows that move between screens to get a task done. Only links confirmed by button actions or the menu (dotted) are drawn.",
+      menuEdge: "menu",
+      continued: " (cont.)",
+      noMenu: "No menu information",
+      kindField: "Field",
+      kindAction: "Button",
+      tableHead: ["Type", "Name", "Description"],
+      noRows: "No fields or buttons",
+      requiredSuffix: " \xB7 required",
+      flagPrefix: "[Needs review] ",
+      more: "More",
+      systemIntro: "Overview",
+      readmeNote: (date) => `Draft generated by docent from the source code (as of ${date}).`
+    };
+    STRINGS = { ko, en };
+    languageOf = (input) => input?.options?.language ?? "ko";
+    stringsFor = (language2) => typeof language2 === "string" && Object.hasOwn(STRINGS, language2) ? STRINGS[language2] : ko;
+    textOf = (input) => stringsFor(languageOf(input));
+  }
+});
+
+// skills/docent/scripts/src/lib/cli-text/commands-a.mjs
+var commands_a_default;
+var init_commands_a = __esm({
+  "skills/docent/scripts/src/lib/cli-text/commands-a.mjs"() {
+    commands_a_default = {
+      // commands/validate.mjs
+      "\uD30C\uC77C \uC5C6\uC74C": "File not found",
+      "JSON \uD615\uC2DD \uC624\uB958 ({0})": "Invalid JSON ({0})",
+      "\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}": "Parent screen does not exist: {0}",
+      '"{0}"\uC758 {1}\uAC00 \uC5C6\uB294 \uD654\uBA74 {2}': '{1} of "{0}" points to a screen that does not exist: {2}',
+      "\uC18C\uC2A4\uAC00 \uBC14\uB00C\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uBD84\uC11D\uD558\uC138\uC694": "Source has changed. Analyze it again",
+      "\uD55C \uC904 \uC18C\uAC1C": "One-liner",
+      '"{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': '"{0}" refers to a screen that does not exist: {1}',
+      '"{0}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4': 'All screens backing "{0}" have low confidence',
+      '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': 'Workflow "{0}" refers to screens that do not exist: {1}',
+      '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4': 'Workflow "{0}" must move between at least 2 screens',
+      '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0\uB3C4 \uBA54\uB274\uC5D0\uB3C4 \uC5C6\uC2B5\uB2C8\uB2E4': 'Workflow "{0}": neither a screen action nor the menu links {1} \u2192 {2}',
+      "\uD30C\uC77C \uC774\uB984\uACFC screenId({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match screenId ({0})",
+      "\uC5C6\uB294 \uD654\uBA74 {0}": "Screen does not exist: {0}",
+      "\uB514\uB809\uD130\uB9AC \uC5C6\uC74C": "Directory not found",
+      "\uD30C\uC77C \uC774\uB984\uACFC id({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match id ({0})",
+      "inventory\uC5D0\uB294 \uC788\uC9C0\uB9CC \uBD84\uC11D \uACB0\uACFC(screens/{0}.json)\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "In inventory but has no analysis result (screens/{0}.json)",
+      "\uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Has an analysis result but is not in inventory",
+      "inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4": "Screen ID not found in inventory or analysis results",
+      // commands/review.mjs (review.md)
+      "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9": "# Review items",
+      "> docent\uAC00 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4. \uB2F5\uC744 \uC801\uACE0 \uCCB4\uD06C\uD55C \uB4A4 `/docent-analyze`\uB97C \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74 \uBC18\uC601\uB429\uB2C8\uB2E4.": "> Things docent could not confirm from the source alone. Write an answer, check the box, and run `/docent-analyze` again to apply it.",
+      " \uB2F5:": " Answer:",
+      "\uBAA9\uC801 \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {0} ({1})": "Purpose \u2014 low confidence: {0} ({1})",
+      "\uC5ED\uD560 {0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C ({1})": "Role {0} \u2014 low confidence ({1})",
+      "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: \uC785\uB825 \uD56D\uBAA9 ({1})": "{0} \u2014 low confidence: input field ({1})",
+      "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {1} ({2})": "{0} \u2014 low confidence: {1} ({2})",
+      "\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: {0}": "Path not in the screen list: {0}",
+      "\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: {0} ({1})": "Screen not reachable by links in the app: {0} ({1})",
+      "\uACBD\uB85C \uC5C6\uC74C": "no path",
+      "{0} \uCEA1\uCC98 \uC2E4\uD328: {1} (media/fail/{0}.png)": "{0} capture failed: {1} (media/fail/{0}.png)",
+      "{0} \uB179\uD654 \uC2E4\uD328: {1}{2} (media/fail/{0}.png)": "{0} recording failed: {1}{2} (media/fail/{0}.png)",
+      "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ": "step {0} \u2014 ",
+      "## \uCEA1\uCC98\xB7\uB179\uD654 \uC2E4\uD328": "## Capture and recording failures",
+      "## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870": "## Running app check",
+      "\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No review items.",
+      // commands/pending.mjs
+      "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C": "No analysis result",
+      "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C": "Analysis result is unreadable",
+      "\uC18C\uC2A4 \uBCC0\uACBD": "Source changed",
+      "\uAC80\uC0AC \uBB38\uC81C {0}\uAC74": "{0} check problem(s)",
+      "\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 {0}\uAC74": "{0} review item(s) answered",
+      // commands/update.mjs
+      "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870": "Refers to a removed screen",
+      // commands/scenarios.mjs
+      "\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694": "Capture path needed",
+      "GIF \uB300\uC0C1": "GIF target",
+      "\uB0A1\uC74C": "Outdated",
+      // commands/inventory.mjs
+      "\uD30C\uC77C \uC5C6\uC74C {0}": "File not found: {0}",
+      "app \uD3F4\uB354 {0}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "app folder not found: {0}",
+      "\uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 {0}": "Unknown detector: {0}",
+      "idMap\uC758 {0} \u2192 {1}\uB294 {2} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4": "idMap {0} \u2192 {1} not applied: the ID is already used by screen {2}",
+      "\uBD80\uBAA8 \uD654\uBA74 {0} \uC5C6\uC74C": "Parent screen not found: {0}",
+      "inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: {0}": "inventory.json schema error: {0}",
+      // commands/init.mjs (.gitignore, config.yaml)
+      "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "# docent: do not commit login sessions, outputs or captures (they may show real data)",
+      "--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: {0}": "--app must be a folder inside the project: {0}",
+      "--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "--app folder not found: {0}",
+      "# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694": "# docent settings \u2014 see the comments below and references/run-guide.md in the docent skill for each field",
+      "language: {0}  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)": "language: {0}  # output language: ko Korean | en English (set before screen analysis)",
+      "# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)": "# app folder to document in a monorepo (relative to the project root)",
+      "# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)": "# date: 2026-01-01  # date shown on outputs (default: last commit date)",
+      "# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):": "# apps that need login (write environment variable names only, never values):",
+      "#     - label: \uC544\uC774\uB514": "#     - label: Username",
+      "#     - label: \uBE44\uBC00\uBC88\uD638": "#     - label: Password",
+      "#   submit: \uB85C\uADF8\uC778": "#   submit: Log in",
+      "# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):": "# elements to blur before capture and recording (CSS selectors):",
+      "# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):": "# outputs (preset: delivery | handover | portfolio, formats: html readme pdf pptx):",
+      "#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate": "#   theme: indigo  # color theme: indigo | blue | emerald | rose | slate",
+      "#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC": "#   title: User Manual",
+      '#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)': '#   projectName: ""  # name shown on outputs (empty: product name or package.json name)',
+      '#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }': '#     - { version: "1.0", date: "2026-10-14", author: "", note: "Initial version" }',
+      "# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):": "# screens to make GIFs for (default: screens with button actions):",
+      // commands/build.mjs
+      "\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:": "Build stopped because validation failed:",
+      "\uC571 \uC791\uC5C5 {0}\uC758 language({1})\uAC00 \uB8E8\uD2B8 config.yaml({2})\uC640 \uB2E4\uB985\uB2C8\uB2E4. \uD654\uBA74 \uC124\uBA85\uC774 \uC11E\uC778 \uC5B8\uC5B4\uB85C \uB098\uC635\uB2C8\uB2E4": "App workspace {0} has language {1} but the root config.yaml has {2}. Screen descriptions will be in mixed languages",
+      "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694": "{0} review item(s) remain (.docent/review.md). Check them before delivery",
+      "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)": "PDF not built: Playwright is not installed (docent runtime install)",
+      "PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4": "Workflow diagrams in the PDF were not ready; the PDF may contain raw Mermaid text",
+      "\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Could not draw {0} workflow diagram(s); added step lists instead",
+      "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT",
+      // validate.mjs — effectEvidence
+      '"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'effectEvidence file {1} of "{0}" is not in readFiles',
+      '\uBA54\uB274 \uACBD\uB85C\uC758 "{0}"\uC774 \uADFC\uAC70({1}) \uADFC\uCC98\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Menu path name "{0}" is not near its evidence ({1})',
+      "\uADFC\uAC70 \uD30C\uC77C {0}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Evidence file {0} is not in readFiles",
+      '"{0}"\uC758 section "{1}"\uC774 sections\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Section "{1}" of "{0}" is not in sections'
+    };
+  }
+});
+
+// skills/docent/scripts/src/lib/cli-text/commands-b.mjs
+var commands_b_default;
+var init_commands_b = __esm({
+  "skills/docent/scripts/src/lib/cli-text/commands-b.mjs"() {
+    commands_b_default = {
+      // commands/auth.mjs
+      "config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "config.yaml has no auth settings (loginPath, fields, submit)",
+      "\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for login: {0}",
+      "\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694": "Login failed: after login the browser stayed on {1} instead of {0}. Check the account environment variables ({2})",
+      "\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 ": "Log in in the browser, then press Enter here\u2026 ",
+      // commands/capture.mjs
+      "\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Cannot open: {0}",
+      "\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694": "Login required \u2014 save the login state with docent auth login",
+      "\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Redirected to another screen ({0}) \u2014 no permission or conditions not met",
+      "\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}": "Setup step {0} failed: {1}",
+      "\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4": "The scenario needs a concrete path",
+      "\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Not captured: setup steps use environment variable values (accounts, etc.)",
+      // commands/crawl.mjs
+      "\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694": "Only the login screen was visited. The login state seems to have expired \u2014 log in again with docent auth login",
+      // commands/record.mjs
+      "\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No scenario",
+      "\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No steps to show",
+      "\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "No GIF made: some steps enter environment variable values (accounts, etc.)",
+      "\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4": "The scenario is stale",
+      "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}": "Step {0} \u2014 {1}",
+      "GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694": "The GIF is over 2MB. Reduce the scenario steps",
+      // commands/run.mjs
+      ".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694": ".docent/run.json not found. Set up the run plan first",
+      ".docent/run.json \uD615\uC2DD \uC624\uB958: {0}": ".docent/run.json format error: {0}",
+      "\uC124\uCE58: {0}": "Install: {0}",
+      "\uC2E4\uD589: {0}": "Start: {0}",
+      "\uC815\uB9AC: {0}": "Stop: {0}",
+      "\uC704\uCE58: {0}": "Directory: {0}",
+      "\uD658\uACBD: {0}={1}": "Env: {0}={1}",
+      "{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694": "{0} is not responding. Start the app and try again",
+      "\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for the run: {0}",
+      "\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694": "An app is already starting (pid {0}). Wait for it to finish or run docent run stop",
+      ".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:": "The commands in .docent/run.json are not yet approved on this computer. Show the commands below to the user, get their consent, then run `docent run approve`:",
+      "\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})": "Install command failed: {0} (exit {1})",
+      "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4": "The app exited while starting",
+      "\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)": "Health check timed out ({0}s)",
+      "{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:": "{0}. Last lines of .docent/run.log:",
+      // commands/runtime.mjs
+      "{0} \uC2E4\uD328 (exit {1})": "{0} failed (exit {1})",
+      // lib/media.mjs
+      "{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4": "Could not acquire the lock on {0}",
+      // lib/playwright.mjs
+      "\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).": "Playwright, needed for capture and recording, is not installed. With the user's consent, install it with `docent runtime install` (downloads playwright@{1} and Chromium into {0}).",
+      "Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.": "Chromium not found. Install it with `docent runtime install` (or npx playwright install chromium).",
+      // Electron(commands/run.mjs·electron.mjs·crawl.mjs·auth.mjs, lib/electron.mjs, docent.mjs)
+      "Electron \uC571 \u2014 \uC9C4\uC785\uC810 \uC5C6\uC74C(\uBE4C\uB4DC \uD544\uC694)": "Electron app \u2014 entry point missing (build needed)",
+      "Electron \uC571 \u2014 \uC9C4\uC785\uC810 \uC788\uC74C": "Electron app \u2014 entry point present",
+      "Electron \uC571\uC744 \uC900\uBE44\uD588\uC2B5\uB2C8\uB2E4. \uCEA1\uCC98\xB7\uB179\uD654\uAC00 \uD654\uBA74\uB9C8\uB2E4 \uC571\uC744 \uB744\uC6C1\uB2C8\uB2E4.": "Electron app is ready. Capture and recording launch the app for each screen.",
+      "Electron \uC9C4\uC785\uC810\uC774 \uC5C6\uC2B5\uB2C8\uB2E4: {0} \u2014 \uC571\uC744 \uBE4C\uB4DC\uD588\uB294\uC9C0 \uD655\uC778\uD558\uC138\uC694(\uBE4C\uB4DC \uBA85\uB839\uC740 install\uC5D0)": "Electron entry point not found: {0} \u2014 check that the app is built (put the build command under install)",
+      "electron \uD328\uD0A4\uC9C0\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4({0}). \uC571\uC758 \uC758\uC874\uC131\uC744 \uC124\uCE58\uD558\uC138\uC694(run.json\uC758 install, docent run start --install)": "Cannot find the electron package ({0}). Install the app dependencies (install in run.json, docent run start --install)",
+      "\uB370\uC2A4\uD06C\uD1B1 \uC571(Electron)\uC740 \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD558\uBA74 \uC2DC\uB098\uB9AC\uC624 \uC900\uBE44 \uB2E8\uACC4\uC5D0 \uC801\uC73C\uC138\uC694": "Desktop apps (Electron) do not save a login state. If login is needed, put it in the scenario setup steps",
+      "\uB370\uC2A4\uD06C\uD1B1 \uC571(Electron)\uC740 \uB9C1\uD06C\uB85C \uB3CC \uC218 \uC5C6\uC5B4 crawl\uC744 \uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uD654\uBA74 \uBAA9\uB85D\uC740 \uC18C\uC2A4 \uBD84\uC11D \uACB0\uACFC\uB97C \uC501\uB2C8\uB2E4": "Desktop apps (Electron) cannot be crawled through links. The screen list comes from source analysis",
+      "\uB370\uC2A4\uD06C\uD1B1 \uC571\uC5D0\uC11C \uC774 \uD654\uBA74\uC744 \uC5EC\uB294 \uC900\uBE44 \uB2E8\uACC4(\uBA54\uB274 \uD074\uB9AD \uB4F1)\uAC00 \uC2DC\uB098\uB9AC\uC624\uC5D0 \uD544\uC694\uD569\uB2C8\uB2E4": "The scenario needs setup steps (menu clicks, etc.) that open this screen in the desktop app",
+      "\uC2E4\uD589: Electron {0}": "Run: Electron {0}"
+    };
+  }
+});
+
+// skills/docent/scripts/src/lib/cli-text/lib.mjs
+var lib_default;
+var init_lib = __esm({
+  "skills/docent/scripts/src/lib/cli-text/lib.mjs"() {
+    lib_default = {
+      // lib/steps.mjs — 시나리오 단계 실패 이유
+      "\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}": "Environment variable not set: {0}",
+      "{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "{0} not found",
+      "{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694": "Found {1} matches for {0}. Use nth to pick one",
+      "{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "Element #{1} of {0} not found",
+      '\uC785\uB825 \uD56D\uBAA9 "{0}"': 'Input field "{0}"',
+      '\uC120\uD0DD \uD56D\uBAA9 "{0}"': 'Select field "{0}"',
+      '\uCCB4\uD06C \uD56D\uBAA9 "{0}"': 'Checkbox "{0}"',
+      '{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Clicked {0} "{1}" but no new window opened',
+      '\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Text "{0}" did not appear',
+      "\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}": "Unknown step: {0}",
+      "{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328": "Step {0} failed",
+      // lib/evidence.mjs
+      "\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: {0}": "Invalid evidence format: {0}",
+      "project root \uBC16\uC758 \uACBD\uB85C: {0}": "Path outside project root: {0}",
+      "\uD30C\uC77C \uC5C6\uC74C: {0}": "File not found: {0}",
+      "{0}\uC5D0 {1} \uC5C6\uC74C": "{1} not found in {0}",
+      "{0}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: {1}-{2} (\uC804\uCCB4 {3}\uC904)": "Invalid line range in {0}: {1}-{2} (file has {3} lines)",
+      '{0} \uADFC\uCC98(\xB1{1}\uC904)\uC5D0 "{2}" \uC5C6\uC74C': '"{2}" not found near {0} (\xB1{1} lines)',
+      // lib/config.mjs
+      "config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
+      "config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
+      "\uAC1D\uCCB4": "an object",
+      "\uBAA9\uB85D": "a list",
+      "\uBB38\uC790\uC5F4": "a string",
+      "\uC591\uC758 \uC815\uC218": "a positive integer",
+      "config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: app must be a folder path inside the project ({0})",
+      "config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})",
+      "config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4": "config.yaml: combine lists the same app workspace twice",
+      "config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: language must be one of {0} ({1})",
+      ".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}": "Invalid .docent/config.yaml: {0}",
+      // lib/output-options.mjs
+      '\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown preset "{0}" \u2014 use one of {1}',
+      '\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "{0}" \u2014 {1} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694': 'Unknown format "{0}" \u2014 choose from {1}',
+      "\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 {0} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694": "No formats to build \u2014 choose from {0}",
+      "config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: output.revisions must be a list",
+      "config.yaml: output.revisions[{0}]\uC758 {1} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4": "config.yaml: output.revisions[{0}].{1} is missing or not a string",
+      '\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown theme "{0}" \u2014 use one of {1}',
+      // lib/paths.mjs, lib/source-hash.mjs
+      "\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}": "Not a project-relative path: {0}",
+      "\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: {0} ({1})": "Failed to compute source hash: {0} ({1})",
+      // detectors/react-router.mjs
+      "{0}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 {1}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)": "No route files found in {1}, which flatRoutes() in {0} points to \u2014 use route-explorer to find screens (references/stacks/js-routers.md)",
+      // detectors/route-tree.mjs
+      "\uACBD\uB85C\uB97C \uC18C\uC2A4 \uAE00\uC790\uB9CC\uC73C\uB85C \uC77D\uC744 \uC218 \uC5C6\uB294 \uB77C\uC6B0\uD2B8(\uBCC0\uC218 \uACBD\uB85C\xB7\uC2A4\uD504\uB808\uB4DC)\uAC00 \uC788\uC5B4 \uD654\uBA74\uC774 \uBE60\uC84C\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4: {0} \u2014 route-explorer\uB85C \uB098\uBA38\uC9C0 \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)": "Some routes have paths that cannot be read from the source text (variable paths or spreads), so screens may be missing: {0} \u2014 use route-explorer to find the rest (references/stacks/js-routers.md)"
+    };
+  }
+});
+
+// skills/docent/scripts/src/lib/cli-text/main.mjs
+var main_default;
+var init_main = __esm({
+  "skills/docent/scripts/src/lib/cli-text/main.mjs"() {
+    main_default = {
+      // 사용법
+      "\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]": "Usage: docent <command> [--project <dir>] [--workspace <name>]",
+      "  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)": "  --workspace <name>  Per-app workspace when combining several apps into one manual (.docent/apps/<name>/)",
+      "--workspace\uB294 \uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-\uB85C \uB41C \uC774\uB984\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4: {0}": "--workspace must be a name of lowercase letters, digits and -: {0}",
+      "\uBA85\uB839:": "Commands:",
+      "  init [--app <\uD3F4\uB354>]": "  init [--app <dir>]",
+      "                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)": "                 Detect the project and create .docent/config.yaml (in a monorepo, the app folder to document)",
+      "  inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "  inventory      Build the screen list (.docent/inventory.json)",
+      "  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)": "  update         Show follow-up work after code changes (new screens, removal candidates, re-analysis, scenarios, re-capture)",
+      "  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uAC80\uC0AC \uBB38\uC81C\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4": "  pending        List screens to re-analyze (no result, source changed, check problems, review item answered)",
+      "  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)": "  validate [ID\u2026] Check analysis results for schema, evidence and links (only the given screen IDs, if any)",
+      "  review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4": "  review         Collect review items (.docent/review.md)",
+      "                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "                 Build outputs into .docent/out/",
+      "  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4": "  hash <file\u2026>   Compute the sourceHash value for a screen JSON",
+      "  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)": "  run approve    Approve the run.json commands the user agreed to, on this computer (.docent/.run-approved)",
+      "  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778": "  run start [--install] | stop | status  Start, stop or check the target app as set in .docent/run.json",
+      "  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)": "  crawl          Follow links in the running app and compare with the screen list (.docent/crawl.json)",
+      "  scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)": "  scenarios      List screens that need a scenario written or rewritten (capture path needed, GIF target, outdated)",
+      "  capture [id\u2026]  \uD654\uBA74 \uCEA1\uCC98(.docent/media/img)": "  capture [id\u2026]  Capture screens (.docent/media/img)",
+      "  record [id\u2026]   \uC870\uC791 GIF \uB179\uD654(.docent/media/gif)": "  record [id\u2026]   Record interaction GIFs (.docent/media/gif)",
+      "  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)": "  auth login | save  Save the login state (login: auth in config.yaml and environment variables, save: log in yourself in a browser)",
+      "  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)": "  runtime status|install  Check or install Playwright for capture (after the user agrees)",
+      "  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)": "  session start  Start an analysis session (blocks reading secret files)",
+      "  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC": "  session end    End the analysis session",
+      // init
+      "\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>": "Found several apps in this monorepo. Pick the app to document and run again: docent init --app <dir>",
+      "\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)": "screen app (no detector)",
+      ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.": "Created .docent/config.yaml.",
+      ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.": ".docent/config.yaml already exists; left unchanged.",
+      "--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694.": "--app was ignored. To change the app folder, edit app in .docent/config.yaml.",
+      "\uC571 \uD3F4\uB354: {0}": "App folder: {0}",
+      "\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}": "Detected frameworks: {0}",
+      "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)": "none (the agent will search for screens)",
+      '\uB370\uC2A4\uD06C\uD1B1 \uC571(electron)\uC785\uB2C8\uB2E4: \uC2E4\uD589\xB7\uCEA1\uCC98\uB294 run.json\uC758 mode: "electron"\uC73C\uB85C \uD654\uBA74\uB9C8\uB2E4 \uC571\uC744 \uB744\uC6CC \uD569\uB2C8\uB2E4': 'This is a desktop app (electron): run and capture use mode: "electron" in run.json and launch the app for each screen',
+      "\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)": "This is a desktop app ({0}): screen analysis and outputs come from source only; capture and GIF recording are not supported (run and capture steps are skipped)",
+      // inventory · update
+      "\uD654\uBA74 {0}\uAC1C (page {1}, \uD558\uC704 \uD654\uBA74 {2})": "{0} screens (page {1}, sub-screens {2})",
+      "({0}\uC758 \uD558\uC704 \uD654\uBA74)": "(sub-screen of {0})",
+      "\uC81C\uC678\uD55C \uD56D\uBAA9:": "Excluded:",
+      "\uC5C6\uC74C": "none",
+      "\uC0C8 \uD654\uBA74": "New screens",
+      "\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)": "Removal candidates (not deleted automatically)",
+      "\uB2E4\uC2DC \uBD84\uC11D": "Re-analyze",
+      "\uC2DC\uB098\uB9AC\uC624 \uC791\uC131": "Write scenario",
+      "\uB2E4\uC2DC \uCEA1\uCC98": "Re-capture",
+      // pending · validate · review · build
+      "\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens to re-analyze.",
+      "\uAC80\uC99D \uD1B5\uACFC: {0}": "Validation passed: {0}",
+      "\uAC80\uC99D \uD1B5\uACFC": "Validation passed",
+      "\uBB38\uC81C {0}\uAC74:": "{0} problems:",
+      "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74 \u2192 .docent/review.md": "{0} review items \u2192 .docent/review.md",
+      "\uC0B0\uCD9C\uBB3C {0}\uAC1C \u2192 .docent/out/": "{0} outputs \u2192 .docent/out/",
+      "\uACBD\uACE0: {0}": "Warning: {0}",
+      "\uAC74\uB108\uB700({0}): {1}": "Skipped ({0}): {1}",
+      // run
+      "\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:": "Approved these commands:",
+      "\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}": "Using the app that is already responding: {0}",
+      "\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}": "Started the app: {0}",
+      "\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4.": "Stopped the app.",
+      "docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No app started by docent.",
+      "\uC751\uB2F5 \uC911": "responding",
+      "\uC751\uB2F5 \uC5C6\uC74C": "not responding",
+      ".docent/run.json \uC5C6\uC74C": "No .docent/run.json",
+      // crawl · scenarios · capture · record
+      "\uBC29\uBB38 {0}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C {1}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 {2}\uAC1C \u2192 .docent/crawl.json": "Visited {0}, paths not in the list {1}, unreached screens {2} \u2192 .docent/crawl.json",
+      "- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: {0}": "- Not in the list: {0}",
+      "- \uB3C4\uB2EC \uBABB \uD568: {0}": "- Unreached: {0}",
+      "\uC2DC\uB098\uB9AC\uC624\uB97C \uC4F8 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens need a scenario.",
+      "\uCEA1\uCC98 {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/img": "Captured {0}, failed {1}, skipped {2} \u2192 .docent/media/img",
+      "- \uC2E4\uD328 {0}: {1}": "- Failed {0}: {1}",
+      "- \uAC74\uB108\uB700 {0}: {1}": "- Skipped {0}: {1}",
+      "GIF {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/gif": "Recorded {0} GIFs, failed {1}, skipped {2} \u2192 .docent/media/gif",
+      // auth · runtime
+      "\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: {0}": "Saved the login state: {0}",
+      "Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)": "Playwright not found \u2014 install location: {0} (docent runtime install)"
+    };
+  }
+});
+
+// skills/docent/scripts/src/lib/cli-text.mjs
+function setCliLanguage(value) {
+  language = value === "en" ? "en" : "ko";
+}
+function t(text, ...args) {
+  const template = language === "en" && Object.hasOwn(EN, text) ? EN[text] : text;
+  return template.replace(/\{(\d+)\}/g, (whole, i) => Number(i) < args.length ? String(args[Number(i)]) : whole);
+}
+var EN, language, cliLanguage;
+var init_cli_text = __esm({
+  "skills/docent/scripts/src/lib/cli-text.mjs"() {
+    init_commands_a();
+    init_commands_b();
+    init_lib();
+    init_main();
+    EN = { ...main_default, ...commands_a_default, ...commands_b_default, ...lib_default };
+    language = "ko";
+    cliLanguage = () => language;
+  }
+});
+
+// skills/docent/scripts/src/lib/paths.mjs
+import { posix } from "node:path";
+function normalizeRel(p) {
+  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
+    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
+  }
+  const n = posix.normalize(p);
+  if (n === "." || n === ".." || n.startsWith("../")) {
+    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
+  }
+  return n.replace(/\/$/, "");
+}
+var init_paths = __esm({
+  "skills/docent/scripts/src/lib/paths.mjs"() {
+    init_cli_text();
+  }
+});
+
+// skills/docent/scripts/src/lib/workspace.mjs
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+function setWorkspace(name5 = "") {
+  if (name5 && !WORKSPACE_NAME.test(name5)) throw new Error(`invalid workspace: ${name5}`);
+  current = name5;
+}
+async function withWorkspace(name5, fn) {
+  const before = current;
+  setWorkspace(name5);
+  try {
+    return await fn();
+  } finally {
+    current = before;
+  }
+}
+function rootDocentDir(projectDir) {
+  return join(projectDir, ".docent");
+}
+function docentDir(projectDir, name5 = current) {
+  return name5 ? join(projectDir, ".docent", "apps", name5) : rootDocentDir(projectDir);
+}
+async function readJson(path) {
+  return JSON.parse(await readFile(path, "utf8"));
+}
+async function readJsonIfExists(path) {
+  try {
+    return await readJson(path);
+  } catch (err) {
+    if (err.code === "ENOENT") return void 0;
+    throw err;
+  }
+}
+async function writeJson(path, data) {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify(data, null, 2) + "\n");
+}
+var WORKSPACE_NAME, current, workspaceName;
+var init_workspace = __esm({
+  "skills/docent/scripts/src/lib/workspace.mjs"() {
+    WORKSPACE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    current = "";
+    workspaceName = () => current;
+  }
+});
+
+// skills/docent/scripts/src/lib/config.mjs
+import { readFile as readFile2 } from "node:fs/promises";
+import { join as join2 } from "node:path";
+function isObject(v) {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
+function merge(base, override) {
+  const out = structuredClone(base);
+  if (!isObject(override)) return out;
+  for (const [key, value] of Object.entries(override)) {
+    if (value === null) continue;
+    out[key] = isObject(out[key]) && isObject(value) ? merge(out[key], value) : value;
+  }
+  return out;
+}
+function checkConfig(config) {
+  const fail = (path, kind) => {
+    const code = kind.charCodeAt(kind.length - 1) - 44032;
+    throw new Error(code >= 0 && code % 28 ? t("config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4", path, kind) : t("config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4", path, kind));
+  };
+  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, t("\uAC1D\uCCB4"));
+  if (typeof config.output.formats === "string") config.output.formats = [config.output.formats];
+  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, t("\uBAA9\uB85D"));
+  for (const path of STRING_KEYS) {
+    const value = get(config, path);
+    if (value === void 0) continue;
+    if (typeof value === "number") {
+      const [head, key] = path.includes(".") ? path.split(".") : [void 0, path];
+      if (head) config[head][key] = String(value);
+      else config[key] = String(value);
+    } else if (typeof value !== "string") fail(path, t("\uBB38\uC790\uC5F4"));
+  }
+  if (config.app) {
+    try {
+      config.app = normalizeRel(config.app.replace(/\\/g, "/"));
+    } catch {
+      throw new Error(t("config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})", config.app));
+    }
+  }
+  config.combine = config.combine.map((item) => {
+    const entry = typeof item === "string" ? { workspace: item } : item;
+    if (!isObject(entry) || typeof entry.workspace !== "string" || !WORKSPACE_NAME.test(entry.workspace)) {
+      throw new Error(t("config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})", JSON.stringify(item)));
+    }
+    if (entry.title !== void 0 && typeof entry.title !== "string") fail("combine[].title", t("\uBB38\uC790\uC5F4"));
+    return { workspace: entry.workspace, ...entry.title ? { title: entry.title } : {} };
+  });
+  if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t("config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4"));
+  if (!LANGUAGES.includes(config.language)) throw new Error(t("config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", LANGUAGES.join(", "), config.language));
+  const n = config.analyze.concurrency;
+  if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", t("\uC591\uC758 \uC815\uC218"));
+  return config;
+}
+async function loadConfig(projectDir, workspace) {
+  const path = join2(docentDir(projectDir, workspace), "config.yaml");
+  let text;
+  try {
+    text = await readFile2(path, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
+    throw err;
+  }
+  let data;
+  try {
+    data = (0, import_yaml.parse)(text);
+  } catch (err) {
+    throw new Error(t(".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}", err.message));
+  }
+  return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
+}
+var import_yaml, DEFAULT_CONFIG, ARRAY_KEYS, OBJECT_KEYS, STRING_KEYS, get;
+var init_config = __esm({
+  "skills/docent/scripts/src/lib/config.mjs"() {
+    import_yaml = __toESM(require_dist(), 1);
+    init_i18n();
+    init_cli_text();
+    init_paths();
+    init_workspace();
+    DEFAULT_CONFIG = Object.freeze({
+      language: "ko",
+      // 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준). 비우면 루트
+      app: "",
+      detectors: [],
+      screens: { include: [], exclude: [], idMap: {} },
+      secrets: { paths: [".env", ".env.*", "appsettings*.json", "web.config", "*.pem", "*.key", "*.pfx", "id_rsa*"] },
+      analyze: { concurrency: 4 },
+      mask: { selectors: [] },
+      gif: { screens: { include: [], exclude: [] } },
+      // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
+      output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] },
+      // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
+      combine: []
+    });
+    ARRAY_KEYS = ["combine", "detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
+    OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
+    STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
+    get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
+  }
+});
+
+// skills/docent/scripts/src/lib/playwright.mjs
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { homedir } from "node:os";
+import { dirname as dirname2, join as join3 } from "node:path";
+function runtimeDir() {
+  return process.env.DOCENT_RUNTIME_DIR || join3(homedir(), ".cache", "docent", "runtime");
+}
+function loadFromDir(pkgDir) {
+  const pkgJson = join3(pkgDir, "package.json");
+  if (!existsSync(pkgJson)) return void 0;
+  const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
+  return { module: require2(pkgDir), version };
+}
+function globalRoot() {
+  try {
+    return execFileSync("npm", ["root", "-g"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return void 0;
+  }
+}
+async function findPlaywright() {
+  const candidates = [];
+  if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
+  candidates.push(["runtime", join3(runtimeDir(), "node_modules", "playwright")]);
+  try {
+    candidates.push(["local", dirname2(require2.resolve("playwright/package.json"))]);
+  } catch {
+  }
+  const root = globalRoot();
+  if (root) candidates.push(["global", join3(root, "playwright")]);
+  for (const [from, dir] of candidates) {
+    const found = loadFromDir(dir);
+    if (found) return { ...found, from, dir };
+  }
+  return void 0;
+}
+async function requirePlaywright() {
+  const found = await findPlaywright();
+  if (!found) {
+    throw new PlaywrightMissing(
+      t("\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).", runtimeDir(), PLAYWRIGHT_VERSION)
+    );
+  }
+  return found.module;
+}
+async function launchBrowser(options = {}) {
+  const { chromium } = await requirePlaywright();
+  try {
+    return await chromium.launch(options);
+  } catch (err) {
+    if (/Executable doesn't exist|browserType\.launch/.test(err.message)) {
+      throw new PlaywrightMissing(t("Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.") + `
+${err.message.split("\n")[0]}`);
+    }
+    throw err;
+  }
+}
+var PLAYWRIGHT_VERSION, PlaywrightMissing, require2;
+var init_playwright = __esm({
+  "skills/docent/scripts/src/lib/playwright.mjs"() {
+    init_cli_text();
+    PLAYWRIGHT_VERSION = "1.56.1";
+    PlaywrightMissing = class extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "PlaywrightMissing";
+      }
+    };
+    require2 = createRequire(import.meta.url);
+  }
+});
+
+// skills/docent/scripts/src/lib/http.mjs
+import http from "node:http";
+import https from "node:https";
+function httpCheck(url, timeoutMs) {
+  return new Promise((resolve4) => {
+    const lib = url.startsWith("https:") ? https : http;
+    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
+      res.resume();
+      resolve4({ ok: res.statusCode < 500, status: res.statusCode });
+    });
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", () => resolve4({ ok: false }));
+  });
+}
+var init_http = __esm({
+  "skills/docent/scripts/src/lib/http.mjs"() {
   }
 });
 
@@ -14795,6 +15528,1203 @@ var require__ = __commonJS({
   }
 });
 
+// skills/docent/schemas/inventory-agent.schema.json
+var inventory_agent_schema_default;
+var init_inventory_agent_schema = __esm({
+  "skills/docent/schemas/inventory-agent.schema.json"() {
+    inventory_agent_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/inventory-agent.schema.json",
+      title: "docent inventory.agent.json (\uC5D0\uC774\uC804\uD2B8\uAC00 \uCC3E\uC740 \uD654\uBA74 \uD6C4\uBCF4)",
+      type: "object",
+      additionalProperties: false,
+      required: ["screens"],
+      properties: {
+        screens: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["route", "kind", "files", "evidence"],
+            properties: {
+              route: { type: ["string", "null"] },
+              kind: { enum: ["page", "modal", "popup", "view"] },
+              parentRoute: { type: "string" },
+              name: { type: "string", minLength: 1 },
+              files: { type: "array", minItems: 1, items: { type: "string" } },
+              evidence: { type: "string" }
+            },
+            if: { properties: { kind: { const: "page" } } },
+            then: { properties: { route: { type: "string" } } },
+            else: { required: ["parentRoute", "name"] }
+          }
+        }
+      }
+    };
+  }
+});
+
+// skills/docent/schemas/inventory.schema.json
+var inventory_schema_default;
+var init_inventory_schema = __esm({
+  "skills/docent/schemas/inventory.schema.json"() {
+    inventory_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/inventory.schema.json",
+      title: "docent inventory",
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "version",
+        "screens"
+      ],
+      properties: {
+        version: {
+          const: 1
+        },
+        screens: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/screen"
+          }
+        }
+      },
+      $defs: {
+        evidence: {
+          type: "string",
+          pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
+        },
+        confidence: {
+          enum: [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        id: {
+          type: "string",
+          pattern: "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
+        },
+        screen: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "id",
+            "route",
+            "kind",
+            "files",
+            "evidence",
+            "source"
+          ],
+          properties: {
+            id: {
+              $ref: "#/$defs/id"
+            },
+            route: {
+              type: [
+                "string",
+                "null"
+              ]
+            },
+            kind: {
+              enum: [
+                "page",
+                "modal",
+                "popup",
+                "view"
+              ]
+            },
+            parentId: {
+              $ref: "#/$defs/id"
+            },
+            files: {
+              type: "array",
+              minItems: 1,
+              items: {
+                $ref: "#/$defs/relPath"
+              }
+            },
+            menuPath: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
+            evidence: {
+              $ref: "#/$defs/evidence"
+            },
+            source: {
+              type: "string",
+              pattern: "^(detector:[a-z0-9-]+|agent|crawl)$"
+            }
+          },
+          allOf: [
+            {
+              if: {
+                properties: {
+                  kind: {
+                    const: "page"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  route: {
+                    type: "string"
+                  }
+                }
+              },
+              else: {
+                required: [
+                  "parentId"
+                ]
+              }
+            }
+          ]
+        },
+        relPath: {
+          type: "string",
+          pattern: "^(?!/)(?!(?:.*/)?\\.\\.?(?:/|$))(?!.*//)[^\\\\:]+$"
+        }
+      }
+    };
+  }
+});
+
+// skills/docent/schemas/run.schema.json
+var run_schema_default;
+var init_run_schema = __esm({
+  "skills/docent/schemas/run.schema.json"() {
+    run_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/run.schema.json",
+      title: "docent run.json (\uC571 \uC2E4\uD589 \uBC29\uBC95)",
+      type: "object",
+      additionalProperties: false,
+      required: ["mode"],
+      properties: {
+        mode: { enum: ["auto", "url", "electron"] },
+        baseUrl: { type: "string", pattern: "^https?://" },
+        install: { type: "array", items: { type: "string", minLength: 1 } },
+        start: { type: "string", minLength: 1 },
+        stop: { type: "string", minLength: 1 },
+        cwd: { type: "string" },
+        env: { type: "object", additionalProperties: { type: "string" } },
+        envNames: { type: "array", items: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$" } },
+        healthcheck: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            path: { type: "string", pattern: "^/" },
+            timeoutSec: { type: "integer", minimum: 1, maximum: 1800 }
+          }
+        },
+        electron: {
+          description: "mode: electron \u2014 \uB370\uC2A4\uD06C\uD1B1 \uC571\uC744 Playwright Electron\uC73C\uB85C \uD654\uBA74\uB9C8\uB2E4 \uB744\uC6B4\uB2E4(baseUrl \uC5C6\uC74C). main\uC740 cwd \uAE30\uC900 \uC571 \uC9C4\uC785\uC810(\uBE4C\uB4DC\uB41C main \uC2A4\uD06C\uB9BD\uD2B8\uB098 package.json\uC774 \uC788\uB294 \uD3F4\uB354)",
+          type: "object",
+          additionalProperties: false,
+          required: ["main"],
+          properties: {
+            main: { type: "string", minLength: 1 },
+            args: { type: "array", items: { type: "string" } }
+          }
+        }
+      },
+      allOf: [
+        { if: { properties: { mode: { const: "auto" } } }, then: { required: ["start", "baseUrl"] } },
+        { if: { properties: { mode: { const: "url" } } }, then: { required: ["baseUrl"] } },
+        { if: { properties: { mode: { const: "electron" } } }, then: { required: ["electron"] } }
+      ]
+    };
+  }
+});
+
+// skills/docent/schemas/scenario.schema.json
+var scenario_schema_default;
+var init_scenario_schema = __esm({
+  "skills/docent/schemas/scenario.schema.json"() {
+    scenario_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/scenario.schema.json",
+      title: "docent scenario (\uD654\uBA74 \uCEA1\uCC98\xB7GIF \uB179\uD654 \uC2DC\uB098\uB9AC\uC624)",
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "screenId",
+        "path",
+        "setup",
+        "steps",
+        "sourceHash"
+      ],
+      properties: {
+        screenId: {
+          type: "string",
+          minLength: 1
+        },
+        path: {
+          type: "string",
+          pattern: "^/"
+        },
+        setup: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/step"
+          }
+        },
+        steps: {
+          type: "array",
+          items: {
+            $ref: "#/$defs/step"
+          }
+        },
+        sourceHash: {
+          type: "string",
+          pattern: "^sha256:[0-9a-f]{64}$"
+        },
+        locked: {
+          type: "boolean"
+        }
+      },
+      $defs: {
+        evidence: {
+          type: "string",
+          pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
+        },
+        step: {
+          oneOf: [
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "label",
+                "value"
+              ],
+              properties: {
+                do: {
+                  const: "fill"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                label: {
+                  type: "string",
+                  minLength: 1
+                },
+                value: {
+                  type: "string"
+                },
+                nth: {
+                  type: "integer",
+                  minimum: 0
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "label",
+                "value"
+              ],
+              properties: {
+                do: {
+                  const: "select"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                label: {
+                  type: "string",
+                  minLength: 1
+                },
+                value: {
+                  type: "string",
+                  minLength: 1
+                },
+                nth: {
+                  type: "integer",
+                  minimum: 0
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "label"
+              ],
+              properties: {
+                do: {
+                  const: "check"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                label: {
+                  type: "string",
+                  minLength: 1
+                },
+                nth: {
+                  type: "integer",
+                  minimum: 0
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "role",
+                "label"
+              ],
+              properties: {
+                do: {
+                  const: "click"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                role: {
+                  enum: [
+                    "button",
+                    "link",
+                    "tab",
+                    "menuitem",
+                    "checkbox"
+                  ]
+                },
+                label: {
+                  type: "string",
+                  minLength: 1
+                },
+                nth: {
+                  type: "integer",
+                  minimum: 0
+                },
+                popup: {
+                  type: "boolean",
+                  description: "\uB204\uB974\uBA74 \uC0C8 \uCC3D(window.open, target=_blank)\uC774 \uC5F4\uB9B0\uB2E4. \uB2E4\uC74C \uB2E8\uACC4\uB294 \uC0C8 \uCC3D\uC5D0\uC11C \uD558\uACE0, \uC0C8 \uCC3D\uC774 \uB2EB\uD788\uBA74 \uC6D0\uB798 \uCC3D\uC73C\uB85C \uB3CC\uC544\uC628\uB2E4"
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "text"
+              ],
+              properties: {
+                do: {
+                  const: "expectText"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                text: {
+                  type: "string",
+                  minLength: 1
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "ms"
+              ],
+              properties: {
+                do: {
+                  const: "wait"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                ms: {
+                  type: "integer",
+                  minimum: 0,
+                  maximum: 3e3
+                }
+              }
+            },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "do",
+                "evidence",
+                "path"
+              ],
+              properties: {
+                do: {
+                  const: "goto"
+                },
+                evidence: {
+                  $ref: "#/$defs/evidence"
+                },
+                path: {
+                  type: "string",
+                  pattern: "^/"
+                }
+              }
+            }
+          ]
+        }
+      }
+    };
+  }
+});
+
+// skills/docent/schemas/screen.schema.json
+var screen_schema_default;
+var init_screen_schema = __esm({
+  "skills/docent/schemas/screen.schema.json"() {
+    screen_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/screen.schema.json",
+      title: "docent screen",
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "id",
+        "kind",
+        "route",
+        "title",
+        "purpose",
+        "roles",
+        "sections",
+        "fields",
+        "actions",
+        "messages",
+        "unknowns",
+        "readFiles",
+        "sourceHash"
+      ],
+      properties: {
+        id: {
+          $ref: "#/$defs/id"
+        },
+        kind: {
+          enum: [
+            "page",
+            "modal",
+            "popup",
+            "view"
+          ]
+        },
+        parentId: {
+          $ref: "#/$defs/id"
+        },
+        route: {
+          type: [
+            "string",
+            "null"
+          ]
+        },
+        title: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "value",
+            "evidence"
+          ],
+          properties: {
+            value: {
+              type: "string"
+            },
+            evidence: {
+              $ref: "#/$defs/evidence"
+            }
+          }
+        },
+        menuPath: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "value",
+            "evidence"
+          ],
+          properties: {
+            value: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              description: "\uBA54\uB274 \uC774\uB984\uB4E4(\uC704 \uB2E8\uACC4\uBD80\uD130). \uC774\uB984\uB9C8\uB2E4 \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
+            },
+            evidence: {
+              $ref: "#/$defs/evidence"
+            },
+            moreEvidence: {
+              type: "array",
+              minItems: 1,
+              items: {
+                $ref: "#/$defs/evidence"
+              },
+              description: "\uBA54\uB274 \uACBD\uB85C\uC758 \uC774\uB984\uC774 \uC5EC\uB7EC \uACF3\uC5D0 \uB098\uB258\uC5B4 \uC788\uC744 \uB54C(\uADF8\uB8F9 \uC774\uB984\uC740 \uD504\uB860\uD2B8, \uBA54\uB274 \uC774\uB984\uC740 DB \uB4F1) \uB098\uBA38\uC9C0 \uC704\uCE58. value\uC758 \uC774\uB984\uB9C8\uB2E4 evidence\uB098 moreEvidence \uC911 \uD55C \uACF3 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
+            }
+          }
+        },
+        purpose: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "value",
+            "evidence",
+            "confidence"
+          ],
+          properties: {
+            value: {
+              type: "string"
+            },
+            evidence: {
+              $ref: "#/$defs/evidence"
+            },
+            confidence: {
+              $ref: "#/$defs/confidence"
+            }
+          }
+        },
+        roles: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "value",
+              "evidence",
+              "confidence"
+            ],
+            properties: {
+              value: {
+                type: "string"
+              },
+              evidence: {
+                $ref: "#/$defs/evidence"
+              },
+              confidence: {
+                $ref: "#/$defs/confidence"
+              }
+            }
+          }
+        },
+        sections: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "title",
+              "evidence"
+            ],
+            properties: {
+              title: {
+                type: "string"
+              },
+              evidence: {
+                $ref: "#/$defs/evidence"
+              }
+            }
+          }
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "label",
+              "type",
+              "required",
+              "evidence",
+              "confidence"
+            ],
+            properties: {
+              label: {
+                type: "string"
+              },
+              type: {
+                enum: [
+                  "text",
+                  "textarea",
+                  "number",
+                  "date",
+                  "select",
+                  "checkbox",
+                  "radio",
+                  "file",
+                  "password",
+                  "email",
+                  "url",
+                  "tel",
+                  "other"
+                ]
+              },
+              required: {
+                type: "boolean"
+              },
+              section: {
+                type: "string"
+              },
+              evidence: {
+                $ref: "#/$defs/evidence"
+              },
+              confidence: {
+                $ref: "#/$defs/confidence"
+              },
+              options: {
+                type: "array",
+                minItems: 1,
+                items: {
+                  type: "string",
+                  minLength: 1
+                },
+                description: "\uACE0\uC815\uB41C \uC120\uD0DD\uC9C0(\uD654\uBA74 \uBB38\uAD6C \uADF8\uB300\uB85C). \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
+              },
+              optionsEvidence: {
+                $ref: "#/$defs/evidence",
+                description: "\uC120\uD0DD\uC9C0\uAC00 \uB77C\uBCA8\uACFC \uB5A8\uC5B4\uC9C4 \uACF3(\uC0C1\uC218\xB7\uCF54\uB4DC\uD45C \uB4F1)\uC5D0 \uC815\uC758\uB3FC \uC788\uC73C\uBA74 \uADF8 \uC704\uCE58. \uC788\uC73C\uBA74 options\uB294 \uC774 \uADFC\uCC98\uC5D0\uC11C \uD655\uC778\uD55C\uB2E4"
+              }
+            }
+          }
+        },
+        actions: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "label",
+              "effect",
+              "evidence",
+              "confidence"
+            ],
+            properties: {
+              label: {
+                type: "string"
+              },
+              effect: {
+                type: "string"
+              },
+              navigatesTo: {
+                $ref: "#/$defs/id"
+              },
+              opens: {
+                $ref: "#/$defs/id"
+              },
+              evidence: {
+                $ref: "#/$defs/evidence"
+              },
+              confidence: {
+                $ref: "#/$defs/confidence"
+              },
+              section: {
+                type: "string",
+                description: "\uAC19\uC740 \uB77C\uBCA8\uC774 \uC5EC\uB7EC \uAD6C\uD68D\uC5D0 \uC788\uC744 \uB54C \uAD6C\uBD84\uD558\uB294 \uAD6C\uD68D \uC81C\uBAA9(sections\uC758 title)"
+              },
+              effectEvidence: {
+                type: "array",
+                minItems: 1,
+                items: {
+                  $ref: "#/$defs/evidence"
+                },
+                description: "\uBC84\uD2BC \uACB0\uACFC(effect)\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uB2E4\uB978 \uC704\uCE58(\uCC98\uB9AC \uD568\uC218, \uBA54\uC778 \uD504\uB85C\uC138\uC2A4 \uB4F1). evidence\uB294 \uB77C\uBCA8\uC774 \uC788\uB294 \uC904"
+              },
+              unlabeled: {
+                const: true,
+                description: "\uD654\uBA74\uC5D0 \uAE00\uC790\uAC00 \uC5C6\uB294 \uB3D9\uC791(\uD45C\uC758 \uD589 \uD074\uB9AD, \uCE74\uB4DC \uD074\uB9AD \uB4F1). label\uC740 \uB3D9\uC791\uC744 \uC9E7\uAC8C \uC124\uBA85\uD55C \uB9D0(\uC608: '\uD589 \uD074\uB9AD')\uC774\uACE0 \uAE00\uC790 \uAC80\uC0AC\uB97C \uD558\uC9C0 \uC54A\uB294\uB2E4. evidence\uB294 \uADF8 \uCC98\uB9AC\uAE30(onClick \uB4F1)\uAC00 \uC788\uB294 \uC904"
+              }
+            }
+          }
+        },
+        messages: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "text",
+              "when",
+              "evidence"
+            ],
+            properties: {
+              text: {
+                type: "string"
+              },
+              when: {
+                type: "string"
+              },
+              evidence: {
+                $ref: "#/$defs/evidence"
+              },
+              group: {
+                type: "string",
+                minLength: 1,
+                description: "\uAC19\uC740 \uC885\uB958\uC758 \uBB38\uAD6C \uBB36\uC74C \uC774\uB984(\uC0C1\uD0DC \uCF54\uB4DC\xB7\uAC80\uC0AC \uACB0\uACFC \uBB38\uAD6C \uD45C \uB4F1). \uAC19\uC740 group\uC740 \uD45C \uD558\uB098\uB85C \uBCF4\uC778\uB2E4"
+              }
+            }
+          }
+        },
+        unknowns: {
+          type: "array",
+          items: {
+            type: "string"
+          }
+        },
+        readFiles: {
+          type: "array",
+          minItems: 1,
+          items: {
+            $ref: "#/$defs/relPath"
+          }
+        },
+        sourceHash: {
+          type: "string",
+          pattern: "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      allOf: [
+        {
+          if: {
+            properties: {
+              kind: {
+                const: "page"
+              }
+            }
+          },
+          then: {
+            properties: {
+              route: {
+                type: "string"
+              }
+            }
+          },
+          else: {
+            required: [
+              "parentId"
+            ]
+          }
+        }
+      ],
+      $defs: {
+        evidence: {
+          type: "string",
+          pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
+        },
+        confidence: {
+          enum: [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        id: {
+          type: "string",
+          pattern: "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
+        },
+        relPath: {
+          type: "string",
+          pattern: "^(?!/)(?!(?:.*/)?\\.\\.?(?:/|$))(?!.*//)[^\\\\:]+$"
+        }
+      }
+    };
+  }
+});
+
+// skills/docent/schemas/summary.schema.json
+var summary_schema_default;
+var init_summary_schema = __esm({
+  "skills/docent/schemas/summary.schema.json"() {
+    summary_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://github.com/kwangtaeko/tgx-docent/schemas/summary.schema.json",
+      title: "docent summary (\uD504\uB85C\uC81D\uD2B8 \uC18C\uAC1C\xB7\uC6CC\uD06C\uD50C\uB85C\uC6B0)",
+      type: "object",
+      additionalProperties: false,
+      required: ["oneLiner", "features", "workflows"],
+      properties: {
+        oneLiner: { $ref: "#/$defs/claim" },
+        features: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["menu", "value", "screens"],
+            properties: {
+              menu: { type: "string", minLength: 1 },
+              value: { type: "string", minLength: 1 },
+              screens: { $ref: "#/$defs/ids" }
+            }
+          }
+        },
+        workflows: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name", "description", "steps"],
+            properties: {
+              name: { type: "string", minLength: 1 },
+              description: { type: "string", minLength: 1 },
+              steps: { type: "array", minItems: 2, items: { type: "string" } }
+            }
+          }
+        }
+      },
+      $defs: {
+        ids: { type: "array", minItems: 1, items: { type: "string" } },
+        claim: {
+          type: "object",
+          additionalProperties: false,
+          required: ["value", "screens"],
+          properties: {
+            value: { type: "string", minLength: 1 },
+            screens: { $ref: "#/$defs/ids" }
+          }
+        }
+      }
+    };
+  }
+});
+
+// skills/docent/scripts/src/lib/schema.mjs
+function compile(schema) {
+  const validate = ajv.compile(schema);
+  return (data) => {
+    const valid = validate(data);
+    const errors = valid ? [] : validate.errors.map((e) => `${e.instancePath || "/"} ${e.message}`);
+    return { valid, errors };
+  };
+}
+var import__, ajv, validateInventory, validateScreen, validateInventoryAgent, validateSummary, validateRun, validateScenario;
+var init_schema = __esm({
+  "skills/docent/scripts/src/lib/schema.mjs"() {
+    import__ = __toESM(require__(), 1);
+    init_inventory_agent_schema();
+    init_inventory_schema();
+    init_run_schema();
+    init_scenario_schema();
+    init_screen_schema();
+    init_summary_schema();
+    ajv = new import__.default({ allErrors: true });
+    validateInventory = compile(inventory_schema_default);
+    validateScreen = compile(screen_schema_default);
+    validateInventoryAgent = compile(inventory_agent_schema_default);
+    validateSummary = compile(summary_schema_default);
+    validateRun = compile(run_schema_default);
+    validateScenario = compile(scenario_schema_default);
+  }
+});
+
+// skills/docent/scripts/src/commands/run.mjs
+import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { closeSync, existsSync as existsSync2, openSync, readFileSync as readFileSync2 } from "node:fs";
+import { readFile as readFile3, rm, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join4, resolve } from "node:path";
+async function loadRun(projectDir) {
+  const run2 = await readJsonIfExists(join4(docentDir(projectDir), "run.json"));
+  if (!run2) throw new Error(t(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694"));
+  const { valid, errors } = validateRun(run2);
+  if (!valid) throw new Error(t(".docent/run.json \uD615\uC2DD \uC624\uB958: {0}", errors.join("; ")));
+  return run2;
+}
+function commandsHash(run2) {
+  const { install = [], start = "", cwd = ".", env = {}, stop, electron } = run2;
+  return createHash("sha256").update(JSON.stringify({ install, start, cwd, env, ...stop !== void 0 ? { stop } : {}, ...electron !== void 0 ? { electron } : {} })).digest("hex");
+}
+function describeCommands(run2) {
+  return [
+    ...(run2.install ?? []).map((c) => t("\uC124\uCE58: {0}", c)),
+    run2.electron ? t("\uC2E4\uD589: Electron {0}", [run2.electron.main, ...run2.electron.args ?? []].join(" ")) : t("\uC2E4\uD589: {0}", run2.start),
+    ...run2.stop !== void 0 ? [t("\uC815\uB9AC: {0}", run2.stop)] : [],
+    t("\uC704\uCE58: {0}", run2.cwd ?? "."),
+    ...Object.entries(run2.env ?? {}).map(([k, v]) => t("\uD658\uACBD: {0}={1}", k, v))
+  ].join("\n");
+}
+async function runApprove(projectDir) {
+  const run2 = await loadRun(projectDir);
+  await writeFile2(approvalFile(projectDir), commandsHash(run2) + "\n");
+  return { commands: describeCommands(run2) };
+}
+async function approved(projectDir, run2) {
+  try {
+    return (await readFile3(approvalFile(projectDir), "utf8")).trim() === commandsHash(run2);
+  } catch {
+    return false;
+  }
+}
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function killGroup(pid, signal) {
+  try {
+    if (process.platform === "win32") spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)]);
+    else process.kill(-pid, signal);
+  } catch {
+  }
+}
+function procStartTime(pid) {
+  const path = `/proc/${pid}/stat`;
+  if (!existsSync2(path)) return void 0;
+  try {
+    const stat3 = readFileSync2(path, "utf8");
+    return stat3.slice(stat3.lastIndexOf(")") + 2).split(" ")[19];
+  } catch {
+    return void 0;
+  }
+}
+function sameProcess(pid, startTime) {
+  if (!startTime) return true;
+  const now = procStartTime(pid);
+  return now === void 0 || now === startTime;
+}
+async function readPid(projectDir) {
+  let text;
+  try {
+    text = (await readFile3(pidFile(projectDir), "utf8")).trim();
+  } catch {
+    return void 0;
+  }
+  let pid;
+  let startTime;
+  try {
+    const data = JSON.parse(text);
+    if (typeof data === "number") pid = data;
+    else ({ pid, startTime } = data ?? {});
+  } catch {
+  }
+  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameProcess(pid, startTime)) return pid;
+  await rm(pidFile(projectDir), { force: true });
+  return void 0;
+}
+function redact(text, run2) {
+  let out = text.replace(/\/\/[^\s/@:]+:[^\s/@]+@/g, "//***@");
+  for (const name5 of run2.envNames ?? []) {
+    const value = process.env[name5];
+    if (value && value.length >= 4) out = out.split(value).join("***");
+  }
+  return out;
+}
+async function logTail(projectDir, run2, lines = 20) {
+  try {
+    return redact((await readFile3(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n"), run2);
+  } catch {
+    return "";
+  }
+}
+function childEnv(run2) {
+  return { ...process.env, ...run2.env ?? {} };
+}
+async function prepare(projectDir, run2, install) {
+  const missing = (run2.envNames ?? []).filter((name5) => !process.env[name5]);
+  if (missing.length) throw new Error(t("\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
+  if (!await approved(projectDir, run2)) {
+    throw new Error(
+      t(".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:") + `
+${describeCommands(run2)}`
+    );
+  }
+  const cwd = runCwd(projectDir, run2);
+  if (install) {
+    for (const command of run2.install ?? []) {
+      const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
+      if (r.status !== 0) throw new Error(t("\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})", command, r.status));
+    }
+  }
+  return cwd;
+}
+async function startElectron(projectDir, run2, install) {
+  const cwd = await prepare(projectDir, run2, install);
+  if (!existsSync2(join4(cwd, run2.electron.main))) throw new Error(t("Electron \uC9C4\uC785\uC810\uC774 \uC5C6\uC2B5\uB2C8\uB2E4: {0} \u2014 \uC571\uC744 \uBE4C\uB4DC\uD588\uB294\uC9C0 \uD655\uC778\uD558\uC138\uC694(\uBE4C\uB4DC \uBA85\uB839\uC740 install\uC5D0)", run2.electron.main));
+  return { electron: true, started: false, reused: false };
+}
+async function runStart(projectDir, { install = false } = {}) {
+  const run2 = await loadRun(projectDir);
+  if (run2.mode === "electron") return startElectron(projectDir, run2, install);
+  if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
+  if (run2.mode === "url") throw new Error(t("{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694", run2.baseUrl));
+  const booting = await readPid(projectDir);
+  if (booting) throw new Error(t("\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694", booting));
+  const cwd = await prepare(projectDir, run2, install);
+  const fd = openSync(logFile(projectDir), "w");
+  const child = spawn(run2.start, { cwd, shell: true, detached: true, stdio: ["ignore", fd, fd], env: childEnv(run2) });
+  closeSync(fd);
+  let exited = false;
+  child.on("exit", () => {
+    exited = true;
+  });
+  child.unref();
+  await writeFile2(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run2.start, startTime: procStartTime(child.pid) }) + "\n");
+  const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
+  while (Date.now() < deadline) {
+    if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
+    if (exited) break;
+    await sleep(1e3);
+  }
+  const reason = exited ? t("\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4") : t("\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)", run2.healthcheck?.timeoutSec ?? 120);
+  killGroup(child.pid, "SIGKILL");
+  await rm(pidFile(projectDir), { force: true });
+  throw new Error(t("{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:", reason) + `
+${await logTail(projectDir, run2)}`);
+}
+async function runStop(projectDir) {
+  const pid = await readPid(projectDir);
+  if (!pid) return { stopped: false };
+  killGroup(pid, "SIGTERM");
+  for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
+  if (alive(pid)) killGroup(pid, "SIGKILL");
+  await rm(pidFile(projectDir), { force: true });
+  let run2;
+  try {
+    run2 = await loadRun(projectDir);
+  } catch {
+    return { stopped: true };
+  }
+  if (run2.stop && await approved(projectDir, run2)) {
+    const cwd = runCwd(projectDir, run2);
+    spawnSync(run2.stop, { cwd, shell: true, stdio: "ignore", env: childEnv(run2) });
+  }
+  return { stopped: true };
+}
+async function runStatus(projectDir) {
+  let run2;
+  try {
+    run2 = await loadRun(projectDir);
+  } catch {
+    return { configured: false, up: false };
+  }
+  if (run2.mode === "electron") {
+    return { configured: true, electron: true, up: existsSync2(join4(runCwd(projectDir, run2), run2.electron.main)) };
+  }
+  const pid = await readPid(projectDir);
+  const up = (await httpCheck(healthUrl(run2), 2e3)).ok;
+  return { configured: true, baseUrl: run2.baseUrl, up, ...pid && alive(pid) ? { pid } : {} };
+}
+var sleep, healthUrl, pidFile, logFile, approvalFile, runCwd;
+var init_run = __esm({
+  "skills/docent/scripts/src/commands/run.mjs"() {
+    init_cli_text();
+    init_http();
+    init_paths();
+    init_schema();
+    init_workspace();
+    sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
+    pidFile = (projectDir) => join4(docentDir(projectDir), ".run-pid");
+    logFile = (projectDir) => join4(docentDir(projectDir), "run.log");
+    approvalFile = (projectDir) => join4(docentDir(projectDir), ".run-approved");
+    runCwd = (projectDir, run2) => resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
+  }
+});
+
+// skills/docent/scripts/src/commands/auth.mjs
+import { access, mkdir as mkdir2 } from "node:fs/promises";
+import { join as join5 } from "node:path";
+import { createInterface } from "node:readline/promises";
+async function exists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function newContext(browser, projectDir, options = {}) {
+  const state = statePath(projectDir);
+  return browser.newContext({ permissions: CONTEXT_PERMISSIONS, ...options, ...await exists(state) ? { storageState: state } : {} });
+}
+function loggedInPath(path, loginPath, successPath) {
+  if (loginPath === "/" ? path === "/" : under(path, loginPath)) return false;
+  return successPath ? under(path, successPath) : true;
+}
+async function authLogin(projectDir) {
+  const { auth } = await loadConfig(projectDir);
+  if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
+    throw new Error(t("config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"));
+  }
+  const missing = auth.fields.filter((f) => !process.env[f.env]).map((f) => f.env);
+  if (missing.length) throw new Error(t("\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
+  const run2 = await loadRun(projectDir);
+  noElectron(run2);
+  const browser = await launchBrowser();
+  try {
+    const context = await browser.newContext();
+    const page2 = await context.newPage();
+    await page2.goto(new URL(auth.loginPath, run2.baseUrl).href);
+    for (const field of auth.fields) await page2.getByLabel(field.label, { exact: true }).fill(process.env[field.env]);
+    const before = page2.url();
+    await page2.getByRole("button", { name: auth.submit, exact: true }).click();
+    await page2.waitForURL((url) => url.href !== before, { timeout: 3e4 }).catch(() => {
+    });
+    await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
+    });
+    const path = new URL(page2.url()).pathname;
+    const success = auth.successPath ?? "/";
+    if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
+      throw new Error(t("\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694", success, path, auth.fields.map((f) => f.env).join(", ")));
+    }
+    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
+    await context.storageState({ path: statePath(projectDir) });
+    return { statePath: statePath(projectDir) };
+  } finally {
+    await browser.close();
+  }
+}
+function noElectron(run2) {
+  if (run2.mode === "electron") throw new Error(t("\uB370\uC2A4\uD06C\uD1B1 \uC571(Electron)\uC740 \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD558\uBA74 \uC2DC\uB098\uB9AC\uC624 \uC900\uBE44 \uB2E8\uACC4\uC5D0 \uC801\uC73C\uC138\uC694"));
+}
+async function authSave(projectDir) {
+  const run2 = await loadRun(projectDir);
+  noElectron(run2);
+  const browser = await launchBrowser({ headless: false });
+  try {
+    const context = await browser.newContext();
+    const page2 = await context.newPage();
+    await page2.goto(run2.baseUrl);
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    await rl.question(t("\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 "));
+    rl.close();
+    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
+    await context.storageState({ path: statePath(projectDir) });
+    return { statePath: statePath(projectDir) };
+  } finally {
+    await browser.close();
+  }
+}
+var statePath, CONTEXT_PERMISSIONS, under;
+var init_auth = __esm({
+  "skills/docent/scripts/src/commands/auth.mjs"() {
+    init_config();
+    init_playwright();
+    init_cli_text();
+    init_workspace();
+    init_run();
+    statePath = (projectDir) => join5(docentDir(projectDir), "auth", "state.json");
+    CONTEXT_PERMISSIONS = ["clipboard-write"];
+    under = (path, base) => {
+      const b = base.length > 1 ? base.replace(/\/+$/, "") : base;
+      return path === b || path.startsWith(b === "/" ? "/" : `${b}/`);
+    };
+  }
+});
+
 // node_modules/pngjs/lib/chunkstream.js
 var require_chunkstream = __commonJS({
   "node_modules/pngjs/lib/chunkstream.js"(exports, module) {
@@ -17164,7 +19094,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join32(s) {
+      BufferList.prototype.join = function join33(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -26623,6 +28553,307 @@ var require_lib3 = __commonJS({
   }
 });
 
+// skills/docent/scripts/src/lib/media.mjs
+import { mkdir as mkdir4, rename, rm as rm3, stat } from "node:fs/promises";
+import { join as join12 } from "node:path";
+function mediaPaths(projectDir) {
+  const root = join12(docentDir(projectDir), "media");
+  return {
+    root,
+    img: (id) => join12(root, "img", `${id}.png`),
+    gif: (id) => join12(root, "gif", `${id}.gif`),
+    fail: (id) => join12(root, "fail", `${id}.png`),
+    failures: join12(root, "failures.json")
+  };
+}
+async function ensureMediaDirs(projectDir) {
+  const { root } = mediaPaths(projectDir);
+  for (const sub of ["img", "gif", "fail"]) await mkdir4(join12(root, sub), { recursive: true });
+}
+async function readFailures(projectDir) {
+  try {
+    return await readJsonIfExists(mediaPaths(projectDir).failures) ?? [];
+  } catch {
+    return [];
+  }
+}
+async function withLock(path, fn) {
+  const lock = `${path}.lock`;
+  await mkdir4(join12(lock, ".."), { recursive: true });
+  const deadline = Date.now() + 15e3;
+  for (; ; ) {
+    try {
+      await mkdir4(lock);
+      break;
+    } catch (err) {
+      if (err.code !== "EEXIST") throw err;
+      try {
+        if (Date.now() - (await stat(lock)).mtimeMs > 5e3) {
+          const stale = `${lock}.stale-${process.pid}-${Date.now()}`;
+          await rename(lock, stale);
+          await rm3(stale, { recursive: true, force: true });
+        }
+      } catch {
+      }
+      if (Date.now() > deadline) throw new Error(t("{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4", path));
+      await sleep2(50);
+    }
+  }
+  try {
+    return await fn();
+  } finally {
+    await rm3(lock, { recursive: true, force: true });
+  }
+}
+function recordFailure(projectDir, failure) {
+  return withLock(mediaPaths(projectDir).failures, () => writeFailure(projectDir, failure));
+}
+async function writeFailure(projectDir, failure) {
+  const list = (await readFailures(projectDir)).filter((f) => !(f.id === failure.id && f.kind === failure.kind));
+  list.push({ id: failure.id, kind: failure.kind, ...failure.step !== void 0 ? { step: failure.step } : {}, reason: failure.reason });
+  await writeJson(mediaPaths(projectDir).failures, list.sort(order));
+}
+function clearFailure(projectDir, id, kind) {
+  return withLock(mediaPaths(projectDir).failures, () => removeFailure(projectDir, id, kind));
+}
+async function removeFailure(projectDir, id, kind) {
+  const list = await readFailures(projectDir);
+  const next = list.filter((f) => !(f.id === id && f.kind === kind));
+  if (next.length !== list.length) await writeJson(mediaPaths(projectDir).failures, next);
+}
+var order, sleep2;
+var init_media = __esm({
+  "skills/docent/scripts/src/lib/media.mjs"() {
+    init_cli_text();
+    init_workspace();
+    order = (a, b) => a.id === b.id ? a.kind < b.kind ? -1 : 1 : a.id < b.id ? -1 : 1;
+    sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
+  }
+});
+
+// skills/docent/scripts/src/lib/steps.mjs
+function substitute(value, env) {
+  return value.replace(VAR, (_, name5) => {
+    if (env[name5] === void 0) throw new StepError(t("\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}", name5));
+    return env[name5];
+  });
+}
+async function single(locator, describe, timeoutMs) {
+  try {
+    await locator.first().waitFor({ state: "visible", timeout: timeoutMs });
+  } catch {
+    throw new StepError(t("{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe));
+  }
+  const count = await locator.count();
+  if (count !== 1) throw new StepError(t("{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694", describe, count));
+  return locator;
+}
+async function byLabel(page2, label, timeoutMs) {
+  const exact = page2.getByLabel(label, { exact: true });
+  try {
+    await exact.first().waitFor({ state: "attached", timeout: Math.min(timeoutMs, 1500) });
+    return exact;
+  } catch {
+  }
+  const mark = `m${++markSeq}`;
+  await page2.evaluate(
+    ({ label: label2, mark: mark2 }) => {
+      for (const el of document.querySelectorAll("label")) {
+        const own = [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE || n.nodeType === Node.ELEMENT_NODE && !n.matches("input,select,textarea,button")).map((n) => n.textContent).join(" ").replace(/\s+/g, " ").trim();
+        if (own === label2 && el.control) el.control.setAttribute("data-docent-label", mark2);
+      }
+    },
+    { label, mark }
+  );
+  return page2.locator(`[data-docent-label="${mark}"]`);
+}
+async function byRole(page2, role, label, timeoutMs) {
+  const exact = page2.getByRole(role, { name: label, exact: true });
+  const visible = page2.getByRole(role).filter({ hasText: new RegExp(`^\\s*\\d*\\s*${escapeRe(label)}\\s*[\u2197\u2192\u2190\u2715\xD7\u203A\xBB]*\\s*$`) });
+  try {
+    await exact.or(visible).first().waitFor({ state: "attached", timeout: timeoutMs });
+  } catch {
+    return exact;
+  }
+  return await exact.count() > 0 ? exact : visible;
+}
+async function pick(locator, nth, describe, timeoutMs) {
+  if (nth === void 0) return single(locator, describe, timeoutMs);
+  const el = locator.nth(nth);
+  try {
+    await el.waitFor({ state: "visible", timeout: timeoutMs });
+  } catch {
+    throw new StepError(t("{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe, nth));
+  }
+  return el;
+}
+async function runStep(page2, step, env, timeoutMs) {
+  switch (step.do) {
+    case "fill": {
+      const value = substitute(step.value, env);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC785\uB825 \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
+      return el.fill(value, { timeout: timeoutMs });
+    }
+    case "select": {
+      const value = substitute(step.value, env);
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC120\uD0DD \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
+      return el.selectOption({ label: value }, { timeout: timeoutMs });
+    }
+    case "check": {
+      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uCCB4\uD06C \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
+      return el.check({ timeout: timeoutMs });
+    }
+    case "click": {
+      const el = await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
+      if (!step.popup) {
+        try {
+          return await el.click({ timeout: timeoutMs });
+        } catch (err) {
+          if (page2.isClosed()) return void 0;
+          throw err;
+        }
+      }
+      const opened = page2.waitForEvent("popup", { timeout: timeoutMs * 2 });
+      opened.catch(() => {
+      });
+      await el.click({ timeout: timeoutMs });
+      let popup;
+      try {
+        popup = await opened;
+      } catch {
+        throw new StepError(t('{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.role, step.label));
+      }
+      await popup.waitForLoadState("load", { timeout: timeoutMs * 3 }).catch(() => {
+      });
+      return popup;
+    }
+    case "expectText":
+      try {
+        await page2.getByText(step.text, { exact: false }).first().waitFor({ state: "visible", timeout: timeoutMs });
+      } catch {
+        throw new StepError(t('\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.text));
+      }
+      return void 0;
+    case "wait":
+      return new Promise((resolve4) => setTimeout(resolve4, step.ms));
+    case "goto":
+      return page2.goto(new URL(step.path, page2.url()).href, { timeout: timeoutMs * 3 });
+    default:
+      throw new StepError(t("\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}", step.do));
+  }
+}
+async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage, openers = [] } = {}) {
+  const opened = [...openers];
+  let retried = -1;
+  let current2 = page2;
+  const back = async () => {
+    let moved = false;
+    while (current2.isClosed() && opened.length) {
+      current2 = opened.pop();
+      moved = true;
+    }
+    if (moved && onPage) await onPage(current2);
+  };
+  for (let index = 0; index < steps.length; index++) {
+    try {
+      await back();
+      const result = await runStep(current2, steps[index], env, timeoutMs);
+      if (steps[index].popup && result) {
+        opened.push(current2);
+        current2 = result;
+        if (onPage) await onPage(current2);
+      }
+    } catch (err) {
+      if (current2.isClosed() && opened.length) {
+        await back();
+        if (retried !== index) {
+          retried = index;
+          index--;
+          continue;
+        }
+      }
+      const reason = err instanceof StepError ? err.message : t("{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328", steps[index].do);
+      return { ok: false, index, reason };
+    }
+    if (onStep) await onStep(index);
+  }
+  await back();
+  return { ok: true };
+}
+async function maskContext(context, selectors) {
+  if (!selectors?.length) return;
+  const css = `${selectors.join(", ")} { filter: blur(6px) !important; }`;
+  await context.addInitScript((style) => {
+    const add2 = () => {
+      const el = document.createElement("style");
+      el.setAttribute("data-docent-mask", "");
+      el.textContent = style;
+      (document.head ?? document.documentElement).appendChild(el);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add2);
+    else add2();
+  }, css);
+}
+async function maskPage(page2, selectors) {
+  if (!selectors?.length) return;
+  await page2.addStyleTag({ content: `${selectors.join(", ")} { filter: blur(6px) !important; }` }).catch(() => {
+  });
+}
+function usesEnvValue(steps) {
+  return steps.some((s) => typeof s.value === "string" && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(s.value));
+}
+var VAR, StepError, markSeq, escapeRe;
+var init_steps = __esm({
+  "skills/docent/scripts/src/lib/steps.mjs"() {
+    init_cli_text();
+    VAR = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+    StepError = class extends Error {
+    };
+    markSeq = 0;
+    escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+});
+
+// skills/docent/scripts/src/lib/electron.mjs
+import { createRequire as createRequire2 } from "node:module";
+import { join as join13 } from "node:path";
+function electronExecutable(cwd) {
+  const require3 = createRequire2(join13(cwd, "docent-resolve.js"));
+  try {
+    return require3("electron");
+  } catch {
+    throw new Error(t("electron \uD328\uD0A4\uC9C0\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4({0}). \uC571\uC758 \uC758\uC874\uC131\uC744 \uC124\uCE58\uD558\uC138\uC694(run.json\uC758 install, docent run start --install)", cwd));
+  }
+}
+async function launchElectron({ cwd, main: main2, args = [], env, size }) {
+  const { _electron } = await requirePlaywright();
+  const app = await _electron.launch({ executablePath: electronExecutable(cwd), args: [main2, ...args], cwd, env, timeout: 6e4 });
+  try {
+    const page2 = await app.firstWindow({ timeout: 6e4 });
+    await page2.waitForLoadState("domcontentloaded");
+    if (size) {
+      await app.evaluate(({ BrowserWindow }, s) => {
+        for (const w of BrowserWindow.getAllWindows()) w.setContentSize(s.width, s.height);
+      }, size).catch(() => {
+      });
+    }
+    await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
+    });
+    return { page: page2, context: app.context(), close: () => app.close().catch(() => {
+    }) };
+  } catch (err) {
+    await app.close().catch(() => {
+    });
+    throw err;
+  }
+}
+var init_electron = __esm({
+  "skills/docent/scripts/src/lib/electron.mjs"() {
+    init_cli_text();
+    init_playwright();
+  }
+});
+
 // node_modules/gifenc/dist/gifenc.js
 var require_gifenc = __commonJS({
   "node_modules/gifenc/dist/gifenc.js"(exports) {
@@ -27435,1774 +29666,490 @@ var require_gifenc = __commonJS({
   }
 });
 
-// skills/docent/scripts/src/docent.mjs
-import { dirname as dirname4, join as join31, resolve as resolve3 } from "node:path";
-import { fileURLToPath } from "node:url";
-
-// skills/docent/scripts/src/commands/auth.mjs
-import { access, mkdir as mkdir2 } from "node:fs/promises";
-import { join as join5 } from "node:path";
-import { createInterface } from "node:readline/promises";
-
-// skills/docent/scripts/src/lib/config.mjs
-var import_yaml = __toESM(require_dist(), 1);
-import { readFile as readFile2 } from "node:fs/promises";
-import { join as join2 } from "node:path";
-
-// skills/docent/scripts/src/renderers/i18n.mjs
-var LANGUAGES = ["ko", "en"];
-var ko = {
-  htmlLang: "ko",
-  types: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904 \uD14D\uC2A4\uD2B8", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C\uBC15\uC2A4", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "\uC8FC\uC18C(URL)", tel: "\uC804\uD654\uBC88\uD638", other: "\uAE30\uD0C0" },
-  typesShort: { text: "\uD14D\uC2A4\uD2B8", textarea: "\uC5EC\uB7EC \uC904", number: "\uC22B\uC790", date: "\uB0A0\uC9DC", select: "\uC120\uD0DD", checkbox: "\uCCB4\uD06C", radio: "\uB2E8\uC77C \uC120\uD0DD", file: "\uD30C\uC77C", password: "\uBE44\uBC00\uBC88\uD638", email: "\uC774\uBA54\uC77C", url: "URL", tel: "\uC804\uD654", other: "\uAE30\uD0C0" },
-  defaultTitle: "\uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC",
-  defaultFileName: "\uC0AC\uC6A9\uC790\uB9E4\uB274\uC5BC",
-  noCapture: "\uD654\uBA74 \uCEA1\uCC98 \uC5C6\uC774 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.",
-  flag: "\uD655\uC778 \uD544\uC694",
-  intro: "\uC18C\uAC1C",
-  screenList: "\uD654\uBA74 \uBAA9\uB85D",
-  workflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
-  footer: (date) => `docent\uB85C \uC0DD\uC131\uD55C \uCD08\uC548\uC785\uB2C8\uB2E4 \xB7 \uAE30\uC900\uC77C ${date}`,
-  draft: "\uCD08\uC548",
-  author: "\uC791\uC131",
-  baseDate: "\uAE30\uC900\uC77C",
-  version: "\uBC84\uC804",
-  toc: "\uBAA9\uCC28",
-  perScreen: "\uD654\uBA74\uBCC4 \uC124\uBA85",
-  revisions: "\uAC1C\uC815 \uC774\uB825",
-  revisionHead: ["\uBC84\uC804", "\uB0A0\uC9DC", "\uC791\uC131\uC790", "\uB0B4\uC6A9"],
-  noRoles: "\uD655\uC778\uB41C \uC5ED\uD560 \uC5C6\uC74C",
-  preview: "\uD654\uBA74 \uBBF8\uB9AC\uBCF4\uAE30",
-  demoAlt: (t2) => `${t2} \uC870\uC791 \uC608\uC2DC`,
-  shotAlt: (t2) => `${t2} \uD654\uBA74`,
-  statScreens: "\uD654\uBA74",
-  statWorkflows: "\uC6CC\uD06C\uD50C\uB85C\uC6B0",
-  statRoles: "\uC5ED\uD560",
-  features: "\uC8FC\uC694 \uAE30\uB2A5",
-  roles: "\uC0AC\uC6A9\uC790 \uC5ED\uD560",
-  menu: "\uBA54\uB274 \uAD6C\uC870",
-  seeMore: (screens, workflows) => `\uC804\uCCB4 \uD654\uBA74\uC740 ${screens}, \uC5C5\uBB34 \uD750\uB984\uC740 ${workflows}\uC5D0\uC11C \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
-  childOf: (t2) => `${t2}\uC758 \uD558\uC704 \uD654\uBA74`,
-  viewNote: "\uBA54\uB274\uB85C \uC804\uD658",
-  messageHead: ["\uBB38\uAD6C", "\uB098\uC624\uB294 \uB54C"],
-  totalScreens: (n) => `\uC804\uCCB4 ${n}\uAC1C \uD654\uBA74`,
-  listHead: ["ID", "\uD654\uBA74", "\uACBD\uB85C", "\uBA54\uB274", "\uC5ED\uD560", "\uBAA9\uC801"],
-  noShot: "\uCEA1\uCC98 \uC5C6\uC74C",
-  watchDemo: "\uC870\uC791 \uC608\uC2DC \uBCF4\uAE30",
-  menuPath: "\uBA54\uB274 \uC704\uCE58",
-  route: "\uACBD\uB85C",
-  parent: "\uC0C1\uC704 \uD654\uBA74",
-  usedBy: "\uC0AC\uC6A9 \uC5ED\uD560",
-  sections: "\uAD6C\uC131",
-  none: "\uC5C6\uC74C",
-  required: "\uD544\uC218",
-  goTo: "\uC774\uB3D9",
-  opens: "\uC5F4\uAE30",
-  children: "\uD558\uC704 \uD654\uBA74",
-  unknownsTitle: "\uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4",
-  sources: "\uC18C\uC2A4 \uD30C\uC77C",
-  demo: "\uC870\uC791 \uC608\uC2DC",
-  fields: "\uC785\uB825 \uD56D\uBAA9",
-  actions: "\uBC84\uD2BC\uACFC \uB3D9\uC791",
-  messages: "\uC548\uB0B4 \uBA54\uC2DC\uC9C0",
-  workflowsLead: "\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC774\uB098 \uBA54\uB274(\uC810\uC120)\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.",
-  menuEdge: "\uBA54\uB274",
-  // PPTX
-  continued: " (\uACC4\uC18D)",
-  noMenu: "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C",
-  kindField: "\uC785\uB825",
-  kindAction: "\uBC84\uD2BC",
-  tableHead: ["\uAD6C\uBD84", "\uC774\uB984", "\uC124\uBA85"],
-  noRows: "\uC785\uB825 \uD56D\uBAA9\xB7\uBC84\uD2BC \uC5C6\uC74C",
-  requiredSuffix: " \xB7 \uD544\uC218",
-  flagPrefix: "[\uD655\uC778 \uD544\uC694] ",
-  // README
-  more: "\uB354 \uBCF4\uAE30",
-  systemIntro: "\uC2DC\uC2A4\uD15C \uC18C\uAC1C",
-  readmeNote: (date) => `docent\uB85C \uC18C\uC2A4 \uCF54\uB4DC\uB97C \uBD84\uC11D\uD574 \uB9CC\uB4E0 \uCD08\uC548\uC785\uB2C8\uB2E4 (\uAE30\uC900\uC77C ${date}).`
-};
-var en = {
-  htmlLang: "en",
-  types: { text: "Text", textarea: "Multi-line text", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Single choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
-  typesShort: { text: "Text", textarea: "Multi-line", number: "Number", date: "Date", select: "Select", checkbox: "Checkbox", radio: "Choice", file: "File", password: "Password", email: "Email", url: "URL", tel: "Phone", other: "Other" },
-  defaultTitle: "User Manual",
-  defaultFileName: "UserManual",
-  noCapture: "Made from the source code only, without screenshots.",
-  flag: "Needs review",
-  intro: "Overview",
-  screenList: "Screens",
-  workflows: "Workflows",
-  footer: (date) => `Draft generated by docent \xB7 As of ${date}`,
-  draft: "Draft",
-  author: "Prepared by",
-  baseDate: "As of",
-  version: "Version",
-  toc: "Contents",
-  perScreen: "Screen guides",
-  revisions: "Revision history",
-  revisionHead: ["Version", "Date", "Author", "Changes"],
-  noRoles: "No roles found",
-  preview: "Screen previews",
-  demoAlt: (t2) => `${t2} walkthrough`,
-  shotAlt: (t2) => `${t2} screen`,
-  statScreens: "Screens",
-  statWorkflows: "Workflows",
-  statRoles: "Roles",
-  features: "Key features",
-  roles: "User roles",
-  menu: "Menu structure",
-  seeMore: (screens, workflows) => `See ${screens} for every screen and ${workflows} for task flows.`,
-  childOf: (t2) => `Inside ${t2}`,
-  viewNote: "switched from the menu",
-  messageHead: ["Message", "When"],
-  totalScreens: (n) => `${n} screen${n === 1 ? "" : "s"} in total`,
-  listHead: ["ID", "Screen", "Path", "Menu", "Roles", "Purpose"],
-  noShot: "No screenshot",
-  watchDemo: "Watch walkthrough",
-  menuPath: "Menu",
-  route: "Path",
-  parent: "Parent screen",
-  usedBy: "Roles",
-  sections: "Sections",
-  none: "None",
-  required: "Required",
-  goTo: "Goes to",
-  opens: "Opens",
-  children: "Sub-screens",
-  unknownsTitle: "Could not be confirmed from the source code",
-  sources: "Source files",
-  demo: "Walkthrough",
-  fields: "Input fields",
-  actions: "Buttons and actions",
-  messages: "Messages",
-  workflowsLead: "Flows that move between screens to get a task done. Only links confirmed by button actions or the menu (dotted) are drawn.",
-  menuEdge: "menu",
-  continued: " (cont.)",
-  noMenu: "No menu information",
-  kindField: "Field",
-  kindAction: "Button",
-  tableHead: ["Type", "Name", "Description"],
-  noRows: "No fields or buttons",
-  requiredSuffix: " \xB7 required",
-  flagPrefix: "[Needs review] ",
-  more: "More",
-  systemIntro: "Overview",
-  readmeNote: (date) => `Draft generated by docent from the source code (as of ${date}).`
-};
-var STRINGS = { ko, en };
-var languageOf = (input) => input?.options?.language ?? "ko";
-var stringsFor = (language2) => typeof language2 === "string" && Object.hasOwn(STRINGS, language2) ? STRINGS[language2] : ko;
-var textOf = (input) => stringsFor(languageOf(input));
-
-// skills/docent/scripts/src/lib/cli-text/commands-a.mjs
-var commands_a_default = {
-  // commands/validate.mjs
-  "\uD30C\uC77C \uC5C6\uC74C": "File not found",
-  "JSON \uD615\uC2DD \uC624\uB958 ({0})": "Invalid JSON ({0})",
-  "\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}": "Parent screen does not exist: {0}",
-  '"{0}"\uC758 {1}\uAC00 \uC5C6\uB294 \uD654\uBA74 {2}': '{1} of "{0}" points to a screen that does not exist: {2}',
-  "\uC18C\uC2A4\uAC00 \uBC14\uB00C\uC5C8\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uBD84\uC11D\uD558\uC138\uC694": "Source has changed. Analyze it again",
-  "\uD55C \uC904 \uC18C\uAC1C": "One-liner",
-  '"{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': '"{0}" refers to a screen that does not exist: {1}',
-  '"{0}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4': 'All screens backing "{0}" have low confidence',
-  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': 'Workflow "{0}" refers to screens that do not exist: {1}',
-  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4': 'Workflow "{0}" must move between at least 2 screens',
-  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0\uB3C4 \uBA54\uB274\uC5D0\uB3C4 \uC5C6\uC2B5\uB2C8\uB2E4': 'Workflow "{0}": neither a screen action nor the menu links {1} \u2192 {2}',
-  "\uD30C\uC77C \uC774\uB984\uACFC screenId({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match screenId ({0})",
-  "\uC5C6\uB294 \uD654\uBA74 {0}": "Screen does not exist: {0}",
-  "\uB514\uB809\uD130\uB9AC \uC5C6\uC74C": "Directory not found",
-  "\uD30C\uC77C \uC774\uB984\uACFC id({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match id ({0})",
-  "inventory\uC5D0\uB294 \uC788\uC9C0\uB9CC \uBD84\uC11D \uACB0\uACFC(screens/{0}.json)\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "In inventory but has no analysis result (screens/{0}.json)",
-  "\uBD84\uC11D \uACB0\uACFC\uB294 \uC788\uC9C0\uB9CC inventory\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Has an analysis result but is not in inventory",
-  "inventory\uC640 \uBD84\uC11D \uACB0\uACFC \uC5B4\uB514\uC5D0\uB3C4 \uC5C6\uB294 \uD654\uBA74 ID\uC785\uB2C8\uB2E4": "Screen ID not found in inventory or analysis results",
-  // commands/review.mjs (review.md)
-  "# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9": "# Review items",
-  "> docent\uAC00 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uD655\uC815\uD558\uC9C0 \uBABB\uD55C \uB0B4\uC6A9\uC785\uB2C8\uB2E4. \uB2F5\uC744 \uC801\uACE0 \uCCB4\uD06C\uD55C \uB4A4 `/docent-analyze`\uB97C \uB2E4\uC2DC \uC2E4\uD589\uD558\uBA74 \uBC18\uC601\uB429\uB2C8\uB2E4.": "> Things docent could not confirm from the source alone. Write an answer, check the box, and run `/docent-analyze` again to apply it.",
-  " \uB2F5:": " Answer:",
-  "\uBAA9\uC801 \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {0} ({1})": "Purpose \u2014 low confidence: {0} ({1})",
-  "\uC5ED\uD560 {0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C ({1})": "Role {0} \u2014 low confidence ({1})",
-  "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: \uC785\uB825 \uD56D\uBAA9 ({1})": "{0} \u2014 low confidence: input field ({1})",
-  "{0} \u2014 \uD655\uC2E0\uB3C4 \uB0AE\uC74C: {1} ({2})": "{0} \u2014 low confidence: {1} ({2})",
-  "\uD654\uBA74 \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C: {0}": "Path not in the screen list: {0}",
-  "\uC571\uC5D0\uC11C \uB9C1\uD06C\uB85C \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74: {0} ({1})": "Screen not reachable by links in the app: {0} ({1})",
-  "\uACBD\uB85C \uC5C6\uC74C": "no path",
-  "{0} \uCEA1\uCC98 \uC2E4\uD328: {1} (media/fail/{0}.png)": "{0} capture failed: {1} (media/fail/{0}.png)",
-  "{0} \uB179\uD654 \uC2E4\uD328: {1}{2} (media/fail/{0}.png)": "{0} recording failed: {1}{2} (media/fail/{0}.png)",
-  "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 ": "step {0} \u2014 ",
-  "## \uCEA1\uCC98\xB7\uB179\uD654 \uC2E4\uD328": "## Capture and recording failures",
-  "## \uC2E4\uD589 \uC911\uC778 \uC571 \uB300\uC870": "## Running app check",
-  "\uD655\uC778\uD560 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No review items.",
-  // commands/pending.mjs
-  "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C": "No analysis result",
-  "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C": "Analysis result is unreadable",
-  "\uC18C\uC2A4 \uBCC0\uACBD": "Source changed",
-  "\uAC80\uC0AC \uBB38\uC81C {0}\uAC74": "{0} check problem(s)",
-  "\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 {0}\uAC74": "{0} review item(s) answered",
-  // commands/update.mjs
-  "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870": "Refers to a removed screen",
-  // commands/scenarios.mjs
-  "\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694": "Capture path needed",
-  "GIF \uB300\uC0C1": "GIF target",
-  "\uB0A1\uC74C": "Outdated",
-  // commands/inventory.mjs
-  "\uD30C\uC77C \uC5C6\uC74C {0}": "File not found: {0}",
-  "app \uD3F4\uB354 {0}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "app folder not found: {0}",
-  "\uC54C \uC218 \uC5C6\uB294 \uAC10\uC9C0\uAE30 {0}": "Unknown detector: {0}",
-  "idMap\uC758 {0} \u2192 {1}\uB294 {2} \uD654\uBA74\uC758 ID\uC640 \uACB9\uCCD0 \uC801\uC6A9\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4": "idMap {0} \u2192 {1} not applied: the ID is already used by screen {2}",
-  "\uBD80\uBAA8 \uD654\uBA74 {0} \uC5C6\uC74C": "Parent screen not found: {0}",
-  "inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: {0}": "inventory.json schema error: {0}",
-  // commands/init.mjs (.gitignore, config.yaml)
-  "# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "# docent: do not commit login sessions, outputs or captures (they may show real data)",
-  "--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: {0}": "--app must be a folder inside the project: {0}",
-  "--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "--app folder not found: {0}",
-  "# docent \uC124\uC815 \u2014 \uAC01 \uD56D\uBAA9 \uC124\uBA85\uC740 \uC544\uB798 \uC8FC\uC11D\uACFC docent \uC2A4\uD0AC\uC758 references/run-guide.md\uB97C \uCC38\uACE0\uD558\uC138\uC694": "# docent settings \u2014 see the comments below and references/run-guide.md in the docent skill for each field",
-  "language: {0}  # \uC0B0\uCD9C\uBB3C \uC5B8\uC5B4: ko \uD55C\uAD6D\uC5B4 | en \uC601\uC5B4 (\uD654\uBA74 \uBD84\uC11D \uC804\uC5D0 \uC815\uD569\uB2C8\uB2E4)": "language: {0}  # output language: ko Korean | en English (set before screen analysis)",
-  "# \uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354(\uD504\uB85C\uC81D\uD2B8 \uB8E8\uD2B8 \uAE30\uC900)": "# app folder to document in a monorepo (relative to the project root)",
-  "# date: 2026-01-01  # \uC0B0\uCD9C\uBB3C\uC5D0 \uCC0D\uC744 \uB0A0\uC9DC (\uC5C6\uC73C\uBA74 \uB9C8\uC9C0\uB9C9 \uCEE4\uBC0B \uB0A0\uC9DC)": "# date: 2026-01-01  # date shown on outputs (default: last commit date)",
-  "# \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD55C \uC571(\uAC12\uC740 \uC801\uC9C0 \uB9D0\uACE0 \uD658\uACBD\uBCC0\uC218 \uC774\uB984\uB9CC):": "# apps that need login (write environment variable names only, never values):",
-  "#     - label: \uC544\uC774\uB514": "#     - label: Username",
-  "#     - label: \uBE44\uBC00\uBC88\uD638": "#     - label: Password",
-  "#   submit: \uB85C\uADF8\uC778": "#   submit: Log in",
-  "# \uCEA1\uCC98\xB7\uB179\uD654 \uC804\uC5D0 \uD750\uB9AC\uAC8C \uCC98\uB9AC\uD560 \uC694\uC18C(CSS \uC120\uD0DD\uC790):": "# elements to blur before capture and recording (CSS selectors):",
-  "# \uC0B0\uCD9C\uBB3C(preset: delivery \uB0A9\uD488 | handover \uC778\uC218\uC778\uACC4 | portfolio \uD3EC\uD2B8\uD3F4\uB9AC\uC624, formats: html readme pdf pptx):": "# outputs (preset: delivery | handover | portfolio, formats: html readme pdf pptx):",
-  "#   theme: indigo  # \uC0C9 \uD14C\uB9C8: indigo | blue | emerald | rose | slate": "#   theme: indigo  # color theme: indigo | blue | emerald | rose | slate",
-  "#   title: \uC0AC\uC6A9\uC790 \uB9E4\uB274\uC5BC": "#   title: User Manual",
-  '#   projectName: ""  # \uC0B0\uCD9C\uBB3C\uC5D0 \uBCF4\uC77C \uC774\uB984(\uBE44\uC6B0\uBA74 \uC81C\uD488 \uC774\uB984\xB7package.json name)': '#   projectName: ""  # name shown on outputs (empty: product name or package.json name)',
-  '#     - { version: "1.0", date: "2026-10-14", author: "", note: "\uCD5C\uCD08 \uC791\uC131" }': '#     - { version: "1.0", date: "2026-10-14", author: "", note: "Initial version" }',
-  "# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):": "# screens to make GIFs for (default: screens with button actions):",
-  // commands/build.mjs
-  "\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:": "Build stopped because validation failed:",
-  "\uC571 \uC791\uC5C5 {0}\uC758 language({1})\uAC00 \uB8E8\uD2B8 config.yaml({2})\uC640 \uB2E4\uB985\uB2C8\uB2E4. \uD654\uBA74 \uC124\uBA85\uC774 \uC11E\uC778 \uC5B8\uC5B4\uB85C \uB098\uC635\uB2C8\uB2E4": "App workspace {0} has language {1} but the root config.yaml has {2}. Screen descriptions will be in mixed languages",
-  "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694": "{0} review item(s) remain (.docent/review.md). Check them before delivery",
-  "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)": "PDF not built: Playwright is not installed (docent runtime install)",
-  "PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4": "Workflow diagrams in the PDF were not ready; the PDF may contain raw Mermaid text",
-  "\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Could not draw {0} workflow diagram(s); added step lists instead",
-  "Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4": "Playwright is not installed; added step lists instead of workflow diagrams in the PPT",
-  // validate.mjs — effectEvidence
-  '"{0}"\uC758 effectEvidence \uD30C\uC77C {1}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'effectEvidence file {1} of "{0}" is not in readFiles',
-  '\uBA54\uB274 \uACBD\uB85C\uC758 "{0}"\uC774 \uADFC\uAC70({1}) \uADFC\uCC98\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Menu path name "{0}" is not near its evidence ({1})',
-  "\uADFC\uAC70 \uD30C\uC77C {0}\uC774 readFiles\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4": "Evidence file {0} is not in readFiles",
-  '"{0}"\uC758 section "{1}"\uC774 sections\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Section "{1}" of "{0}" is not in sections'
-};
-
-// skills/docent/scripts/src/lib/cli-text/commands-b.mjs
-var commands_b_default = {
-  // commands/auth.mjs
-  "config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4": "config.yaml has no auth settings (loginPath, fields, submit)",
-  "\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for login: {0}",
-  "\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694": "Login failed: after login the browser stayed on {1} instead of {0}. Check the account environment variables ({2})",
-  "\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 ": "Log in in the browser, then press Enter here\u2026 ",
-  // commands/capture.mjs
-  "\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Cannot open: {0}",
-  "\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694": "Login required \u2014 save the login state with docent auth login",
-  "\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Redirected to another screen ({0}) \u2014 no permission or conditions not met",
-  "\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}": "Setup step {0} failed: {1}",
-  "\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4": "The scenario needs a concrete path",
-  "\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "Not captured: setup steps use environment variable values (accounts, etc.)",
-  // commands/crawl.mjs
-  "\uB85C\uADF8\uC778 \uD654\uBA74\uB9CC \uBC29\uBB38\uD588\uC2B5\uB2C8\uB2E4. \uB85C\uADF8\uC778 \uC0C1\uD0DC\uAC00 \uB9CC\uB8CC\uB41C \uAC83 \uAC19\uC2B5\uB2C8\uB2E4 \u2014 docent auth login\uC73C\uB85C \uB2E4\uC2DC \uB85C\uADF8\uC778\uD558\uC138\uC694": "Only the login screen was visited. The login state seems to have expired \u2014 log in again with docent auth login",
-  // commands/record.mjs
-  "\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No scenario",
-  "\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4": "No steps to show",
-  "\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4": "No GIF made: some steps enter environment variable values (accounts, etc.)",
-  "\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4": "The scenario is stale",
-  "{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}": "Step {0} \u2014 {1}",
-  "GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694": "The GIF is over 2MB. Reduce the scenario steps",
-  // commands/run.mjs
-  ".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694": ".docent/run.json not found. Set up the run plan first",
-  ".docent/run.json \uD615\uC2DD \uC624\uB958: {0}": ".docent/run.json format error: {0}",
-  "\uC124\uCE58: {0}": "Install: {0}",
-  "\uC2E4\uD589: {0}": "Start: {0}",
-  "\uC815\uB9AC: {0}": "Stop: {0}",
-  "\uC704\uCE58: {0}": "Directory: {0}",
-  "\uD658\uACBD: {0}={1}": "Env: {0}={1}",
-  "{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694": "{0} is not responding. Start the app and try again",
-  "\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}": "Missing environment variables for the run: {0}",
-  "\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694": "An app is already starting (pid {0}). Wait for it to finish or run docent run stop",
-  ".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:": "The commands in .docent/run.json are not yet approved on this computer. Show the commands below to the user, get their consent, then run `docent run approve`:",
-  "\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})": "Install command failed: {0} (exit {1})",
-  "\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4": "The app exited while starting",
-  "\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)": "Health check timed out ({0}s)",
-  "{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:": "{0}. Last lines of .docent/run.log:",
-  // commands/runtime.mjs
-  "{0} \uC2E4\uD328 (exit {1})": "{0} failed (exit {1})",
-  // lib/media.mjs
-  "{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4": "Could not acquire the lock on {0}",
-  // lib/playwright.mjs
-  "\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).": "Playwright, needed for capture and recording, is not installed. With the user's consent, install it with `docent runtime install` (downloads playwright@{1} and Chromium into {0}).",
-  "Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.": "Chromium not found. Install it with `docent runtime install` (or npx playwright install chromium)."
-};
-
-// skills/docent/scripts/src/lib/cli-text/lib.mjs
-var lib_default = {
-  // lib/steps.mjs — 시나리오 단계 실패 이유
-  "\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}": "Environment variable not set: {0}",
-  "{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "{0} not found",
-  "{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694": "Found {1} matches for {0}. Use nth to pick one",
-  "{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4": "Element #{1} of {0} not found",
-  '\uC785\uB825 \uD56D\uBAA9 "{0}"': 'Input field "{0}"',
-  '\uC120\uD0DD \uD56D\uBAA9 "{0}"': 'Select field "{0}"',
-  '\uCCB4\uD06C \uD56D\uBAA9 "{0}"': 'Checkbox "{0}"',
-  '{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Clicked {0} "{1}" but no new window opened',
-  '\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4': 'Text "{0}" did not appear',
-  "\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}": "Unknown step: {0}",
-  "{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328": "Step {0} failed",
-  // lib/evidence.mjs
-  "\uADFC\uAC70 \uD615\uC2DD \uC624\uB958: {0}": "Invalid evidence format: {0}",
-  "project root \uBC16\uC758 \uACBD\uB85C: {0}": "Path outside project root: {0}",
-  "\uD30C\uC77C \uC5C6\uC74C: {0}": "File not found: {0}",
-  "{0}\uC5D0 {1} \uC5C6\uC74C": "{1} not found in {0}",
-  "{0}\uC758 \uB77C\uC778 \uBC94\uC704 \uC624\uB958: {1}-{2} (\uC804\uCCB4 {3}\uC904)": "Invalid line range in {0}: {1}-{2} (file has {3} lines)",
-  '{0} \uADFC\uCC98(\xB1{1}\uC904)\uC5D0 "{2}" \uC5C6\uC74C': '"{2}" not found near {0} (\xB1{1} lines)',
-  // lib/config.mjs
-  "config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
-  "config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4": "config.yaml: {0} must be {1}",
-  "\uAC1D\uCCB4": "an object",
-  "\uBAA9\uB85D": "a list",
-  "\uBB38\uC790\uC5F4": "a string",
-  "\uC591\uC758 \uC815\uC218": "a positive integer",
-  "config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: app must be a folder path inside the project ({0})",
-  "config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})",
-  "config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4": "config.yaml: combine lists the same app workspace twice",
-  "config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: language must be one of {0} ({1})",
-  ".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}": "Invalid .docent/config.yaml: {0}",
-  // lib/output-options.mjs
-  '\uC54C \uC218 \uC5C6\uB294 \uD504\uB9AC\uC14B "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown preset "{0}" \u2014 use one of {1}',
-  '\uC54C \uC218 \uC5C6\uB294 \uD615\uC2DD "{0}" \u2014 {1} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694': 'Unknown format "{0}" \u2014 choose from {1}',
-  "\uB9CC\uB4E4 \uD615\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4 \u2014 {0} \uC911\uC5D0\uC11C \uACE0\uB974\uC138\uC694": "No formats to build \u2014 choose from {0}",
-  "config.yaml: output.revisions\uB294 \uBAA9\uB85D\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4": "config.yaml: output.revisions must be a list",
-  "config.yaml: output.revisions[{0}]\uC758 {1} \uAC12\uC774 \uC5C6\uAC70\uB098 \uBB38\uC790\uC5F4\uC774 \uC544\uB2D9\uB2C8\uB2E4": "config.yaml: output.revisions[{0}].{1} is missing or not a string",
-  '\uC54C \uC218 \uC5C6\uB294 \uD14C\uB9C8 "{0}" \u2014 {1} \uC911 \uD558\uB098\uB97C \uC4F0\uC138\uC694': 'Unknown theme "{0}" \u2014 use one of {1}',
-  // lib/paths.mjs, lib/source-hash.mjs
-  "\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}": "Not a project-relative path: {0}",
-  "\uC18C\uC2A4 \uD574\uC2DC \uACC4\uC0B0 \uC2E4\uD328: {0} ({1})": "Failed to compute source hash: {0} ({1})",
-  // detectors/react-router.mjs
-  "{0}\uC758 flatRoutes()\uAC00 \uAC00\uB9AC\uD0A4\uB294 {1}\uC5D0\uC11C \uB77C\uC6B0\uD2B8 \uD30C\uC77C\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4 \u2014 route-explorer\uB85C \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)": "No route files found in {1}, which flatRoutes() in {0} points to \u2014 use route-explorer to find screens (references/stacks/js-routers.md)",
-  // detectors/route-tree.mjs
-  "\uACBD\uB85C\uB97C \uC18C\uC2A4 \uAE00\uC790\uB9CC\uC73C\uB85C \uC77D\uC744 \uC218 \uC5C6\uB294 \uB77C\uC6B0\uD2B8(\uBCC0\uC218 \uACBD\uB85C\xB7\uC2A4\uD504\uB808\uB4DC)\uAC00 \uC788\uC5B4 \uD654\uBA74\uC774 \uBE60\uC84C\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4: {0} \u2014 route-explorer\uB85C \uB098\uBA38\uC9C0 \uD654\uBA74\uC744 \uCC3E\uC73C\uC138\uC694(references/stacks/js-routers.md)": "Some routes have paths that cannot be read from the source text (variable paths or spreads), so screens may be missing: {0} \u2014 use route-explorer to find the rest (references/stacks/js-routers.md)"
-};
-
-// skills/docent/scripts/src/lib/cli-text/main.mjs
-var main_default = {
-  // 사용법
-  "\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]": "Usage: docent <command> [--project <dir>] [--workspace <name>]",
-  "  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)": "  --workspace <name>  Per-app workspace when combining several apps into one manual (.docent/apps/<name>/)",
-  "--workspace\uB294 \uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-\uB85C \uB41C \uC774\uB984\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4: {0}": "--workspace must be a name of lowercase letters, digits and -: {0}",
-  "\uBA85\uB839:": "Commands:",
-  "  init [--app <\uD3F4\uB354>]": "  init [--app <dir>]",
-  "                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)": "                 Detect the project and create .docent/config.yaml (in a monorepo, the app folder to document)",
-  "  inventory      \uD654\uBA74 \uBAA9\uB85D(.docent/inventory.json)\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "  inventory      Build the screen list (.docent/inventory.json)",
-  "  update         \uCF54\uB4DC\uAC00 \uBC14\uB010 \uB4A4 \uB2E4\uC2DC \uD560 \uC77C(\uC0C8 \uD654\uBA74\xB7\uC0AD\uC81C \uD6C4\uBCF4\xB7\uC7AC\uBD84\uC11D\xB7\uC2DC\uB098\uB9AC\uC624\xB7\uC7AC\uCEA1\uCC98)": "  update         Show follow-up work after code changes (new screens, removal candidates, re-analysis, scenarios, re-capture)",
-  "  pending        \uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74(\uACB0\uACFC \uC5C6\uC74C\xB7\uC18C\uC2A4 \uBCC0\uACBD\xB7\uAC80\uC0AC \uBB38\uC81C\xB7\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0)\uC744 \uBCF4\uC5EC \uC90D\uB2C8\uB2E4": "  pending        List screens to re-analyze (no result, source changed, check problems, review item answered)",
-  "  validate [ID\u2026] \uBD84\uC11D \uACB0\uACFC\uC758 \uC2A4\uD0A4\uB9C8\xB7\uADFC\uAC70\xB7\uC5F0\uACB0\uC744 \uAC80\uC0AC\uD569\uB2C8\uB2E4(\uD654\uBA74 ID\uB97C \uC8FC\uBA74 \uADF8 \uD654\uBA74\uB9CC)": "  validate [ID\u2026] Check analysis results for schema, evidence and links (only the given screen IDs, if any)",
-  "  review         \uD655\uC778 \uD544\uC694 \uD56D\uBAA9(.docent/review.md)\uC744 \uBAA8\uC74D\uB2C8\uB2E4": "  review         Collect review items (.docent/review.md)",
-  "                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4": "                 Build outputs into .docent/out/",
-  "  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4": "  hash <file\u2026>   Compute the sourceHash value for a screen JSON",
-  "  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)": "  run approve    Approve the run.json commands the user agreed to, on this computer (.docent/.run-approved)",
-  "  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778": "  run start [--install] | stop | status  Start, stop or check the target app as set in .docent/run.json",
-  "  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)": "  crawl          Follow links in the running app and compare with the screen list (.docent/crawl.json)",
-  "  scenarios      \uC2DC\uB098\uB9AC\uC624\uB97C (\uB2E4\uC2DC) \uC368\uC57C \uD558\uB294 \uD654\uBA74(\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694\xB7GIF \uB300\uC0C1\xB7\uB0A1\uC74C)": "  scenarios      List screens that need a scenario written or rewritten (capture path needed, GIF target, outdated)",
-  "  capture [id\u2026]  \uD654\uBA74 \uCEA1\uCC98(.docent/media/img)": "  capture [id\u2026]  Capture screens (.docent/media/img)",
-  "  record [id\u2026]   \uC870\uC791 GIF \uB179\uD654(.docent/media/gif)": "  record [id\u2026]   Record interaction GIFs (.docent/media/gif)",
-  "  auth login | save  \uB85C\uADF8\uC778 \uC0C1\uD0DC \uC800\uC7A5(login: config.yaml\uC758 auth\uC640 \uD658\uACBD\uBCC0\uC218, save: \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uC9C1\uC811 \uB85C\uADF8\uC778)": "  auth login | save  Save the login state (login: auth in config.yaml and environment variables, save: log in yourself in a browser)",
-  "  runtime status|install  \uD654\uBA74 \uCEA1\uCC98\uC6A9 Playwright \uD655\uC778\xB7\uC124\uCE58(\uC0AC\uC6A9\uC790 \uB3D9\uC758 \uD6C4)": "  runtime status|install  Check or install Playwright for capture (after the user agrees)",
-  "  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)": "  session start  Start an analysis session (blocks reading secret files)",
-  "  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC": "  session end    End the analysis session",
-  // init
-  "\uBAA8\uB178\uB808\uD3EC\uC5D0\uC11C \uC571\uC744 \uC5EC\uB7EC \uAC1C \uCC3E\uC558\uC2B5\uB2C8\uB2E4. \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571\uC744 \uACE8\uB77C \uB2E4\uC2DC \uC2E4\uD589\uD558\uC138\uC694: docent init --app <\uD3F4\uB354>": "Found several apps in this monorepo. Pick the app to document and run again: docent init --app <dir>",
-  "\uD654\uBA74 \uC571(\uAC10\uC9C0\uAE30 \uC5C6\uC74C)": "screen app (no detector)",
-  ".docent/config.yaml\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.": "Created .docent/config.yaml.",
-  ".docent/config.yaml\uC774 \uC774\uBBF8 \uC788\uC5B4 \uADF8\uB300\uB85C \uB461\uB2C8\uB2E4.": ".docent/config.yaml already exists; left unchanged.",
-  "--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694.": "--app was ignored. To change the app folder, edit app in .docent/config.yaml.",
-  "\uC571 \uD3F4\uB354: {0}": "App folder: {0}",
-  "\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}": "Detected frameworks: {0}",
-  "\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)": "none (the agent will search for screens)",
-  "\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)": "This is a desktop app ({0}): screen analysis and outputs come from source only; capture and GIF recording are not supported (run and capture steps are skipped)",
-  // inventory · update
-  "\uD654\uBA74 {0}\uAC1C (page {1}, \uD558\uC704 \uD654\uBA74 {2})": "{0} screens (page {1}, sub-screens {2})",
-  "({0}\uC758 \uD558\uC704 \uD654\uBA74)": "(sub-screen of {0})",
-  "\uC81C\uC678\uD55C \uD56D\uBAA9:": "Excluded:",
-  "\uC5C6\uC74C": "none",
-  "\uC0C8 \uD654\uBA74": "New screens",
-  "\uC0AD\uC81C \uD6C4\uBCF4(\uC790\uB3D9\uC73C\uB85C \uC9C0\uC6B0\uC9C0 \uC54A\uC74C)": "Removal candidates (not deleted automatically)",
-  "\uB2E4\uC2DC \uBD84\uC11D": "Re-analyze",
-  "\uC2DC\uB098\uB9AC\uC624 \uC791\uC131": "Write scenario",
-  "\uB2E4\uC2DC \uCEA1\uCC98": "Re-capture",
-  // pending · validate · review · build
-  "\uB2E4\uC2DC \uBD84\uC11D\uD560 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens to re-analyze.",
-  "\uAC80\uC99D \uD1B5\uACFC: {0}": "Validation passed: {0}",
-  "\uAC80\uC99D \uD1B5\uACFC": "Validation passed",
-  "\uBB38\uC81C {0}\uAC74:": "{0} problems:",
-  "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74 \u2192 .docent/review.md": "{0} review items \u2192 .docent/review.md",
-  "\uC0B0\uCD9C\uBB3C {0}\uAC1C \u2192 .docent/out/": "{0} outputs \u2192 .docent/out/",
-  "\uACBD\uACE0: {0}": "Warning: {0}",
-  "\uAC74\uB108\uB700({0}): {1}": "Skipped ({0}): {1}",
-  // run
-  "\uB2E4\uC74C \uBA85\uB839\uC744 \uC2B9\uC778\uD588\uC2B5\uB2C8\uB2E4:": "Approved these commands:",
-  "\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}": "Using the app that is already responding: {0}",
-  "\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}": "Started the app: {0}",
-  "\uC571\uC744 \uBA48\uCDC4\uC2B5\uB2C8\uB2E4.": "Stopped the app.",
-  "docent\uAC00 \uB744\uC6B4 \uC571\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No app started by docent.",
-  "\uC751\uB2F5 \uC911": "responding",
-  "\uC751\uB2F5 \uC5C6\uC74C": "not responding",
-  ".docent/run.json \uC5C6\uC74C": "No .docent/run.json",
-  // crawl · scenarios · capture · record
-  "\uBC29\uBB38 {0}\uAC1C, \uBAA9\uB85D\uC5D0 \uC5C6\uB294 \uACBD\uB85C {1}\uAC1C, \uB3C4\uB2EC\uD558\uC9C0 \uBABB\uD55C \uD654\uBA74 {2}\uAC1C \u2192 .docent/crawl.json": "Visited {0}, paths not in the list {1}, unreached screens {2} \u2192 .docent/crawl.json",
-  "- \uBAA9\uB85D\uC5D0 \uC5C6\uC74C: {0}": "- Not in the list: {0}",
-  "- \uB3C4\uB2EC \uBABB \uD568: {0}": "- Unreached: {0}",
-  "\uC2DC\uB098\uB9AC\uC624\uB97C \uC4F8 \uD654\uBA74\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.": "No screens need a scenario.",
-  "\uCEA1\uCC98 {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/img": "Captured {0}, failed {1}, skipped {2} \u2192 .docent/media/img",
-  "- \uC2E4\uD328 {0}: {1}": "- Failed {0}: {1}",
-  "- \uAC74\uB108\uB700 {0}: {1}": "- Skipped {0}: {1}",
-  "GIF {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/gif": "Recorded {0} GIFs, failed {1}, skipped {2} \u2192 .docent/media/gif",
-  // auth · runtime
-  "\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: {0}": "Saved the login state: {0}",
-  "Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)": "Playwright not found \u2014 install location: {0} (docent runtime install)"
-};
-
-// skills/docent/scripts/src/lib/cli-text.mjs
-var EN = { ...main_default, ...commands_a_default, ...commands_b_default, ...lib_default };
-var language = "ko";
-function setCliLanguage(value) {
-  language = value === "en" ? "en" : "ko";
-}
-var cliLanguage = () => language;
-function t(text, ...args) {
-  const template = language === "en" && Object.hasOwn(EN, text) ? EN[text] : text;
-  return template.replace(/\{(\d+)\}/g, (whole, i) => Number(i) < args.length ? String(args[Number(i)]) : whole);
-}
-
-// skills/docent/scripts/src/lib/paths.mjs
-import { posix } from "node:path";
-function normalizeRel(p) {
-  if (typeof p !== "string" || p.includes("\\") || p.includes(":") || posix.isAbsolute(p)) {
-    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
+// skills/docent/scripts/src/renderers/gif.mjs
+function sharedPalette(decoded) {
+  const picks = [.../* @__PURE__ */ new Set([0, Math.floor(decoded.length / 2), decoded.length - 1])].map((i) => decoded[i].data);
+  const total = picks.reduce((n, d) => n + d.length, 0);
+  const sample = new Uint8Array(total);
+  let offset = 0;
+  for (const d of picks) {
+    sample.set(d, offset);
+    offset += d.length;
   }
-  const n = posix.normalize(p);
-  if (n === "." || n === ".." || n.startsWith("../")) {
-    throw new Error(t("\uD504\uB85C\uC81D\uD2B8 \uC0C1\uB300 \uACBD\uB85C\uAC00 \uC544\uB2D9\uB2C8\uB2E4: {0}", p));
+  return quantize(sample, 256);
+}
+function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
+  if (!frames.length) throw new Error("GIF\uB85C \uB9CC\uB4E4 \uD504\uB808\uC784\uC774 \uC5C6\uC2B5\uB2C8\uB2E4");
+  const first = import_pngjs2.PNG.sync.read(frames[0]);
+  const { width, height } = first;
+  const decoded = frames.map((buf, i) => {
+    const png = i ? import_pngjs2.PNG.sync.read(buf) : first;
+    if (png.width === width && png.height === height) return png;
+    const out = new import_pngjs2.PNG({ width, height });
+    out.data.fill(255);
+    import_pngjs2.PNG.bitblt(png, out, 0, 0, Math.min(width, png.width), Math.min(height, png.height), 0, 0);
+    return out;
+  });
+  const palette = sharedPalette(decoded);
+  const gif = GIFEncoder();
+  decoded.forEach((png, i) => {
+    const index = applyPalette(png.data, palette);
+    const delay = i === decoded.length - 1 ? holdLastMs : Math.round(1e3 / fps);
+    gif.writeFrame(index, width, height, { palette: i === 0 ? palette : void 0, delay, repeat: 0 });
+  });
+  gif.finish();
+  return Buffer.from(gif.bytes());
+}
+var gifencModule, import_pngjs2, GIFEncoder, quantize, applyPalette;
+var init_gif = __esm({
+  "skills/docent/scripts/src/renderers/gif.mjs"() {
+    gifencModule = __toESM(require_gifenc(), 1);
+    import_pngjs2 = __toESM(require_png(), 1);
+    ({ GIFEncoder, quantize, applyPalette } = gifencModule.default ?? gifencModule);
   }
-  return n.replace(/\/$/, "");
-}
-
-// skills/docent/scripts/src/lib/workspace.mjs
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-var WORKSPACE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-var current = "";
-function setWorkspace(name5 = "") {
-  if (name5 && !WORKSPACE_NAME.test(name5)) throw new Error(`invalid workspace: ${name5}`);
-  current = name5;
-}
-var workspaceName = () => current;
-async function withWorkspace(name5, fn) {
-  const before = current;
-  setWorkspace(name5);
-  try {
-    return await fn();
-  } finally {
-    current = before;
-  }
-}
-function rootDocentDir(projectDir) {
-  return join(projectDir, ".docent");
-}
-function docentDir(projectDir, name5 = current) {
-  return name5 ? join(projectDir, ".docent", "apps", name5) : rootDocentDir(projectDir);
-}
-async function readJson(path) {
-  return JSON.parse(await readFile(path, "utf8"));
-}
-async function readJsonIfExists(path) {
-  try {
-    return await readJson(path);
-  } catch (err) {
-    if (err.code === "ENOENT") return void 0;
-    throw err;
-  }
-}
-async function writeJson(path, data) {
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, JSON.stringify(data, null, 2) + "\n");
-}
-
-// skills/docent/scripts/src/lib/config.mjs
-var DEFAULT_CONFIG = Object.freeze({
-  language: "ko",
-  // 모노레포에서 문서로 만들 앱 폴더(프로젝트 루트 기준). 비우면 루트
-  app: "",
-  detectors: [],
-  screens: { include: [], exclude: [], idMap: {} },
-  secrets: { paths: [".env", ".env.*", "appsettings*.json", "web.config", "*.pem", "*.key", "*.pfx", "id_rsa*"] },
-  analyze: { concurrency: 4 },
-  mask: { selectors: [] },
-  gif: { screens: { include: [], exclude: [] } },
-  // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
-  output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] },
-  // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
-  combine: []
 });
-function isObject(v) {
-  return v !== null && typeof v === "object" && !Array.isArray(v);
-}
-function merge(base, override) {
-  const out = structuredClone(base);
-  if (!isObject(override)) return out;
-  for (const [key, value] of Object.entries(override)) {
-    if (value === null) continue;
-    out[key] = isObject(out[key]) && isObject(value) ? merge(out[key], value) : value;
-  }
-  return out;
-}
-var ARRAY_KEYS = ["combine", "detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
-var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
-var STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
-var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
-function checkConfig(config) {
-  const fail = (path, kind) => {
-    const code = kind.charCodeAt(kind.length - 1) - 44032;
-    throw new Error(code >= 0 && code % 28 ? t("config.yaml: {0}\uB294 {1}\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4", path, kind) : t("config.yaml: {0}\uB294 {1}\uC5EC\uC57C \uD569\uB2C8\uB2E4", path, kind));
-  };
-  for (const path of OBJECT_KEYS) if (!isObject(get(config, path))) fail(path, t("\uAC1D\uCCB4"));
-  if (typeof config.output.formats === "string") config.output.formats = [config.output.formats];
-  for (const path of ARRAY_KEYS) if (!Array.isArray(get(config, path))) fail(path, t("\uBAA9\uB85D"));
-  for (const path of STRING_KEYS) {
-    const value = get(config, path);
-    if (value === void 0) continue;
-    if (typeof value === "number") {
-      const [head, key] = path.includes(".") ? path.split(".") : [void 0, path];
-      if (head) config[head][key] = String(value);
-      else config[key] = String(value);
-    } else if (typeof value !== "string") fail(path, t("\uBB38\uC790\uC5F4"));
-  }
-  if (config.app) {
-    try {
-      config.app = normalizeRel(config.app.replace(/\\/g, "/"));
-    } catch {
-      throw new Error(t("config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})", config.app));
-    }
-  }
-  config.combine = config.combine.map((item) => {
-    const entry = typeof item === "string" ? { workspace: item } : item;
-    if (!isObject(entry) || typeof entry.workspace !== "string" || !WORKSPACE_NAME.test(entry.workspace)) {
-      throw new Error(t("config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})", JSON.stringify(item)));
-    }
-    if (entry.title !== void 0 && typeof entry.title !== "string") fail("combine[].title", t("\uBB38\uC790\uC5F4"));
-    return { workspace: entry.workspace, ...entry.title ? { title: entry.title } : {} };
-  });
-  if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t("config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4"));
-  if (!LANGUAGES.includes(config.language)) throw new Error(t("config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", LANGUAGES.join(", "), config.language));
-  const n = config.analyze.concurrency;
-  if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", t("\uC591\uC758 \uC815\uC218"));
-  return config;
-}
-async function loadConfig(projectDir, workspace) {
-  const path = join2(docentDir(projectDir, workspace), "config.yaml");
-  let text;
-  try {
-    text = await readFile2(path, "utf8");
-  } catch (err) {
-    if (err.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
-    throw err;
-  }
-  let data;
-  try {
-    data = (0, import_yaml.parse)(text);
-  } catch (err) {
-    throw new Error(t(".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}", err.message));
-  }
-  return checkConfig(merge(DEFAULT_CONFIG, data ?? {}));
-}
 
-// skills/docent/scripts/src/lib/playwright.mjs
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { homedir } from "node:os";
-import { dirname as dirname2, join as join3 } from "node:path";
-var PLAYWRIGHT_VERSION = "1.56.1";
-var PlaywrightMissing = class extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "PlaywrightMissing";
+// skills/docent/scripts/src/commands/scenarios.mjs
+import { join as join14 } from "node:path";
+function gifTargets(screens, config) {
+  const { include = [], exclude = [] } = config.gif?.screens ?? {};
+  return screens.filter((s) => include.length ? include.includes(s.id) : clickable(s).length > 0).filter((s) => !exclude.includes(s.id)).map((s) => s.id);
+}
+async function runScenarios(projectDir) {
+  const dir = docentDir(projectDir);
+  const config = await loadConfig(projectDir);
+  const inventory = await readJson(join14(dir, "inventory.json"));
+  const screens = /* @__PURE__ */ new Map();
+  for (const { id } of inventory.screens) {
+    const s = await readJsonIfExists(join14(dir, "screens", `${id}.json`)).catch(() => void 0);
+    if (s?.sourceHash) screens.set(id, s);
   }
-};
-function runtimeDir() {
-  return process.env.DOCENT_RUNTIME_DIR || join3(homedir(), ".cache", "docent", "runtime");
+  const gif = new Set(gifTargets([...screens.values()], config));
+  const list = [];
+  for (const entry of inventory.screens) {
+    const screen = screens.get(entry.id);
+    if (!screen) continue;
+    const scenario = await readJsonIfExists(join14(dir, "scenarios", `${entry.id}.json`)).catch(() => void 0);
+    if (!scenario) {
+      if (needsPath(entry)) list.push({ id: entry.id, reason: t("\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694") });
+      else if (gif.has(entry.id)) list.push({ id: entry.id, reason: t("GIF \uB300\uC0C1") });
+    } else if (isStale(scenario, screen)) {
+      list.push({ id: entry.id, reason: t("\uB0A1\uC74C") });
+    }
+  }
+  return list;
 }
-var require2 = createRequire(import.meta.url);
-function loadFromDir(pkgDir) {
-  const pkgJson = join3(pkgDir, "package.json");
-  if (!existsSync(pkgJson)) return void 0;
-  const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
-  return { module: require2(pkgDir), version };
-}
-function globalRoot() {
+var clickable, isStale, needsPath;
+var init_scenarios = __esm({
+  "skills/docent/scripts/src/commands/scenarios.mjs"() {
+    init_config();
+    init_cli_text();
+    init_workspace();
+    clickable = (s) => (s.actions ?? []).filter((a) => !a.unlabeled);
+    isStale = (scenario, screen) => !scenario.locked && screen.sourceHash !== scenario.sourceHash;
+    needsPath = (entry) => entry.kind !== "page" || !entry.route || entry.route.includes("[");
+  }
+});
+
+// skills/docent/scripts/src/commands/record.mjs
+import { writeFile as writeFile4 } from "node:fs/promises";
+import { join as join15 } from "node:path";
+async function loadScreen(projectDir, id) {
   try {
-    return execFileSync("npm", ["root", "-g"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return await readJsonIfExists(join15(docentDir(projectDir), "screens", `${id}.json`));
   } catch {
     return void 0;
   }
 }
-async function findPlaywright() {
-  const candidates = [];
-  if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
-  candidates.push(["runtime", join3(runtimeDir(), "node_modules", "playwright")]);
-  try {
-    candidates.push(["local", dirname2(require2.resolve("playwright/package.json"))]);
-  } catch {
+async function recordSteps(page2, steps, openers = []) {
+  const frames = [];
+  let active = page2;
+  let recording = true;
+  const interval = 1e3 / FPS;
+  const loop = (async () => {
+    while (recording) {
+      const started = Date.now();
+      try {
+        frames.push(await active.screenshot({ type: "png" }));
+      } catch {
+      }
+      const wait = interval - (Date.now() - started);
+      if (wait > 0) await sleep3(wait);
+    }
+  })();
+  const result = await runSteps(page2, steps, {
+    onStep: () => sleep3(300),
+    onPage: (p) => {
+      active = p;
+    },
+    openers
+  });
+  if (result.ok) await sleep3(1e3);
+  recording = false;
+  await loop;
+  return { result, frames };
+}
+function framesToGif(frames) {
+  let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
+  if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
+  return gif.length > GIF_MAX_BYTES ? void 0 : gif;
+}
+async function recordTargets(projectDir, config, ids) {
+  if (ids?.length) return ids;
+  const inventory = await readJson(join15(docentDir(projectDir), "inventory.json"));
+  const screens = [];
+  for (const { id } of inventory.screens) {
+    const s = await loadScreen(projectDir, id);
+    if (s) screens.push(s);
   }
-  const root = globalRoot();
-  if (root) candidates.push(["global", join3(root, "playwright")]);
-  for (const [from, dir] of candidates) {
-    const found = loadFromDir(dir);
-    if (found) return { ...found, from, dir };
-  }
+  return gifTargets(screens, config);
+}
+async function recordSkipReason(projectDir, id, scenario) {
+  if (!scenario) return t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4");
+  if (!scenario.steps.length) return t("\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4");
+  if (usesEnvValue([...scenario.setup, ...scenario.steps])) return t("\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4");
+  const screen = await loadScreen(projectDir, id);
+  if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) return t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4");
   return void 0;
 }
-async function requirePlaywright() {
-  const found = await findPlaywright();
-  if (!found) {
-    throw new PlaywrightMissing(
-      t("\uD654\uBA74 \uCEA1\uCC98\xB7\uB179\uD654\uC5D0 \uD544\uC694\uD55C Playwright\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC6A9\uC790 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent runtime install`\uB85C \uC124\uCE58\uD558\uC138\uC694 ({0}\uC5D0 playwright@{1}\uC640 Chromium\uC744 \uBC1B\uC2B5\uB2C8\uB2E4).", runtimeDir(), PLAYWRIGHT_VERSION)
-    );
-  }
-  return found.module;
-}
-async function launchBrowser(options = {}) {
-  const { chromium } = await requirePlaywright();
-  try {
-    return await chromium.launch(options);
-  } catch (err) {
-    if (/Executable doesn't exist|browserType\.launch/.test(err.message)) {
-      throw new PlaywrightMissing(t("Chromium\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. `docent runtime install`(\uB610\uB294 npx playwright install chromium)\uB85C \uC124\uCE58\uD558\uC138\uC694.") + `
-${err.message.split("\n")[0]}`);
-    }
-    throw err;
-  }
-}
-
-// skills/docent/scripts/src/commands/run.mjs
-import { spawn, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { closeSync, existsSync as existsSync2, openSync, readFileSync as readFileSync2 } from "node:fs";
-import { readFile as readFile3, rm, writeFile as writeFile2 } from "node:fs/promises";
-import { join as join4, resolve } from "node:path";
-
-// skills/docent/scripts/src/lib/http.mjs
-import http from "node:http";
-import https from "node:https";
-function httpCheck(url, timeoutMs) {
-  return new Promise((resolve4) => {
-    const lib = url.startsWith("https:") ? https : http;
-    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
-      res.resume();
-      resolve4({ ok: res.statusCode < 500, status: res.statusCode });
-    });
-    req.on("timeout", () => req.destroy(new Error("timeout")));
-    req.on("error", () => resolve4({ ok: false }));
-  });
-}
-
-// skills/docent/scripts/src/lib/schema.mjs
-var import__ = __toESM(require__(), 1);
-
-// skills/docent/schemas/inventory-agent.schema.json
-var inventory_agent_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/inventory-agent.schema.json",
-  title: "docent inventory.agent.json (\uC5D0\uC774\uC804\uD2B8\uAC00 \uCC3E\uC740 \uD654\uBA74 \uD6C4\uBCF4)",
-  type: "object",
-  additionalProperties: false,
-  required: ["screens"],
-  properties: {
-    screens: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["route", "kind", "files", "evidence"],
-        properties: {
-          route: { type: ["string", "null"] },
-          kind: { enum: ["page", "modal", "popup", "view"] },
-          parentRoute: { type: "string" },
-          name: { type: "string", minLength: 1 },
-          files: { type: "array", minItems: 1, items: { type: "string" } },
-          evidence: { type: "string" }
-        },
-        if: { properties: { kind: { const: "page" } } },
-        then: { properties: { route: { type: "string" } } },
-        else: { required: ["parentRoute", "name"] }
-      }
-    }
-  }
-};
-
-// skills/docent/schemas/inventory.schema.json
-var inventory_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/inventory.schema.json",
-  title: "docent inventory",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "version",
-    "screens"
-  ],
-  properties: {
-    version: {
-      const: 1
-    },
-    screens: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/screen"
-      }
-    }
-  },
-  $defs: {
-    evidence: {
-      type: "string",
-      pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
-    },
-    confidence: {
-      enum: [
-        "high",
-        "medium",
-        "low"
-      ]
-    },
-    id: {
-      type: "string",
-      pattern: "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
-    },
-    screen: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "id",
-        "route",
-        "kind",
-        "files",
-        "evidence",
-        "source"
-      ],
-      properties: {
-        id: {
-          $ref: "#/$defs/id"
-        },
-        route: {
-          type: [
-            "string",
-            "null"
-          ]
-        },
-        kind: {
-          enum: [
-            "page",
-            "modal",
-            "popup",
-            "view"
-          ]
-        },
-        parentId: {
-          $ref: "#/$defs/id"
-        },
-        files: {
-          type: "array",
-          minItems: 1,
-          items: {
-            $ref: "#/$defs/relPath"
-          }
-        },
-        menuPath: {
-          type: "array",
-          items: {
-            type: "string"
-          }
-        },
-        evidence: {
-          $ref: "#/$defs/evidence"
-        },
-        source: {
-          type: "string",
-          pattern: "^(detector:[a-z0-9-]+|agent|crawl)$"
-        }
-      },
-      allOf: [
-        {
-          if: {
-            properties: {
-              kind: {
-                const: "page"
-              }
-            }
-          },
-          then: {
-            properties: {
-              route: {
-                type: "string"
-              }
-            }
-          },
-          else: {
-            required: [
-              "parentId"
-            ]
-          }
-        }
-      ]
-    },
-    relPath: {
-      type: "string",
-      pattern: "^(?!/)(?!(?:.*/)?\\.\\.?(?:/|$))(?!.*//)[^\\\\:]+$"
-    }
-  }
-};
-
-// skills/docent/schemas/run.schema.json
-var run_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/run.schema.json",
-  title: "docent run.json (\uC571 \uC2E4\uD589 \uBC29\uBC95)",
-  type: "object",
-  additionalProperties: false,
-  required: ["mode", "baseUrl"],
-  properties: {
-    mode: { enum: ["auto", "url"] },
-    baseUrl: { type: "string", pattern: "^https?://" },
-    install: { type: "array", items: { type: "string", minLength: 1 } },
-    start: { type: "string", minLength: 1 },
-    stop: { type: "string", minLength: 1 },
-    cwd: { type: "string" },
-    env: { type: "object", additionalProperties: { type: "string" } },
-    envNames: { type: "array", items: { type: "string", pattern: "^[A-Za-z_][A-Za-z0-9_]*$" } },
-    healthcheck: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        path: { type: "string", pattern: "^/" },
-        timeoutSec: { type: "integer", minimum: 1, maximum: 1800 }
-      }
-    }
-  },
-  if: { properties: { mode: { const: "auto" } } },
-  then: { required: ["start"] }
-};
-
-// skills/docent/schemas/scenario.schema.json
-var scenario_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/scenario.schema.json",
-  title: "docent scenario (\uD654\uBA74 \uCEA1\uCC98\xB7GIF \uB179\uD654 \uC2DC\uB098\uB9AC\uC624)",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "screenId",
-    "path",
-    "setup",
-    "steps",
-    "sourceHash"
-  ],
-  properties: {
-    screenId: {
-      type: "string",
-      minLength: 1
-    },
-    path: {
-      type: "string",
-      pattern: "^/"
-    },
-    setup: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/step"
-      }
-    },
-    steps: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/step"
-      }
-    },
-    sourceHash: {
-      type: "string",
-      pattern: "^sha256:[0-9a-f]{64}$"
-    },
-    locked: {
-      type: "boolean"
-    }
-  },
-  $defs: {
-    evidence: {
-      type: "string",
-      pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
-    },
-    step: {
-      oneOf: [
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "label",
-            "value"
-          ],
-          properties: {
-            do: {
-              const: "fill"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            label: {
-              type: "string",
-              minLength: 1
-            },
-            value: {
-              type: "string"
-            },
-            nth: {
-              type: "integer",
-              minimum: 0
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "label",
-            "value"
-          ],
-          properties: {
-            do: {
-              const: "select"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            label: {
-              type: "string",
-              minLength: 1
-            },
-            value: {
-              type: "string",
-              minLength: 1
-            },
-            nth: {
-              type: "integer",
-              minimum: 0
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "label"
-          ],
-          properties: {
-            do: {
-              const: "check"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            label: {
-              type: "string",
-              minLength: 1
-            },
-            nth: {
-              type: "integer",
-              minimum: 0
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "role",
-            "label"
-          ],
-          properties: {
-            do: {
-              const: "click"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            role: {
-              enum: [
-                "button",
-                "link",
-                "tab",
-                "menuitem",
-                "checkbox"
-              ]
-            },
-            label: {
-              type: "string",
-              minLength: 1
-            },
-            nth: {
-              type: "integer",
-              minimum: 0
-            },
-            popup: {
-              type: "boolean",
-              description: "\uB204\uB974\uBA74 \uC0C8 \uCC3D(window.open, target=_blank)\uC774 \uC5F4\uB9B0\uB2E4. \uB2E4\uC74C \uB2E8\uACC4\uB294 \uC0C8 \uCC3D\uC5D0\uC11C \uD558\uACE0, \uC0C8 \uCC3D\uC774 \uB2EB\uD788\uBA74 \uC6D0\uB798 \uCC3D\uC73C\uB85C \uB3CC\uC544\uC628\uB2E4"
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "text"
-          ],
-          properties: {
-            do: {
-              const: "expectText"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            text: {
-              type: "string",
-              minLength: 1
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "ms"
-          ],
-          properties: {
-            do: {
-              const: "wait"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            ms: {
-              type: "integer",
-              minimum: 0,
-              maximum: 3e3
-            }
-          }
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "do",
-            "evidence",
-            "path"
-          ],
-          properties: {
-            do: {
-              const: "goto"
-            },
-            evidence: {
-              $ref: "#/$defs/evidence"
-            },
-            path: {
-              type: "string",
-              pattern: "^/"
-            }
-          }
-        }
-      ]
-    }
-  }
-};
-
-// skills/docent/schemas/screen.schema.json
-var screen_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/screen.schema.json",
-  title: "docent screen",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "id",
-    "kind",
-    "route",
-    "title",
-    "purpose",
-    "roles",
-    "sections",
-    "fields",
-    "actions",
-    "messages",
-    "unknowns",
-    "readFiles",
-    "sourceHash"
-  ],
-  properties: {
-    id: {
-      $ref: "#/$defs/id"
-    },
-    kind: {
-      enum: [
-        "page",
-        "modal",
-        "popup",
-        "view"
-      ]
-    },
-    parentId: {
-      $ref: "#/$defs/id"
-    },
-    route: {
-      type: [
-        "string",
-        "null"
-      ]
-    },
-    title: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "value",
-        "evidence"
-      ],
-      properties: {
-        value: {
-          type: "string"
-        },
-        evidence: {
-          $ref: "#/$defs/evidence"
-        }
-      }
-    },
-    menuPath: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "value",
-        "evidence"
-      ],
-      properties: {
-        value: {
-          type: "array",
-          items: {
-            type: "string"
-          },
-          description: "\uBA54\uB274 \uC774\uB984\uB4E4(\uC704 \uB2E8\uACC4\uBD80\uD130). \uC774\uB984\uB9C8\uB2E4 \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
-        },
-        evidence: {
-          $ref: "#/$defs/evidence"
-        },
-        moreEvidence: {
-          type: "array",
-          minItems: 1,
-          items: {
-            $ref: "#/$defs/evidence"
-          },
-          description: "\uBA54\uB274 \uACBD\uB85C\uC758 \uC774\uB984\uC774 \uC5EC\uB7EC \uACF3\uC5D0 \uB098\uB258\uC5B4 \uC788\uC744 \uB54C(\uADF8\uB8F9 \uC774\uB984\uC740 \uD504\uB860\uD2B8, \uBA54\uB274 \uC774\uB984\uC740 DB \uB4F1) \uB098\uBA38\uC9C0 \uC704\uCE58. value\uC758 \uC774\uB984\uB9C8\uB2E4 evidence\uB098 moreEvidence \uC911 \uD55C \uACF3 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
-        }
-      }
-    },
-    purpose: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "value",
-        "evidence",
-        "confidence"
-      ],
-      properties: {
-        value: {
-          type: "string"
-        },
-        evidence: {
-          $ref: "#/$defs/evidence"
-        },
-        confidence: {
-          $ref: "#/$defs/confidence"
-        }
-      }
-    },
-    roles: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "value",
-          "evidence",
-          "confidence"
-        ],
-        properties: {
-          value: {
-            type: "string"
-          },
-          evidence: {
-            $ref: "#/$defs/evidence"
-          },
-          confidence: {
-            $ref: "#/$defs/confidence"
-          }
-        }
-      }
-    },
-    sections: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "title",
-          "evidence"
-        ],
-        properties: {
-          title: {
-            type: "string"
-          },
-          evidence: {
-            $ref: "#/$defs/evidence"
-          }
-        }
-      }
-    },
-    fields: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "label",
-          "type",
-          "required",
-          "evidence",
-          "confidence"
-        ],
-        properties: {
-          label: {
-            type: "string"
-          },
-          type: {
-            enum: [
-              "text",
-              "textarea",
-              "number",
-              "date",
-              "select",
-              "checkbox",
-              "radio",
-              "file",
-              "password",
-              "email",
-              "url",
-              "tel",
-              "other"
-            ]
-          },
-          required: {
-            type: "boolean"
-          },
-          section: {
-            type: "string"
-          },
-          evidence: {
-            $ref: "#/$defs/evidence"
-          },
-          confidence: {
-            $ref: "#/$defs/confidence"
-          },
-          options: {
-            type: "array",
-            minItems: 1,
-            items: {
-              type: "string",
-              minLength: 1
-            },
-            description: "\uACE0\uC815\uB41C \uC120\uD0DD\uC9C0(\uD654\uBA74 \uBB38\uAD6C \uADF8\uB300\uB85C). \uADFC\uAC70 \uADFC\uCC98\uC5D0 \uAE00\uC790\uAC00 \uC788\uC5B4\uC57C \uD55C\uB2E4"
-          },
-          optionsEvidence: {
-            $ref: "#/$defs/evidence",
-            description: "\uC120\uD0DD\uC9C0\uAC00 \uB77C\uBCA8\uACFC \uB5A8\uC5B4\uC9C4 \uACF3(\uC0C1\uC218\xB7\uCF54\uB4DC\uD45C \uB4F1)\uC5D0 \uC815\uC758\uB3FC \uC788\uC73C\uBA74 \uADF8 \uC704\uCE58. \uC788\uC73C\uBA74 options\uB294 \uC774 \uADFC\uCC98\uC5D0\uC11C \uD655\uC778\uD55C\uB2E4"
-          }
-        }
-      }
-    },
-    actions: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "label",
-          "effect",
-          "evidence",
-          "confidence"
-        ],
-        properties: {
-          label: {
-            type: "string"
-          },
-          effect: {
-            type: "string"
-          },
-          navigatesTo: {
-            $ref: "#/$defs/id"
-          },
-          opens: {
-            $ref: "#/$defs/id"
-          },
-          evidence: {
-            $ref: "#/$defs/evidence"
-          },
-          confidence: {
-            $ref: "#/$defs/confidence"
-          },
-          section: {
-            type: "string",
-            description: "\uAC19\uC740 \uB77C\uBCA8\uC774 \uC5EC\uB7EC \uAD6C\uD68D\uC5D0 \uC788\uC744 \uB54C \uAD6C\uBD84\uD558\uB294 \uAD6C\uD68D \uC81C\uBAA9(sections\uC758 title)"
-          },
-          effectEvidence: {
-            type: "array",
-            minItems: 1,
-            items: {
-              $ref: "#/$defs/evidence"
-            },
-            description: "\uBC84\uD2BC \uACB0\uACFC(effect)\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uB2E4\uB978 \uC704\uCE58(\uCC98\uB9AC \uD568\uC218, \uBA54\uC778 \uD504\uB85C\uC138\uC2A4 \uB4F1). evidence\uB294 \uB77C\uBCA8\uC774 \uC788\uB294 \uC904"
-          },
-          unlabeled: {
-            const: true,
-            description: "\uD654\uBA74\uC5D0 \uAE00\uC790\uAC00 \uC5C6\uB294 \uB3D9\uC791(\uD45C\uC758 \uD589 \uD074\uB9AD, \uCE74\uB4DC \uD074\uB9AD \uB4F1). label\uC740 \uB3D9\uC791\uC744 \uC9E7\uAC8C \uC124\uBA85\uD55C \uB9D0(\uC608: '\uD589 \uD074\uB9AD')\uC774\uACE0 \uAE00\uC790 \uAC80\uC0AC\uB97C \uD558\uC9C0 \uC54A\uB294\uB2E4. evidence\uB294 \uADF8 \uCC98\uB9AC\uAE30(onClick \uB4F1)\uAC00 \uC788\uB294 \uC904"
-          }
-        }
-      }
-    },
-    messages: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "text",
-          "when",
-          "evidence"
-        ],
-        properties: {
-          text: {
-            type: "string"
-          },
-          when: {
-            type: "string"
-          },
-          evidence: {
-            $ref: "#/$defs/evidence"
-          },
-          group: {
-            type: "string",
-            minLength: 1,
-            description: "\uAC19\uC740 \uC885\uB958\uC758 \uBB38\uAD6C \uBB36\uC74C \uC774\uB984(\uC0C1\uD0DC \uCF54\uB4DC\xB7\uAC80\uC0AC \uACB0\uACFC \uBB38\uAD6C \uD45C \uB4F1). \uAC19\uC740 group\uC740 \uD45C \uD558\uB098\uB85C \uBCF4\uC778\uB2E4"
-          }
-        }
-      }
-    },
-    unknowns: {
-      type: "array",
-      items: {
-        type: "string"
-      }
-    },
-    readFiles: {
-      type: "array",
-      minItems: 1,
-      items: {
-        $ref: "#/$defs/relPath"
-      }
-    },
-    sourceHash: {
-      type: "string",
-      pattern: "^sha256:[0-9a-f]{64}$"
-    }
-  },
-  allOf: [
-    {
-      if: {
-        properties: {
-          kind: {
-            const: "page"
-          }
-        }
-      },
-      then: {
-        properties: {
-          route: {
-            type: "string"
-          }
-        }
-      },
-      else: {
-        required: [
-          "parentId"
-        ]
-      }
-    }
-  ],
-  $defs: {
-    evidence: {
-      type: "string",
-      pattern: "^[^:\\\\]+:(\\d+(-\\d+)?|[A-Za-z_$][\\w$.]*)$"
-    },
-    confidence: {
-      enum: [
-        "high",
-        "medium",
-        "low"
-      ]
-    },
-    id: {
-      type: "string",
-      pattern: "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*(--[a-z0-9]+(-[a-z0-9]+)*)?$"
-    },
-    relPath: {
-      type: "string",
-      pattern: "^(?!/)(?!(?:.*/)?\\.\\.?(?:/|$))(?!.*//)[^\\\\:]+$"
-    }
-  }
-};
-
-// skills/docent/schemas/summary.schema.json
-var summary_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://github.com/kwangtaeko/tgx-docent/schemas/summary.schema.json",
-  title: "docent summary (\uD504\uB85C\uC81D\uD2B8 \uC18C\uAC1C\xB7\uC6CC\uD06C\uD50C\uB85C\uC6B0)",
-  type: "object",
-  additionalProperties: false,
-  required: ["oneLiner", "features", "workflows"],
-  properties: {
-    oneLiner: { $ref: "#/$defs/claim" },
-    features: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["menu", "value", "screens"],
-        properties: {
-          menu: { type: "string", minLength: 1 },
-          value: { type: "string", minLength: 1 },
-          screens: { $ref: "#/$defs/ids" }
-        }
-      }
-    },
-    workflows: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["name", "description", "steps"],
-        properties: {
-          name: { type: "string", minLength: 1 },
-          description: { type: "string", minLength: 1 },
-          steps: { type: "array", minItems: 2, items: { type: "string" } }
-        }
-      }
-    }
-  },
-  $defs: {
-    ids: { type: "array", minItems: 1, items: { type: "string" } },
-    claim: {
-      type: "object",
-      additionalProperties: false,
-      required: ["value", "screens"],
-      properties: {
-        value: { type: "string", minLength: 1 },
-        screens: { $ref: "#/$defs/ids" }
-      }
-    }
-  }
-};
-
-// skills/docent/scripts/src/lib/schema.mjs
-var ajv = new import__.default({ allErrors: true });
-function compile(schema) {
-  const validate = ajv.compile(schema);
-  return (data) => {
-    const valid = validate(data);
-    const errors = valid ? [] : validate.errors.map((e) => `${e.instancePath || "/"} ${e.message}`);
-    return { valid, errors };
-  };
-}
-var validateInventory = compile(inventory_schema_default);
-var validateScreen = compile(screen_schema_default);
-var validateInventoryAgent = compile(inventory_agent_schema_default);
-var validateSummary = compile(summary_schema_default);
-var validateRun = compile(run_schema_default);
-var validateScenario = compile(scenario_schema_default);
-
-// skills/docent/scripts/src/commands/run.mjs
-var sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function loadRun(projectDir) {
-  const run2 = await readJsonIfExists(join4(docentDir(projectDir), "run.json"));
-  if (!run2) throw new Error(t(".docent/run.json\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uC2E4\uD589 \uBC29\uBC95\uC744 \uBA3C\uC800 \uC815\uD558\uC138\uC694"));
-  const { valid, errors } = validateRun(run2);
-  if (!valid) throw new Error(t(".docent/run.json \uD615\uC2DD \uC624\uB958: {0}", errors.join("; ")));
-  return run2;
-}
-var healthUrl = (run2) => new URL(run2.healthcheck?.path ?? "/", run2.baseUrl).href;
-var pidFile = (projectDir) => join4(docentDir(projectDir), ".run-pid");
-var logFile = (projectDir) => join4(docentDir(projectDir), "run.log");
-var approvalFile = (projectDir) => join4(docentDir(projectDir), ".run-approved");
-function commandsHash(run2) {
-  const { install = [], start = "", cwd = ".", env = {}, stop } = run2;
-  return createHash("sha256").update(JSON.stringify({ install, start, cwd, env, ...stop !== void 0 ? { stop } : {} })).digest("hex");
-}
-function describeCommands(run2) {
-  return [
-    ...(run2.install ?? []).map((c) => t("\uC124\uCE58: {0}", c)),
-    t("\uC2E4\uD589: {0}", run2.start),
-    ...run2.stop !== void 0 ? [t("\uC815\uB9AC: {0}", run2.stop)] : [],
-    t("\uC704\uCE58: {0}", run2.cwd ?? "."),
-    ...Object.entries(run2.env ?? {}).map(([k, v]) => t("\uD658\uACBD: {0}={1}", k, v))
-  ].join("\n");
-}
-async function runApprove(projectDir) {
+async function runRecord(projectDir, ids, { electronLauncher } = {}) {
   const run2 = await loadRun(projectDir);
-  await writeFile2(approvalFile(projectDir), commandsHash(run2) + "\n");
-  return { commands: describeCommands(run2) };
-}
-async function approved(projectDir, run2) {
+  const config = await loadConfig(projectDir);
+  const paths = mediaPaths(projectDir);
+  const loginPath = config.auth?.loginPath ?? "/login";
+  const targetIds = await recordTargets(projectDir, config, ids);
+  await ensureMediaDirs(projectDir);
+  if (run2.mode === "electron") {
+    const { recordElectron: recordElectron2 } = await Promise.resolve().then(() => (init_electron2(), electron_exports));
+    return recordElectron2(projectDir, run2, config, targetIds, { launch: electronLauncher });
+  }
+  const result = { recorded: [], failed: [], skipped: [] };
+  const browser = await launchBrowser();
   try {
-    return (await readFile3(approvalFile(projectDir), "utf8")).trim() === commandsHash(run2);
-  } catch {
-    return false;
+    const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
+    await maskContext(context, config.mask.selectors);
+    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
+    await maskContext(anonymous, config.mask.selectors);
+    for (const id of targetIds) {
+      const scenario = await loadScenario(projectDir, id);
+      const skip = await recordSkipReason(projectDir, id, scenario);
+      if (skip) {
+        result.skipped.push({ id, reason: skip });
+        continue;
+      }
+      const page2 = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
+      let start = page2;
+      try {
+        const opened = await openScreen(page2, { baseUrl: run2.baseUrl, path: scenario.path, setup: scenario.setup, loginPath, onPage: (p) => start = p });
+        if (opened) {
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {
+          });
+          await recordFailure(projectDir, { id, kind: "record", reason: opened });
+          result.failed.push({ id, reason: opened });
+          continue;
+        }
+        const { result: stepResult, frames } = await recordSteps(start, scenario.steps, start === page2 ? [] : [page2]);
+        if (!stepResult.ok) {
+          await start.screenshot({ path: paths.fail(id) }).catch(() => {
+          });
+          await recordFailure(projectDir, { id, kind: "record", step: stepResult.index, reason: stepResult.reason });
+          result.failed.push({ id, reason: t("{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}", stepResult.index + 1, stepResult.reason) });
+          continue;
+        }
+        const gif = framesToGif(frames);
+        if (!gif) {
+          const reason = t("GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694");
+          await recordFailure(projectDir, { id, kind: "record", reason });
+          result.failed.push({ id, reason });
+          continue;
+        }
+        await writeFile4(paths.gif(id), gif);
+        await clearFailure(projectDir, id, "record");
+        result.recorded.push(id);
+      } finally {
+        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
+        });
+        await page2.close();
+      }
+    }
+  } finally {
+    await browser.close();
   }
+  return result;
 }
-function alive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
+var GIF_VIEWPORT, GIF_MAX_BYTES, FPS, sleep3;
+var init_record = __esm({
+  "skills/docent/scripts/src/commands/record.mjs"() {
+    init_cli_text();
+    init_config();
+    init_media();
+    init_playwright();
+    init_steps();
+    init_workspace();
+    init_gif();
+    init_auth();
+    init_capture();
+    init_run();
+    init_scenarios();
+    GIF_VIEWPORT = { width: 800, height: 600 };
+    GIF_MAX_BYTES = 2 * 1024 * 1024;
+    FPS = 10;
+    sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
   }
-}
-function killGroup(pid, signal) {
-  try {
-    if (process.platform === "win32") spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)]);
-    else process.kill(-pid, signal);
-  } catch {
-  }
-}
-function procStartTime(pid) {
-  const path = `/proc/${pid}/stat`;
-  if (!existsSync2(path)) return void 0;
-  try {
-    const stat3 = readFileSync2(path, "utf8");
-    return stat3.slice(stat3.lastIndexOf(")") + 2).split(" ")[19];
-  } catch {
-    return void 0;
-  }
-}
-function sameProcess(pid, startTime) {
-  if (!startTime) return true;
-  const now = procStartTime(pid);
-  return now === void 0 || now === startTime;
-}
-async function readPid(projectDir) {
-  let text;
-  try {
-    text = (await readFile3(pidFile(projectDir), "utf8")).trim();
-  } catch {
-    return void 0;
-  }
-  let pid;
-  let startTime;
-  try {
-    const data = JSON.parse(text);
-    if (typeof data === "number") pid = data;
-    else ({ pid, startTime } = data ?? {});
-  } catch {
-  }
-  if (Number.isInteger(pid) && pid > 0 && alive(pid) && sameProcess(pid, startTime)) return pid;
-  await rm(pidFile(projectDir), { force: true });
-  return void 0;
-}
-function redact(text, run2) {
-  let out = text.replace(/\/\/[^\s/@:]+:[^\s/@]+@/g, "//***@");
-  for (const name5 of run2.envNames ?? []) {
-    const value = process.env[name5];
-    if (value && value.length >= 4) out = out.split(value).join("***");
-  }
-  return out;
-}
-async function logTail(projectDir, run2, lines = 20) {
-  try {
-    return redact((await readFile3(logFile(projectDir), "utf8")).trimEnd().split("\n").slice(-lines).join("\n"), run2);
-  } catch {
-    return "";
-  }
-}
-function childEnv(run2) {
-  return { ...process.env, ...run2.env ?? {} };
-}
-async function runStart(projectDir, { install = false } = {}) {
-  const run2 = await loadRun(projectDir);
-  if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: false, reused: true };
-  if (run2.mode === "url") throw new Error(t("{0}\uAC00 \uC751\uB2F5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC571\uC744 \uB744\uC6B4 \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694", run2.baseUrl));
-  const missing = (run2.envNames ?? []).filter((name5) => !process.env[name5]);
-  if (missing.length) throw new Error(t("\uC2E4\uD589\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
-  const booting = await readPid(projectDir);
-  if (booting) throw new Error(t("\uC774\uBBF8 \uC2DC\uC791 \uC911\uC778 \uC571\uC774 \uC788\uC2B5\uB2C8\uB2E4(pid {0}). \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uAE30\uB2E4\uB9AC\uAC70\uB098 docent run stop\uC744 \uC2E4\uD589\uD558\uC138\uC694", booting));
+});
+
+// skills/docent/scripts/src/commands/electron.mjs
+var electron_exports = {};
+__export(electron_exports, {
+  captureElectron: () => captureElectron,
+  recordElectron: () => recordElectron
+});
+import { writeFile as writeFile5 } from "node:fs/promises";
+async function launcherFor(projectDir, run2, launch) {
   if (!await approved(projectDir, run2)) {
     throw new Error(
       t(".docent/run.json\uC758 \uBA85\uB839\uC774 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC544\uC9C1 \uC2B9\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uBA85\uB839\uC744 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uBCF4\uC5EC \uC8FC\uACE0 \uB3D9\uC758\uB97C \uBC1B\uC740 \uB4A4 `docent run approve`\uB97C \uC2E4\uD589\uD558\uC138\uC694:") + `
 ${describeCommands(run2)}`
     );
   }
-  const cwd = resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
-  if (install) {
-    for (const command of run2.install ?? []) {
-      const r = spawnSync(command, { cwd, shell: true, stdio: "inherit", env: childEnv(run2) });
-      if (r.status !== 0) throw new Error(t("\uC124\uCE58 \uBA85\uB839 \uC2E4\uD328: {0} (exit {1})", command, r.status));
+  const options = { cwd: runCwd(projectDir, run2), main: run2.electron.main, args: run2.electron.args ?? [], env: childEnv(run2) };
+  return (size) => launch({ ...options, size });
+}
+async function openOnApp(handle, config, setup) {
+  await maskPage(handle.page, config.mask.selectors);
+  let shown = handle.page;
+  if (setup?.length) {
+    const r = await runSteps(handle.page, setup, { onPage: (p) => shown = p });
+    if (!r.ok) return { shown, failure: t("\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}", r.index + 1, r.reason) };
+  }
+  return { shown };
+}
+async function captureElectron(projectDir, run2, config, targets, { launch = launchElectron } = {}) {
+  const start = await launcherFor(projectDir, run2, launch);
+  const paths = mediaPaths(projectDir);
+  const result = { captured: [], failed: [], skipped: [] };
+  for (const screen of targets) {
+    const scenario = await loadScenario(projectDir, screen.id);
+    if (!opensDirectly(screen) && !scenario?.setup?.length) {
+      result.skipped.push({ id: screen.id, reason: t("\uB370\uC2A4\uD06C\uD1B1 \uC571\uC5D0\uC11C \uC774 \uD654\uBA74\uC744 \uC5EC\uB294 \uC900\uBE44 \uB2E8\uACC4(\uBA54\uB274 \uD074\uB9AD \uB4F1)\uAC00 \uC2DC\uB098\uB9AC\uC624\uC5D0 \uD544\uC694\uD569\uB2C8\uB2E4") });
+      continue;
+    }
+    if (scenario && usesEnvValue(scenario.setup)) {
+      result.skipped.push({ id: screen.id, reason: t("\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
+      continue;
+    }
+    const handle = await start(CAPTURE_VIEWPORT);
+    try {
+      const { shown, failure } = await openOnApp(handle, config, scenario?.setup);
+      if (failure) {
+        await shown.screenshot({ path: paths.fail(screen.id) }).catch(() => {
+        });
+        await recordFailure(projectDir, { id: screen.id, kind: "capture", reason: failure });
+        result.failed.push({ id: screen.id, reason: failure });
+        continue;
+      }
+      await shown.screenshot({ path: paths.img(screen.id) });
+      await clearFailure(projectDir, screen.id, "capture");
+      result.captured.push(screen.id);
+    } finally {
+      await handle.close();
     }
   }
-  const fd = openSync(logFile(projectDir), "w");
-  const child = spawn(run2.start, { cwd, shell: true, detached: true, stdio: ["ignore", fd, fd], env: childEnv(run2) });
-  closeSync(fd);
-  let exited = false;
-  child.on("exit", () => {
-    exited = true;
-  });
-  child.unref();
-  await writeFile2(pidFile(projectDir), JSON.stringify({ pid: child.pid, start: run2.start, startTime: procStartTime(child.pid) }) + "\n");
-  const deadline = Date.now() + (run2.healthcheck?.timeoutSec ?? 120) * 1e3;
-  while (Date.now() < deadline) {
-    if ((await httpCheck(healthUrl(run2), 2e3)).ok) return { baseUrl: run2.baseUrl, started: true, reused: false };
-    if (exited) break;
-    await sleep(1e3);
-  }
-  const reason = exited ? t("\uC571\uC774 \uC2DC\uC791 \uC911\uC5D0 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4") : t("\uD5EC\uC2A4\uCCB4\uD06C \uC2DC\uAC04 \uCD08\uACFC({0}\uCD08)", run2.healthcheck?.timeoutSec ?? 120);
-  killGroup(child.pid, "SIGKILL");
-  await rm(pidFile(projectDir), { force: true });
-  throw new Error(t("{0}. .docent/run.log \uB9C8\uC9C0\uB9C9 \uBD80\uBD84:", reason) + `
-${await logTail(projectDir, run2)}`);
+  return result;
 }
-async function runStop(projectDir) {
-  const pid = await readPid(projectDir);
-  if (!pid) return { stopped: false };
-  killGroup(pid, "SIGTERM");
-  for (let i = 0; i < 50 && alive(pid); i++) await sleep(100);
-  if (alive(pid)) killGroup(pid, "SIGKILL");
-  await rm(pidFile(projectDir), { force: true });
-  let run2;
-  try {
-    run2 = await loadRun(projectDir);
-  } catch {
-    return { stopped: true };
+async function recordElectron(projectDir, run2, config, ids, { launch = launchElectron } = {}) {
+  const start = await launcherFor(projectDir, run2, launch);
+  const paths = mediaPaths(projectDir);
+  const result = { recorded: [], failed: [], skipped: [] };
+  for (const id of ids) {
+    const scenario = await loadScenario(projectDir, id);
+    const skip = await recordSkipReason(projectDir, id, scenario);
+    if (skip) {
+      result.skipped.push({ id, reason: skip });
+      continue;
+    }
+    const handle = await start(GIF_VIEWPORT);
+    try {
+      const { shown, failure } = await openOnApp(handle, config, scenario.setup);
+      if (failure) {
+        await shown.screenshot({ path: paths.fail(id) }).catch(() => {
+        });
+        await recordFailure(projectDir, { id, kind: "record", reason: failure });
+        result.failed.push({ id, reason: failure });
+        continue;
+      }
+      const { result: stepResult, frames } = await recordSteps(shown, scenario.steps, shown === handle.page ? [] : [handle.page]);
+      if (!stepResult.ok) {
+        await shown.screenshot({ path: paths.fail(id) }).catch(() => {
+        });
+        await recordFailure(projectDir, { id, kind: "record", step: stepResult.index, reason: stepResult.reason });
+        result.failed.push({ id, reason: t("{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}", stepResult.index + 1, stepResult.reason) });
+        continue;
+      }
+      const gif = framesToGif(frames);
+      if (!gif) {
+        const reason = t("GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694");
+        await recordFailure(projectDir, { id, kind: "record", reason });
+        result.failed.push({ id, reason });
+        continue;
+      }
+      await writeFile5(paths.gif(id), gif);
+      await clearFailure(projectDir, id, "record");
+      result.recorded.push(id);
+    } finally {
+      await handle.close();
+    }
   }
-  if (run2.stop && await approved(projectDir, run2)) {
-    const cwd = resolve(projectDir, run2.cwd && run2.cwd !== "." ? normalizeRel(run2.cwd) : ".");
-    spawnSync(run2.stop, { cwd, shell: true, stdio: "ignore", env: childEnv(run2) });
-  }
-  return { stopped: true };
+  return result;
 }
-async function runStatus(projectDir) {
-  let run2;
-  try {
-    run2 = await loadRun(projectDir);
-  } catch {
-    return { configured: false, up: false };
+var opensDirectly;
+var init_electron2 = __esm({
+  "skills/docent/scripts/src/commands/electron.mjs"() {
+    init_cli_text();
+    init_electron();
+    init_media();
+    init_steps();
+    init_capture();
+    init_record();
+    init_run();
+    opensDirectly = (screen) => screen.kind === "page" && (!screen.route || screen.route === "/");
   }
-  const pid = await readPid(projectDir);
-  const up = (await httpCheck(healthUrl(run2), 2e3)).ok;
-  return { configured: true, baseUrl: run2.baseUrl, up, ...pid && alive(pid) ? { pid } : {} };
-}
+});
 
-// skills/docent/scripts/src/commands/auth.mjs
-var statePath = (projectDir) => join5(docentDir(projectDir), "auth", "state.json");
-async function exists(path) {
+// skills/docent/scripts/src/commands/capture.mjs
+import { join as join16 } from "node:path";
+function captureContextOptions() {
+  return { viewport: CAPTURE_VIEWPORT, reducedMotion: "reduce" };
+}
+async function prepareForFullPage(page2) {
+  await page2.evaluate(async () => {
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    const limit = document.documentElement.scrollHeight;
+    for (let i = 0; i < 40 && window.scrollY + window.innerHeight < limit; i++) {
+      const before = window.scrollY;
+      window.scrollTo({ top: Math.min(before + window.innerHeight, limit - window.innerHeight), behavior: "instant" });
+      await pause(120);
+      if (window.scrollY === before) break;
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+    await pause(300);
+  }).catch(() => {
+  });
+}
+function staticPath(route) {
+  if (!route || route.includes("[")) return void 0;
+  const parts = route.split("/").filter((seg) => seg && !/^\(.*\)$/.test(seg) && !seg.startsWith("@"));
+  return "/" + parts.join("/");
+}
+function isLoginPath(path, loginPath) {
+  return path.split("?")[0].replace(/\/+$/, "") === loginPath.replace(/\/+$/, "");
+}
+async function loadScenario(projectDir, id) {
   try {
-    await access(path);
-    return true;
+    return await readJsonIfExists(join16(docentDir(projectDir), "scenarios", `${id}.json`));
   } catch {
-    return false;
+    return void 0;
   }
 }
-var CONTEXT_PERMISSIONS = ["clipboard-write"];
-async function newContext(browser, projectDir, options = {}) {
-  const state = statePath(projectDir);
-  return browser.newContext({ permissions: CONTEXT_PERMISSIONS, ...options, ...await exists(state) ? { storageState: state } : {} });
-}
-var under = (path, base) => {
-  const b = base.length > 1 ? base.replace(/\/+$/, "") : base;
-  return path === b || path.startsWith(b === "/" ? "/" : `${b}/`);
-};
-function loggedInPath(path, loginPath, successPath) {
-  if (loginPath === "/" ? path === "/" : under(path, loginPath)) return false;
-  return successPath ? under(path, successPath) : true;
-}
-async function authLogin(projectDir) {
-  const { auth } = await loadConfig(projectDir);
-  if (!auth?.loginPath || !auth?.fields?.length || !auth?.submit) {
-    throw new Error(t("config.yaml\uC5D0 auth(loginPath, fields, submit) \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"));
+async function openScreen(page2, { baseUrl, path, setup, loginPath, onPage }) {
+  let response;
+  try {
+    response = await page2.goto(new URL(path, baseUrl).href, { waitUntil: "load", timeout: 3e4 });
+  } catch (err) {
+    return t("\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", err.message.split("\n")[0]);
   }
-  const missing = auth.fields.filter((f) => !process.env[f.env]).map((f) => f.env);
-  if (missing.length) throw new Error(t("\uB85C\uADF8\uC778\uC5D0 \uD544\uC694\uD55C \uD658\uACBD\uBCC0\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", missing.join(", ")));
+  const landed = new URL(page2.url()).pathname;
+  if (landed === loginPath && path.split("?")[0] !== loginPath) return t("\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694");
+  if (response && response.status() >= 400) return `HTTP ${response.status()}`;
+  const trim = (p) => p.length > 1 ? p.replace(/\/+$/, "") : p;
+  if (trim(landed) !== trim(path.split("?")[0])) return t("\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4", landed);
+  await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
+  });
+  if (setup?.length) {
+    const r = await runSteps(page2, setup, { onPage });
+    if (!r.ok) return t("\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}", r.index + 1, r.reason);
+  }
+  return void 0;
+}
+async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   const run2 = await loadRun(projectDir);
+  const config = await loadConfig(projectDir);
+  const inventory = await readJson(join16(docentDir(projectDir), "inventory.json"));
+  const targets = ids?.length ? inventory.screens.filter((s) => ids.includes(s.id)) : inventory.screens;
+  const paths = mediaPaths(projectDir);
+  const loginPath = config.auth?.loginPath ?? "/login";
+  await ensureMediaDirs(projectDir);
+  if (run2.mode === "electron") {
+    const { captureElectron: captureElectron2 } = await Promise.resolve().then(() => (init_electron2(), electron_exports));
+    return captureElectron2(projectDir, run2, config, targets, { launch: electronLauncher });
+  }
+  const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();
   try {
-    const context = await browser.newContext();
-    const page2 = await context.newPage();
-    await page2.goto(new URL(auth.loginPath, run2.baseUrl).href);
-    for (const field of auth.fields) await page2.getByLabel(field.label, { exact: true }).fill(process.env[field.env]);
-    const before = page2.url();
-    await page2.getByRole("button", { name: auth.submit, exact: true }).click();
-    await page2.waitForURL((url) => url.href !== before, { timeout: 3e4 }).catch(() => {
-    });
-    await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
-    });
-    const path = new URL(page2.url()).pathname;
-    const success = auth.successPath ?? "/";
-    if (!loggedInPath(path, auth.loginPath, auth.successPath)) {
-      throw new Error(t("\uB85C\uADF8\uC778 \uC2E4\uD328: \uB85C\uADF8\uC778 \uD6C4 {0}\uAC00 \uC544\uB2C8\uB77C {1}\uC5D0 \uBA38\uBB3C\uB800\uC2B5\uB2C8\uB2E4. \uACC4\uC815 \uD658\uACBD\uBCC0\uC218({2})\uB97C \uD655\uC778\uD558\uC138\uC694", success, path, auth.fields.map((f) => f.env).join(", ")));
+    const context = await newContext(browser, projectDir, captureContextOptions());
+    await maskContext(context, config.mask.selectors);
+    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
+    await maskContext(anonymous, config.mask.selectors);
+    for (const screen of targets) {
+      const scenario = await loadScenario(projectDir, screen.id);
+      const path = scenario?.path ?? staticPath(screen.route);
+      if (!path || screen.kind !== "page" && !scenario) {
+        result.skipped.push({ id: screen.id, reason: t("\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4") });
+        continue;
+      }
+      if (scenario && usesEnvValue(scenario.setup)) {
+        result.skipped.push({ id: screen.id, reason: t("\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
+        continue;
+      }
+      const page2 = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
+      let shown = page2;
+      try {
+        const failure = await openScreen(page2, { baseUrl: run2.baseUrl, path, setup: scenario?.setup, loginPath, onPage: (p) => shown = p });
+        if (failure) {
+          await shown.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {
+          });
+          await recordFailure(projectDir, { id: screen.id, kind: "capture", reason: failure });
+          result.failed.push({ id: screen.id, reason: failure });
+          continue;
+        }
+        await prepareForFullPage(shown);
+        await shown.screenshot({ path: paths.img(screen.id), fullPage: true });
+        await clearFailure(projectDir, screen.id, "capture");
+        result.captured.push(screen.id);
+      } finally {
+        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
+        });
+        await page2.close();
+      }
     }
-    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
-    await context.storageState({ path: statePath(projectDir) });
-    return { statePath: statePath(projectDir) };
   } finally {
     await browser.close();
   }
+  return result;
 }
-async function authSave(projectDir) {
-  const run2 = await loadRun(projectDir);
-  const browser = await launchBrowser({ headless: false });
-  try {
-    const context = await browser.newContext();
-    const page2 = await context.newPage();
-    await page2.goto(run2.baseUrl);
-    const rl = createInterface({ input: process.stdin, output: process.stdout });
-    await rl.question(t("\uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uB85C\uADF8\uC778\uC744 \uB9C8\uCE5C \uB4A4 \uC5EC\uAE30\uC11C Enter\uB97C \uB204\uB974\uC138\uC694\u2026 "));
-    rl.close();
-    await mkdir2(join5(docentDir(projectDir), "auth"), { recursive: true });
-    await context.storageState({ path: statePath(projectDir) });
-    return { statePath: statePath(projectDir) };
-  } finally {
-    await browser.close();
+var CAPTURE_VIEWPORT;
+var init_capture = __esm({
+  "skills/docent/scripts/src/commands/capture.mjs"() {
+    init_cli_text();
+    init_config();
+    init_media();
+    init_playwright();
+    init_steps();
+    init_workspace();
+    init_auth();
+    init_run();
+    CAPTURE_VIEWPORT = { width: 1280, height: 800 };
   }
-}
+});
+
+// skills/docent/scripts/src/docent.mjs
+init_auth();
+import { dirname as dirname4, join as join32, resolve as resolve3 } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // skills/docent/scripts/src/commands/build.mjs
+init_config();
+init_cli_text();
 import { copyFile, cp, mkdir as mkdir3, readFile as readFile7, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { basename, dirname as dirname3, join as join11 } from "node:path";
 
@@ -29234,6 +30181,9 @@ function projectDate(projectDir, config, files = []) {
   return newestMtime(projectDir, files) ?? "unknown";
 }
 
+// skills/docent/scripts/src/commands/build.mjs
+init_workspace();
+
 // skills/docent/scripts/src/renderers/escape.mjs
 var HTML = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 function escapeHtml(value) {
@@ -29243,7 +30193,11 @@ function escapeComment(value) {
   return String(value).replace(/-(?=-)/g, "- ").replace(/-$/, "- ");
 }
 
+// skills/docent/scripts/src/renderers/html.mjs
+init_i18n();
+
 // skills/docent/scripts/src/lib/evidence.mjs
+init_cli_text();
 import { readFile as readFile4, realpath } from "node:fs/promises";
 import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
@@ -30013,7 +30967,11 @@ function renderSite(input) {
   return site;
 }
 
+// skills/docent/scripts/src/commands/build.mjs
+init_i18n();
+
 // skills/docent/scripts/src/renderers/readme.mjs
+init_i18n();
 var md = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 function menuLines(inventory, screens) {
   const root = /* @__PURE__ */ new Map();
@@ -30107,6 +31065,7 @@ async function renderDiagrams(browser, input, { assetsDir }) {
 }
 
 // skills/docent/scripts/src/renderers/pdf.mjs
+init_playwright();
 import { pathToFileURL } from "node:url";
 var BAND_BG = "#f6f6fb";
 var band = (inner, justify) => `<style>#header,#footer{padding:0!important}</style><div style="-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;width:100%;height:18mm;margin:0;padding:0 15mm;display:flex;align-items:center;justify-content:${justify};background:${BAND_BG};font-size:8px;color:#6a6a76">${inner}</div>`;
@@ -35313,8 +36272,8 @@ var PptxGenJS = class {
       const data = yield this.exportPresentation({ compression, outputType });
       if (isNode) {
         const { promises: fs } = yield import("node:fs");
-        const { writeFile: writeFile8 } = fs;
-        yield writeFile8(fileName, data);
+        const { writeFile: writeFile9 } = fs;
+        yield writeFile9(fileName, data);
         return fileName;
       }
       yield this.writeFileToBrowser(fileName, data);
@@ -35460,6 +36419,7 @@ var PptxGenJS = class {
 };
 
 // skills/docent/scripts/src/renderers/pptx.mjs
+init_i18n();
 var FONT = "Malgun Gothic";
 var W = 13.333;
 var C = { fg: "17171C", muted: "5B5B66", line: "E4E4EA", soft: "F6F6F8" };
@@ -35711,6 +36671,7 @@ async function renderPptx(input, { diagrams, mediaDir } = {}) {
 }
 
 // skills/docent/scripts/src/renderers/print.mjs
+init_i18n();
 var PRINT_STYLE = `
 .screen, .part { break-before: page; }
 .cover { break-after: page; }
@@ -35769,6 +36730,8 @@ ${parts.join("\n")}
 }
 
 // skills/docent/scripts/src/lib/output-options.mjs
+init_i18n();
+init_cli_text();
 var PRESETS = ["delivery", "handover", "portfolio"];
 var FORMATS = ["html", "readme", "pdf", "pptx"];
 var REVISION_FIELDS = ["version", "date", "author", "note"];
@@ -35803,11 +36766,18 @@ function resolveOutputOptions(config, cli = {}) {
   };
 }
 
+// skills/docent/scripts/src/commands/build.mjs
+init_playwright();
+
 // skills/docent/scripts/src/commands/validate.mjs
 import { readdir as readdir2 } from "node:fs/promises";
 import { join as join10 } from "node:path";
+init_cli_text();
+init_schema();
 
 // skills/docent/scripts/src/lib/source-hash.mjs
+init_cli_text();
+init_paths();
 import { createHash as createHash2 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
 import { join as join9 } from "node:path";
@@ -35826,6 +36796,7 @@ async function hashFiles(rootDir, relPaths) {
 }
 
 // skills/docent/scripts/src/commands/validate.mjs
+init_workspace();
 async function load(path, label, problems) {
   try {
     return await readJson(path);
@@ -36229,362 +37200,17 @@ async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory
   return { files: files.sort(), warnings: warnings3, skipped };
 }
 
-// skills/docent/scripts/src/commands/capture.mjs
-import { join as join13 } from "node:path";
-
-// skills/docent/scripts/src/lib/media.mjs
-import { mkdir as mkdir4, rename, rm as rm3, stat } from "node:fs/promises";
-import { join as join12 } from "node:path";
-function mediaPaths(projectDir) {
-  const root = join12(docentDir(projectDir), "media");
-  return {
-    root,
-    img: (id) => join12(root, "img", `${id}.png`),
-    gif: (id) => join12(root, "gif", `${id}.gif`),
-    fail: (id) => join12(root, "fail", `${id}.png`),
-    failures: join12(root, "failures.json")
-  };
-}
-async function ensureMediaDirs(projectDir) {
-  const { root } = mediaPaths(projectDir);
-  for (const sub of ["img", "gif", "fail"]) await mkdir4(join12(root, sub), { recursive: true });
-}
-async function readFailures(projectDir) {
-  try {
-    return await readJsonIfExists(mediaPaths(projectDir).failures) ?? [];
-  } catch {
-    return [];
-  }
-}
-var order = (a, b) => a.id === b.id ? a.kind < b.kind ? -1 : 1 : a.id < b.id ? -1 : 1;
-var sleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
-async function withLock(path, fn) {
-  const lock = `${path}.lock`;
-  await mkdir4(join12(lock, ".."), { recursive: true });
-  const deadline = Date.now() + 15e3;
-  for (; ; ) {
-    try {
-      await mkdir4(lock);
-      break;
-    } catch (err) {
-      if (err.code !== "EEXIST") throw err;
-      try {
-        if (Date.now() - (await stat(lock)).mtimeMs > 5e3) {
-          const stale = `${lock}.stale-${process.pid}-${Date.now()}`;
-          await rename(lock, stale);
-          await rm3(stale, { recursive: true, force: true });
-        }
-      } catch {
-      }
-      if (Date.now() > deadline) throw new Error(t("{0} \uC7A0\uAE08\uC744 \uC5BB\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4", path));
-      await sleep2(50);
-    }
-  }
-  try {
-    return await fn();
-  } finally {
-    await rm3(lock, { recursive: true, force: true });
-  }
-}
-function recordFailure(projectDir, failure) {
-  return withLock(mediaPaths(projectDir).failures, () => writeFailure(projectDir, failure));
-}
-async function writeFailure(projectDir, failure) {
-  const list = (await readFailures(projectDir)).filter((f) => !(f.id === failure.id && f.kind === failure.kind));
-  list.push({ id: failure.id, kind: failure.kind, ...failure.step !== void 0 ? { step: failure.step } : {}, reason: failure.reason });
-  await writeJson(mediaPaths(projectDir).failures, list.sort(order));
-}
-function clearFailure(projectDir, id, kind) {
-  return withLock(mediaPaths(projectDir).failures, () => removeFailure(projectDir, id, kind));
-}
-async function removeFailure(projectDir, id, kind) {
-  const list = await readFailures(projectDir);
-  const next = list.filter((f) => !(f.id === id && f.kind === kind));
-  if (next.length !== list.length) await writeJson(mediaPaths(projectDir).failures, next);
-}
-
-// skills/docent/scripts/src/lib/steps.mjs
-var VAR = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
-var StepError = class extends Error {
-};
-function substitute(value, env) {
-  return value.replace(VAR, (_, name5) => {
-    if (env[name5] === void 0) throw new StepError(t("\uD658\uACBD\uBCC0\uC218 \uC5C6\uC74C: {0}", name5));
-    return env[name5];
-  });
-}
-async function single(locator, describe, timeoutMs) {
-  try {
-    await locator.first().waitFor({ state: "visible", timeout: timeoutMs });
-  } catch {
-    throw new StepError(t("{0}\uC744(\uB97C) \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe));
-  }
-  const count = await locator.count();
-  if (count !== 1) throw new StepError(t("{0}\uC774(\uAC00) {1}\uAC1C \uC788\uC2B5\uB2C8\uB2E4. nth\uB85C \uBA87 \uBC88\uC9F8\uC778\uC9C0 \uC9C0\uC815\uD558\uC138\uC694", describe, count));
-  return locator;
-}
-var markSeq = 0;
-async function byLabel(page2, label, timeoutMs) {
-  const exact = page2.getByLabel(label, { exact: true });
-  try {
-    await exact.first().waitFor({ state: "attached", timeout: Math.min(timeoutMs, 1500) });
-    return exact;
-  } catch {
-  }
-  const mark = `m${++markSeq}`;
-  await page2.evaluate(
-    ({ label: label2, mark: mark2 }) => {
-      for (const el of document.querySelectorAll("label")) {
-        const own = [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE || n.nodeType === Node.ELEMENT_NODE && !n.matches("input,select,textarea,button")).map((n) => n.textContent).join(" ").replace(/\s+/g, " ").trim();
-        if (own === label2 && el.control) el.control.setAttribute("data-docent-label", mark2);
-      }
-    },
-    { label, mark }
-  );
-  return page2.locator(`[data-docent-label="${mark}"]`);
-}
-var escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-async function byRole(page2, role, label, timeoutMs) {
-  const exact = page2.getByRole(role, { name: label, exact: true });
-  const visible = page2.getByRole(role).filter({ hasText: new RegExp(`^\\s*\\d*\\s*${escapeRe(label)}\\s*[\u2197\u2192\u2190\u2715\xD7\u203A\xBB]*\\s*$`) });
-  try {
-    await exact.or(visible).first().waitFor({ state: "attached", timeout: timeoutMs });
-  } catch {
-    return exact;
-  }
-  return await exact.count() > 0 ? exact : visible;
-}
-async function pick(locator, nth, describe, timeoutMs) {
-  if (nth === void 0) return single(locator, describe, timeoutMs);
-  const el = locator.nth(nth);
-  try {
-    await el.waitFor({ state: "visible", timeout: timeoutMs });
-  } catch {
-    throw new StepError(t("{0}\uC758 {1}\uBC88\uC9F8 \uC694\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4", describe, nth));
-  }
-  return el;
-}
-async function runStep(page2, step, env, timeoutMs) {
-  switch (step.do) {
-    case "fill": {
-      const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC785\uB825 \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
-      return el.fill(value, { timeout: timeoutMs });
-    }
-    case "select": {
-      const value = substitute(step.value, env);
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uC120\uD0DD \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
-      return el.selectOption({ label: value }, { timeout: timeoutMs });
-    }
-    case "check": {
-      const el = await pick(await byLabel(page2, step.label, timeoutMs), step.nth, t('\uCCB4\uD06C \uD56D\uBAA9 "{0}"', step.label), timeoutMs);
-      return el.check({ timeout: timeoutMs });
-    }
-    case "click": {
-      const el = await pick(await byRole(page2, step.role, step.label, timeoutMs), step.nth, `${step.role} "${step.label}"`, timeoutMs);
-      if (!step.popup) {
-        try {
-          return await el.click({ timeout: timeoutMs });
-        } catch (err) {
-          if (page2.isClosed()) return void 0;
-          throw err;
-        }
-      }
-      const opened = page2.waitForEvent("popup", { timeout: timeoutMs * 2 });
-      opened.catch(() => {
-      });
-      await el.click({ timeout: timeoutMs });
-      let popup;
-      try {
-        popup = await opened;
-      } catch {
-        throw new StepError(t('{0} "{1}"\uC744(\uB97C) \uB20C\uB800\uC9C0\uB9CC \uC0C8 \uCC3D\uC774 \uC5F4\uB9AC\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.role, step.label));
-      }
-      await popup.waitForLoadState("load", { timeout: timeoutMs * 3 }).catch(() => {
-      });
-      return popup;
-    }
-    case "expectText":
-      try {
-        await page2.getByText(step.text, { exact: false }).first().waitFor({ state: "visible", timeout: timeoutMs });
-      } catch {
-        throw new StepError(t('\uBB38\uAD6C "{0}"\uAC00 \uB098\uD0C0\uB098\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4', step.text));
-      }
-      return void 0;
-    case "wait":
-      return new Promise((resolve4) => setTimeout(resolve4, step.ms));
-    case "goto":
-      return page2.goto(new URL(step.path, page2.url()).href, { timeout: timeoutMs * 3 });
-    default:
-      throw new StepError(t("\uC54C \uC218 \uC5C6\uB294 \uB2E8\uACC4: {0}", step.do));
-  }
-}
-async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage, openers = [] } = {}) {
-  const opened = [...openers];
-  let retried = -1;
-  let current2 = page2;
-  const back = async () => {
-    let moved = false;
-    while (current2.isClosed() && opened.length) {
-      current2 = opened.pop();
-      moved = true;
-    }
-    if (moved && onPage) await onPage(current2);
-  };
-  for (let index = 0; index < steps.length; index++) {
-    try {
-      await back();
-      const result = await runStep(current2, steps[index], env, timeoutMs);
-      if (steps[index].popup && result) {
-        opened.push(current2);
-        current2 = result;
-        if (onPage) await onPage(current2);
-      }
-    } catch (err) {
-      if (current2.isClosed() && opened.length) {
-        await back();
-        if (retried !== index) {
-          retried = index;
-          index--;
-          continue;
-        }
-      }
-      const reason = err instanceof StepError ? err.message : t("{0} \uB2E8\uACC4 \uC2E4\uD589 \uC2E4\uD328", steps[index].do);
-      return { ok: false, index, reason };
-    }
-    if (onStep) await onStep(index);
-  }
-  await back();
-  return { ok: true };
-}
-async function maskContext(context, selectors) {
-  if (!selectors?.length) return;
-  const css = `${selectors.join(", ")} { filter: blur(6px) !important; }`;
-  await context.addInitScript((style) => {
-    const add2 = () => {
-      const el = document.createElement("style");
-      el.setAttribute("data-docent-mask", "");
-      el.textContent = style;
-      (document.head ?? document.documentElement).appendChild(el);
-    };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add2);
-    else add2();
-  }, css);
-}
-function usesEnvValue(steps) {
-  return steps.some((s) => typeof s.value === "string" && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(s.value));
-}
-
-// skills/docent/scripts/src/commands/capture.mjs
-var CAPTURE_VIEWPORT = { width: 1280, height: 800 };
-function captureContextOptions() {
-  return { viewport: CAPTURE_VIEWPORT, reducedMotion: "reduce" };
-}
-async function prepareForFullPage(page2) {
-  await page2.evaluate(async () => {
-    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-    const limit = document.documentElement.scrollHeight;
-    for (let i = 0; i < 40 && window.scrollY + window.innerHeight < limit; i++) {
-      const before = window.scrollY;
-      window.scrollTo({ top: Math.min(before + window.innerHeight, limit - window.innerHeight), behavior: "instant" });
-      await pause(120);
-      if (window.scrollY === before) break;
-    }
-    window.scrollTo({ top: 0, behavior: "instant" });
-    await pause(300);
-  }).catch(() => {
-  });
-}
-function staticPath(route) {
-  if (!route || route.includes("[")) return void 0;
-  const parts = route.split("/").filter((seg) => seg && !/^\(.*\)$/.test(seg) && !seg.startsWith("@"));
-  return "/" + parts.join("/");
-}
-function isLoginPath(path, loginPath) {
-  return path.split("?")[0].replace(/\/+$/, "") === loginPath.replace(/\/+$/, "");
-}
-async function loadScenario(projectDir, id) {
-  try {
-    return await readJsonIfExists(join13(docentDir(projectDir), "scenarios", `${id}.json`));
-  } catch {
-    return void 0;
-  }
-}
-async function openScreen(page2, { baseUrl, path, setup, loginPath, onPage }) {
-  let response;
-  try {
-    response = await page2.goto(new URL(path, baseUrl).href, { waitUntil: "load", timeout: 3e4 });
-  } catch (err) {
-    return t("\uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", err.message.split("\n")[0]);
-  }
-  const landed = new URL(page2.url()).pathname;
-  if (landed === loginPath && path.split("?")[0] !== loginPath) return t("\uB85C\uADF8\uC778 \uD544\uC694 \u2014 docent auth login\uC73C\uB85C \uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD558\uC138\uC694");
-  if (response && response.status() >= 400) return `HTTP ${response.status()}`;
-  const trim = (p) => p.length > 1 ? p.replace(/\/+$/, "") : p;
-  if (trim(landed) !== trim(path.split("?")[0])) return t("\uB2E4\uB978 \uD654\uBA74({0})\uC73C\uB85C \uC774\uB3D9\uD588\uC2B5\uB2C8\uB2E4 \u2014 \uAD8C\uD55C\uC774 \uC5C6\uAC70\uB098 \uC870\uAC74\uC774 \uB9DE\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4", landed);
-  await page2.waitForLoadState("networkidle", { timeout: 5e3 }).catch(() => {
-  });
-  if (setup?.length) {
-    const r = await runSteps(page2, setup, { onPage });
-    if (!r.ok) return t("\uC900\uBE44 \uB2E8\uACC4 {0}\uBC88\uC9F8 \uC2E4\uD328: {1}", r.index + 1, r.reason);
-  }
-  return void 0;
-}
-async function runCapture(projectDir, ids) {
-  const run2 = await loadRun(projectDir);
-  const config = await loadConfig(projectDir);
-  const inventory = await readJson(join13(docentDir(projectDir), "inventory.json"));
-  const targets = ids?.length ? inventory.screens.filter((s) => ids.includes(s.id)) : inventory.screens;
-  const paths = mediaPaths(projectDir);
-  const loginPath = config.auth?.loginPath ?? "/login";
-  await ensureMediaDirs(projectDir);
-  const result = { captured: [], failed: [], skipped: [] };
-  const browser = await launchBrowser();
-  try {
-    const context = await newContext(browser, projectDir, captureContextOptions());
-    await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ ...captureContextOptions(), permissions: CONTEXT_PERMISSIONS });
-    await maskContext(anonymous, config.mask.selectors);
-    for (const screen of targets) {
-      const scenario = await loadScenario(projectDir, screen.id);
-      const path = scenario?.path ?? staticPath(screen.route);
-      if (!path || screen.kind !== "page" && !scenario) {
-        result.skipped.push({ id: screen.id, reason: t("\uC2DC\uB098\uB9AC\uC624\uC5D0 \uC2E4\uC81C \uACBD\uB85C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4") });
-        continue;
-      }
-      if (scenario && usesEnvValue(scenario.setup)) {
-        result.skipped.push({ id: screen.id, reason: t("\uC900\uBE44 \uB2E8\uACC4\uC5D0 \uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC774 \uC788\uC5B4 \uCEA1\uCC98\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
-        continue;
-      }
-      const page2 = await (isLoginPath(path, loginPath) ? anonymous : context).newPage();
-      let shown = page2;
-      try {
-        const failure = await openScreen(page2, { baseUrl: run2.baseUrl, path, setup: scenario?.setup, loginPath, onPage: (p) => shown = p });
-        if (failure) {
-          await shown.screenshot({ path: paths.fail(screen.id), fullPage: true }).catch(() => {
-          });
-          await recordFailure(projectDir, { id: screen.id, kind: "capture", reason: failure });
-          result.failed.push({ id: screen.id, reason: failure });
-          continue;
-        }
-        await prepareForFullPage(shown);
-        await shown.screenshot({ path: paths.img(screen.id), fullPage: true });
-        await clearFailure(projectDir, screen.id, "capture");
-        result.captured.push(screen.id);
-      } finally {
-        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
-        });
-        await page2.close();
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-  return result;
-}
+// skills/docent/scripts/src/docent.mjs
+init_capture();
 
 // skills/docent/scripts/src/commands/crawl.mjs
-import { join as join14 } from "node:path";
+init_cli_text();
+init_config();
+init_playwright();
+init_workspace();
+init_auth();
+init_run();
+import { join as join17 } from "node:path";
 var LOGOUT = /(log[-_]?(out|off)|sign[-_]?(out|off))/i;
 var FILE_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|svg|webp|ico|csv|xlsx?|docx?|pptx?|hwp|txt|xml|json|mp4|mp3)$/i;
 function escapeRegExp2(text) {
@@ -36629,7 +37255,8 @@ async function sitemapLocations(origin) {
 }
 async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const run2 = await loadRun(projectDir);
-  const inventory = await readJson(join14(docentDir(projectDir), "inventory.json"));
+  if (run2.mode === "electron") throw new Error(t("\uB370\uC2A4\uD06C\uD1B1 \uC571(Electron)\uC740 \uB9C1\uD06C\uB85C \uB3CC \uC218 \uC5C6\uC5B4 crawl\uC744 \uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uD654\uBA74 \uBAA9\uB85D\uC740 \uC18C\uC2A4 \uBD84\uC11D \uACB0\uACFC\uB97C \uC501\uB2C8\uB2E4"));
+  const inventory = await readJson(join17(docentDir(projectDir), "inventory.json"));
   const pages = inventory.screens.filter((s) => s.kind === "page" && s.route);
   const origin = new URL(run2.baseUrl).origin;
   const routeRes = pages.map((s) => routeMatcher(s.route));
@@ -36682,7 +37309,7 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const unmatched = visited.filter((p) => !matchers.some(([, re]) => re.test(p))).sort();
   const unreached = matchers.filter(([, re]) => !visited.some((p) => re.test(p))).map(([id]) => id);
   const result = { baseUrl: run2.baseUrl, visited: [...visited].sort(), unmatched, unreached };
-  await writeJson(join14(docentDir(projectDir), "crawl.json"), result);
+  await writeJson(join17(docentDir(projectDir), "crawl.json"), result);
   const warnings3 = [];
   const loginPath = (await loadConfig(projectDir)).auth?.loginPath;
   if (loginPath && visited.length && visited.every((p) => p === normalizePath(loginPath))) {
@@ -36691,209 +37318,13 @@ async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   return { visited, unmatched, unreached, warnings: warnings3 };
 }
 
-// skills/docent/scripts/src/commands/record.mjs
-import { writeFile as writeFile4 } from "node:fs/promises";
-import { join as join16 } from "node:path";
-
-// skills/docent/scripts/src/renderers/gif.mjs
-var gifencModule = __toESM(require_gifenc(), 1);
-var import_pngjs2 = __toESM(require_png(), 1);
-var { GIFEncoder, quantize, applyPalette } = gifencModule.default ?? gifencModule;
-function sharedPalette(decoded) {
-  const picks = [.../* @__PURE__ */ new Set([0, Math.floor(decoded.length / 2), decoded.length - 1])].map((i) => decoded[i].data);
-  const total = picks.reduce((n, d) => n + d.length, 0);
-  const sample = new Uint8Array(total);
-  let offset = 0;
-  for (const d of picks) {
-    sample.set(d, offset);
-    offset += d.length;
-  }
-  return quantize(sample, 256);
-}
-function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
-  if (!frames.length) throw new Error("GIF\uB85C \uB9CC\uB4E4 \uD504\uB808\uC784\uC774 \uC5C6\uC2B5\uB2C8\uB2E4");
-  const first = import_pngjs2.PNG.sync.read(frames[0]);
-  const { width, height } = first;
-  const decoded = frames.map((buf, i) => {
-    const png = i ? import_pngjs2.PNG.sync.read(buf) : first;
-    if (png.width === width && png.height === height) return png;
-    const out = new import_pngjs2.PNG({ width, height });
-    out.data.fill(255);
-    import_pngjs2.PNG.bitblt(png, out, 0, 0, Math.min(width, png.width), Math.min(height, png.height), 0, 0);
-    return out;
-  });
-  const palette = sharedPalette(decoded);
-  const gif = GIFEncoder();
-  decoded.forEach((png, i) => {
-    const index = applyPalette(png.data, palette);
-    const delay = i === decoded.length - 1 ? holdLastMs : Math.round(1e3 / fps);
-    gif.writeFrame(index, width, height, { palette: i === 0 ? palette : void 0, delay, repeat: 0 });
-  });
-  gif.finish();
-  return Buffer.from(gif.bytes());
-}
-
-// skills/docent/scripts/src/commands/scenarios.mjs
-import { join as join15 } from "node:path";
-var clickable = (s) => (s.actions ?? []).filter((a) => !a.unlabeled);
-function gifTargets(screens, config) {
-  const { include = [], exclude = [] } = config.gif?.screens ?? {};
-  return screens.filter((s) => include.length ? include.includes(s.id) : clickable(s).length > 0).filter((s) => !exclude.includes(s.id)).map((s) => s.id);
-}
-var isStale = (scenario, screen) => !scenario.locked && screen.sourceHash !== scenario.sourceHash;
-var needsPath = (entry) => entry.kind !== "page" || !entry.route || entry.route.includes("[");
-async function runScenarios(projectDir) {
-  const dir = docentDir(projectDir);
-  const config = await loadConfig(projectDir);
-  const inventory = await readJson(join15(dir, "inventory.json"));
-  const screens = /* @__PURE__ */ new Map();
-  for (const { id } of inventory.screens) {
-    const s = await readJsonIfExists(join15(dir, "screens", `${id}.json`)).catch(() => void 0);
-    if (s?.sourceHash) screens.set(id, s);
-  }
-  const gif = new Set(gifTargets([...screens.values()], config));
-  const list = [];
-  for (const entry of inventory.screens) {
-    const screen = screens.get(entry.id);
-    if (!screen) continue;
-    const scenario = await readJsonIfExists(join15(dir, "scenarios", `${entry.id}.json`)).catch(() => void 0);
-    if (!scenario) {
-      if (needsPath(entry)) list.push({ id: entry.id, reason: t("\uCEA1\uCC98 \uACBD\uB85C \uD544\uC694") });
-      else if (gif.has(entry.id)) list.push({ id: entry.id, reason: t("GIF \uB300\uC0C1") });
-    } else if (isStale(scenario, screen)) {
-      list.push({ id: entry.id, reason: t("\uB0A1\uC74C") });
-    }
-  }
-  return list;
-}
-
-// skills/docent/scripts/src/commands/record.mjs
-var GIF_VIEWPORT = { width: 800, height: 600 };
-var GIF_MAX_BYTES = 2 * 1024 * 1024;
-var FPS = 10;
-var sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
-async function loadScreen(projectDir, id) {
-  try {
-    return await readJsonIfExists(join16(docentDir(projectDir), "screens", `${id}.json`));
-  } catch {
-    return void 0;
-  }
-}
-async function recordSteps(page2, steps, openers = []) {
-  const frames = [];
-  let active = page2;
-  let recording = true;
-  const interval = 1e3 / FPS;
-  const loop = (async () => {
-    while (recording) {
-      const started = Date.now();
-      try {
-        frames.push(await active.screenshot({ type: "png" }));
-      } catch {
-      }
-      const wait = interval - (Date.now() - started);
-      if (wait > 0) await sleep3(wait);
-    }
-  })();
-  const result = await runSteps(page2, steps, {
-    onStep: () => sleep3(300),
-    onPage: (p) => {
-      active = p;
-    },
-    openers
-  });
-  if (result.ok) await sleep3(1e3);
-  recording = false;
-  await loop;
-  return { result, frames };
-}
-async function runRecord(projectDir, ids) {
-  const run2 = await loadRun(projectDir);
-  const config = await loadConfig(projectDir);
-  const inventory = await readJson(join16(docentDir(projectDir), "inventory.json"));
-  const paths = mediaPaths(projectDir);
-  const loginPath = config.auth?.loginPath ?? "/login";
-  let targetIds = ids;
-  if (!targetIds?.length) {
-    const screens = [];
-    for (const { id } of inventory.screens) {
-      const s = await loadScreen(projectDir, id);
-      if (s) screens.push(s);
-    }
-    targetIds = gifTargets(screens, config);
-  }
-  await ensureMediaDirs(projectDir);
-  const result = { recorded: [], failed: [], skipped: [] };
-  const browser = await launchBrowser();
-  try {
-    const context = await newContext(browser, projectDir, { viewport: GIF_VIEWPORT });
-    await maskContext(context, config.mask.selectors);
-    const anonymous = await browser.newContext({ viewport: GIF_VIEWPORT, permissions: CONTEXT_PERMISSIONS });
-    await maskContext(anonymous, config.mask.selectors);
-    for (const id of targetIds) {
-      const scenario = await loadScenario(projectDir, id);
-      if (!scenario) {
-        result.skipped.push({ id, reason: t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4") });
-        continue;
-      }
-      if (!scenario.steps.length) {
-        result.skipped.push({ id, reason: t("\uBCF4\uC5EC \uC904 \uC870\uC791 \uB2E8\uACC4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4") });
-        continue;
-      }
-      if (usesEnvValue([...scenario.setup, ...scenario.steps])) {
-        result.skipped.push({ id, reason: t("\uD658\uACBD\uBCC0\uC218 \uAC12(\uACC4\uC815 \uB4F1)\uC744 \uC785\uB825\uD558\uB294 \uB2E8\uACC4\uAC00 \uC788\uC5B4 GIF\uB85C \uB9CC\uB4E4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4") });
-        continue;
-      }
-      const screen = await loadScreen(projectDir, id);
-      if (!scenario.locked && screen && screen.sourceHash !== scenario.sourceHash) {
-        result.skipped.push({ id, reason: t("\uC2DC\uB098\uB9AC\uC624\uAC00 \uB0A1\uC558\uC2B5\uB2C8\uB2E4") });
-        continue;
-      }
-      const page2 = await (isLoginPath(scenario.path, loginPath) ? anonymous : context).newPage();
-      let start = page2;
-      try {
-        const opened = await openScreen(page2, { baseUrl: run2.baseUrl, path: scenario.path, setup: scenario.setup, loginPath, onPage: (p) => start = p });
-        if (opened) {
-          await start.screenshot({ path: paths.fail(id) }).catch(() => {
-          });
-          await recordFailure(projectDir, { id, kind: "record", reason: opened });
-          result.failed.push({ id, reason: opened });
-          continue;
-        }
-        const { result: stepResult, frames } = await recordSteps(start, scenario.steps, start === page2 ? [] : [page2]);
-        if (!stepResult.ok) {
-          await start.screenshot({ path: paths.fail(id) }).catch(() => {
-          });
-          await recordFailure(projectDir, { id, kind: "record", step: stepResult.index, reason: stepResult.reason });
-          result.failed.push({ id, reason: t("{0}\uBC88\uC9F8 \uB2E8\uACC4 \u2014 {1}", stepResult.index + 1, stepResult.reason) });
-          continue;
-        }
-        let gif = encodeGif(frames, { fps: FPS, holdLastMs: 1500 });
-        if (gif.length > GIF_MAX_BYTES) gif = encodeGif(frames.filter((_, i) => i % 2 === 0), { fps: FPS / 2, holdLastMs: 1500 });
-        if (gif.length > GIF_MAX_BYTES) {
-          const reason = t("GIF\uAC00 2MB\uB97C \uB118\uC2B5\uB2C8\uB2E4. \uC2DC\uB098\uB9AC\uC624 \uB2E8\uACC4\uB97C \uC904\uC774\uC138\uC694");
-          await recordFailure(projectDir, { id, kind: "record", reason });
-          result.failed.push({ id, reason });
-          continue;
-        }
-        await writeFile4(paths.gif(id), gif);
-        await clearFailure(projectDir, id, "record");
-        result.recorded.push(id);
-      } finally {
-        for (const p of page2.context().pages()) if (p !== page2) await p.close().catch(() => {
-        });
-        await page2.close();
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-  return result;
-}
+// skills/docent/scripts/src/docent.mjs
+init_record();
+init_scenarios();
 
 // skills/docent/scripts/src/commands/init.mjs
-import { access as access2, mkdir as mkdir5, readFile as readFile15, writeFile as writeFile5 } from "node:fs/promises";
-import { join as join24 } from "node:path";
+import { access as access2, mkdir as mkdir5, readFile as readFile15, writeFile as writeFile6 } from "node:fs/promises";
+import { join as join25 } from "node:path";
 
 // skills/docent/scripts/src/detectors/nextjs.mjs
 var nextjs_exports = {};
@@ -36903,11 +37334,12 @@ __export(nextjs_exports, {
   name: () => name
 });
 import { readFile as readFile9 } from "node:fs/promises";
-import { join as join18 } from "node:path";
+import { join as join19 } from "node:path";
 
 // skills/docent/scripts/src/detectors/shared.mjs
+init_paths();
 import { readFile as readFile8, readdir as readdir4, stat as stat2 } from "node:fs/promises";
-import { join as join17, posix as posix2 } from "node:path";
+import { join as join18, posix as posix2 } from "node:path";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit"]);
 var ROOT_SKIP_DIRS = /* @__PURE__ */ new Set(["dist", "build", "coverage"]);
 var RESOLVE_SUFFIXES = ["", ".tsx", ".ts", ".jsx", ".js", ".vue", ".svelte", "/index.tsx", "/index.ts", "/index.jsx", "/index.js", "/index.vue", "/index.svelte"];
@@ -36961,7 +37393,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir4(join17(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir4(join18(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name) || !rel && ROOT_SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
@@ -36972,12 +37404,12 @@ async function walk(projectDir, rel) {
 var TEST_FILE = /(^|\/)(__tests__|__mocks__|tests?|e2e|cypress|playwright|\.storybook)\/|\.(test|spec|stories|story)\.[cm]?[jt]sx?$/;
 var isTestFile = (rel) => TEST_FILE.test(rel);
 async function hasDependency(projectDir, names) {
-  const pkg = await readJsonc(join17(projectDir, "package.json"));
+  const pkg = await readJsonc(join18(projectDir, "package.json"));
   return names.some((n) => Boolean(pkg?.dependencies?.[n] || pkg?.devDependencies?.[n]));
 }
 async function loadAliases(projectDir, extra = []) {
   for (const file of ["tsconfig.json", "jsconfig.json"]) {
-    const config = await readJsonc(join17(projectDir, file));
+    const config = await readJsonc(join18(projectDir, file));
     const paths = config?.compilerOptions?.paths;
     if (!paths) continue;
     const baseUrl = config.compilerOptions.baseUrl ?? ".";
@@ -37012,14 +37444,14 @@ async function resolveImport(projectDir, fromFile, spec, aliases) {
       } catch {
         continue;
       }
-      if (await isFile(join17(projectDir, rel))) return rel;
+      if (await isFile(join18(projectDir, rel))) return rel;
     }
   }
   return void 0;
 }
 var ASSET = /\.(css|scss|sass|less|styl|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf)$/i;
 async function screenFiles(projectDir, file, aliases) {
-  const source = await readFile8(join17(projectDir, file), "utf8");
+  const source = await readFile8(join18(projectDir, file), "utf8");
   const specs = /* @__PURE__ */ new Set();
   for (const pattern of IMPORT_PATTERNS) {
     for (const match of source.matchAll(pattern)) specs.add(match[1]);
@@ -37045,7 +37477,7 @@ async function detect(projectDir) {
   return hasDependency(projectDir, ["next"]);
 }
 async function describePage(projectDir, file, route, aliases) {
-  const source = await readFile9(join18(projectDir, file), "utf8");
+  const source = await readFile9(join19(projectDir, file), "utf8");
   return { route, files: await screenFiles(projectDir, file, aliases), evidence: `${file}:${lineOf(source, /\bexport\s+default\b/)}` };
 }
 function appRoute(dir, file) {
@@ -37062,7 +37494,7 @@ async function listScreens(projectDir) {
   const aliases = await loadAliases(projectDir);
   const screens = [];
   for (const dir of ["app", "src/app"]) {
-    if (!await isDir(join18(projectDir, dir))) continue;
+    if (!await isDir(join19(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       if (/(^|\/)page\.(tsx|jsx|ts|js)$/.test(file)) {
         screens.push(await describePage(projectDir, file, appRoute(dir, file), aliases));
@@ -37070,7 +37502,7 @@ async function listScreens(projectDir) {
     }
   }
   for (const dir of ["pages", "src/pages"]) {
-    if (!await isDir(join18(projectDir, dir))) continue;
+    if (!await isDir(join19(projectDir, dir))) continue;
     for (const file of await walk(projectDir, dir)) {
       const rel = file.slice(dir.length + 1);
       if (!PAGE_EXT.test(file) || rel.startsWith("api/") || /^_(app|document|error)\./.test(rel)) continue;
@@ -37088,14 +37520,16 @@ __export(react_router_exports, {
   name: () => name2,
   warnings: () => warnings
 });
+init_cli_text();
 import { readFile as readFile11 } from "node:fs/promises";
-import { join as join20, posix as posix4 } from "node:path";
+import { join as join21, posix as posix4 } from "node:path";
 
 // skills/docent/scripts/src/detectors/flat-routes.mjs
 import { readFile as readFile10, readdir as readdir5 } from "node:fs/promises";
-import { join as join19, posix as posix3 } from "node:path";
+import { join as join20, posix as posix3 } from "node:path";
 
 // skills/docent/scripts/src/detectors/route-tree.mjs
+init_cli_text();
 var REDIRECTS = /* @__PURE__ */ new Set(["Navigate", "Redirect"]);
 var PUNCT3 = ["..."];
 var PUNCT2 = ["=>"];
@@ -37562,14 +37996,14 @@ var isPathless = (name5) => {
 };
 async function routeModules(projectDir, routesDir) {
   const modules = [];
-  for (const entry of await readdir5(join19(projectDir, routesDir), { withFileTypes: true })) {
+  for (const entry of await readdir5(join20(projectDir, routesDir), { withFileTypes: true })) {
     if (entry.name.startsWith(".")) continue;
     const rel = `${routesDir}/${entry.name}`;
     if (entry.isFile() && MODULE_EXT.test(entry.name) && !entry.name.endsWith(".d.ts") && !isTestFile(rel)) {
       modules.push({ name: entry.name.replace(MODULE_EXT, ""), file: rel });
     } else if (entry.isDirectory()) {
       for (const ext of ["tsx", "ts", "jsx", "js"]) {
-        if (await isFile(join19(projectDir, rel, `route.${ext}`))) {
+        if (await isFile(join20(projectDir, rel, `route.${ext}`))) {
           modules.push({ name: entry.name, file: `${rel}/route.${ext}` });
           break;
         }
@@ -37602,7 +38036,7 @@ function globMatcher(globs) {
   return (rel) => res.some((r) => r.test(rel));
 }
 async function flatRouteScreens(projectDir, routesDir, { prefix = "", ignored = [] } = {}) {
-  if (!await isDir(join19(projectDir, routesDir))) return [];
+  if (!await isDir(join20(projectDir, routesDir))) return [];
   const aliases = await loadAliases(projectDir);
   const isIgnored = globMatcher(ignored);
   const modules = (await routeModules(projectDir, routesDir)).filter((m) => !isIgnored(m.file.slice(routesDir.length + 1)));
@@ -37631,7 +38065,7 @@ async function flatRouteScreens(projectDir, routesDir, { prefix = "", ignored = 
     const path = flatRoutePath(m.name);
     const route = toDocentPath(prefix ? `/${prefix.replace(/^\/|\/$/g, "")}${path === "/" ? "" : path}` : path);
     if (route === void 0 || screens.has(route)) continue;
-    const source = await readFile10(join19(projectDir, m.file), "utf8");
+    const source = await readFile10(join20(projectDir, m.file), "utf8");
     if (!/\bexport\s+default\b/.test(source)) continue;
     const files = await screenFiles(projectDir, m.file, aliases);
     for (const file of ancestors(m)) if (!files.includes(file)) files.push(file);
@@ -37658,7 +38092,7 @@ async function remixIgnoredRouteFiles(projectDir) {
   for (const file of ["vite.config.ts", "vite.config.js", "vite.config.mjs", "vite.config.mts", "remix.config.js", "remix.config.cjs", "remix.config.mjs"]) {
     let source;
     try {
-      source = await readFile10(join19(projectDir, file), "utf8");
+      source = await readFile10(join20(projectDir, file), "utf8");
     } catch {
       continue;
     }
@@ -37677,7 +38111,7 @@ async function detect2(projectDir) {
 }
 async function routeConfigFile(projectDir) {
   for (const file of ["app/routes.ts", "app/routes.js", "app/routes.tsx", "app/routes.jsx"]) {
-    if (await isFile(join20(projectDir, file))) return file;
+    if (await isFile(join21(projectDir, file))) return file;
   }
   return void 0;
 }
@@ -37685,10 +38119,10 @@ function add(screens, route, files, evidence) {
   if (route !== void 0 && !screens.has(route)) screens.set(route, { route, files, evidence });
 }
 async function fromRouteConfig(projectDir, file, aliases, screens) {
-  const source = await readFile11(join20(projectDir, file), "utf8");
+  const source = await readFile11(join21(projectDir, file), "utf8");
   for (const { path, node } of flattenRoutes(parseRouteConfig(source))) {
     const target = posix4.join(posix4.dirname(file), node.component.importPath);
-    const files = await isFile(join20(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+    const files = await isFile(join21(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
     add(screens, toDocentPath(path), files, `${file}:${node.line}`);
   }
   for (const call of flatRoutesCalls(source)) {
@@ -37701,10 +38135,10 @@ async function componentFile(projectDir, file, source, component, aliases) {
   return spec ? resolveImport(projectDir, file, spec, aliases) : void 0;
 }
 async function codeRouters(projectDir) {
-  const root = await isDir(join20(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join21(projectDir, "src")) ? "src" : "";
   const out = [];
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT.test(f) && !isTestFile(f)).sort()) {
-    const source = await readFile11(join20(projectDir, file), "utf8");
+    const source = await readFile11(join21(projectDir, file), "utf8");
     if (ROUTER_HINT.test(source)) out.push({ file, source, trees: [parseRouteObjects(source), parseJsxRoutes(source)] });
   }
   return out;
@@ -37724,7 +38158,7 @@ async function warnings(projectDir, inApp = (p) => p) {
     if (await hasDependency(projectDir, ["@remix-run/react"])) return [];
     return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: Object.assign(trees.flat(), { spreads: trees.flatMap((x) => x.spreads ?? []) }) })));
   }
-  const source = await readFile11(join20(projectDir, config), "utf8");
+  const source = await readFile11(join21(projectDir, config), "utf8");
   const out = unreadWarnings([{ file: inApp(config), nodes: parseRouteConfig(source) }]);
   const calls = flatRoutesCalls(source);
   if (!calls.length || (await listScreens2(projectDir)).length) return out;
@@ -37751,7 +38185,7 @@ __export(sveltekit_exports, {
   name: () => name3
 });
 import { readFile as readFile12 } from "node:fs/promises";
-import { join as join21, posix as posix5 } from "node:path";
+import { join as join22, posix as posix5 } from "node:path";
 var name3 = "sveltekit";
 var ROUTES = "src/routes";
 var LIB_ALIASES = [
@@ -37767,7 +38201,7 @@ function routeOf2(file) {
   return "/" + parts.map((p) => p.replace(/^(\[{1,2}(?:\.\.\.)?[^\]=]+)=[^\]]+(\]{1,2})$/, "$1$2")).join("/");
 }
 async function listScreens3(projectDir) {
-  if (!await isDir(join21(projectDir, ROUTES))) return [];
+  if (!await isDir(join22(projectDir, ROUTES))) return [];
   const aliases = await loadAliases(projectDir, LIB_ALIASES);
   const screens = [];
   for (const file of await walk(projectDir, ROUTES)) {
@@ -37779,9 +38213,9 @@ async function listScreens3(projectDir) {
     const dir = posix5.dirname(file);
     for (const loader of LOADERS) {
       const path = `${dir}/${loader}`;
-      if (await isFile(join21(projectDir, path)) && !imports.includes(path)) imports.push(path);
+      if (await isFile(join22(projectDir, path)) && !imports.includes(path)) imports.push(path);
     }
-    const source = await readFile12(join21(projectDir, file), "utf8");
+    const source = await readFile12(join22(projectDir, file), "utf8");
     screens.push({ route, files: [page2, ...imports.sort()], evidence: `${file}:${lineOf(source, /<script\b/)}` });
   }
   return screens.sort(byRoute);
@@ -37797,7 +38231,7 @@ __export(vue_exports, {
   warnings: () => warnings2
 });
 import { readFile as readFile13 } from "node:fs/promises";
-import { join as join22, posix as posix6 } from "node:path";
+import { join as join23, posix as posix6 } from "node:path";
 var name4 = "vue";
 var VUE_ALIASES = [{ prefix: "@/", wildcard: true, targets: ["src/*"] }];
 var nuxtAliases = (srcDir) => {
@@ -37833,7 +38267,7 @@ async function nuxtDirs(projectDir) {
   for (const file of NUXT_CONFIGS) {
     let source;
     try {
-      source = await readFile13(join22(projectDir, file), "utf8");
+      source = await readFile13(join23(projectDir, file), "utf8");
     } catch {
       continue;
     }
@@ -37845,9 +38279,9 @@ async function nuxtDirs(projectDir) {
 }
 async function nuxtScreens(projectDir) {
   const config = await nuxtDirs(projectDir);
-  const srcDir = config.srcDir ?? (await isDir(join22(projectDir, "app", config.pages ?? "pages")) ? "app" : "");
+  const srcDir = config.srcDir ?? (await isDir(join23(projectDir, "app", config.pages ?? "pages")) ? "app" : "");
   const pagesDir = posix6.join(srcDir || ".", config.pages ?? "pages");
-  if (!await isDir(join22(projectDir, pagesDir))) return [];
+  if (!await isDir(join23(projectDir, pagesDir))) return [];
   const aliases = await loadAliases(projectDir, nuxtAliases(srcDir));
   const files = (await walk(projectDir, pagesDir)).filter((f) => f.endsWith(".vue"));
   const dirs = new Set(files.map((f) => f.slice(0, f.lastIndexOf("/"))));
@@ -37856,7 +38290,7 @@ async function nuxtScreens(projectDir) {
     if (dirs.has(file.replace(/\.vue$/, ""))) continue;
     const route = pageRoute(pagesDir, file);
     if (isCatchAllOnly(route)) continue;
-    const source = await readFile13(join22(projectDir, file), "utf8");
+    const source = await readFile13(join23(projectDir, file), "utf8");
     const list = await screenFiles(projectDir, file, aliases);
     const parent = file.endsWith("/index.vue") ? `${file.slice(0, -"/index.vue".length)}.vue` : void 0;
     if (parent && files.includes(parent) && !list.includes(parent)) list.push(parent);
@@ -37865,10 +38299,10 @@ async function nuxtScreens(projectDir) {
   return screens.sort(byRoute);
 }
 async function routerFiles(projectDir) {
-  const root = await isDir(join22(projectDir, "src")) ? "src" : "";
+  const root = await isDir(join23(projectDir, "src")) ? "src" : "";
   const out = [];
   for (const file of (await walk(projectDir, root)).filter((f) => SOURCE_EXT2.test(f) && !isTestFile(f)).sort()) {
-    const source = await readFile13(join22(projectDir, file), "utf8");
+    const source = await readFile13(join23(projectDir, file), "utf8");
     if (/createRouter\s*\(|RouteRecordRaw/.test(source) || /(^|\/)router\//.test(file)) out.push({ file, source, nodes: parseRouteObjects(source) });
   }
   return out;
@@ -37882,7 +38316,7 @@ async function routerScreens(projectDir) {
       if (route === void 0 || screens.has(route)) continue;
       const spec = node.component.importPath ?? findImport(source, node.component.name);
       const target = spec ? await resolveImport(projectDir, file, spec, aliases) : void 0;
-      const files = target && await isFile(join22(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
+      const files = target && await isFile(join23(projectDir, target)) ? await screenFiles(projectDir, target, aliases) : [file];
       screens.set(route, { route, files, evidence: `${file}:${node.line}` });
     }
   }
@@ -37903,18 +38337,23 @@ function detectorByName(name5) {
   return DETECTORS.find((d) => d.name === name5);
 }
 
+// skills/docent/scripts/src/commands/init.mjs
+init_config();
+init_cli_text();
+init_paths();
+
 // skills/docent/scripts/src/lib/workspaces.mjs
 var import_yaml2 = __toESM(require_dist(), 1);
 import { readFile as readFile14, readdir as readdir6 } from "node:fs/promises";
-import { join as join23, posix as posix7 } from "node:path";
+import { join as join24, posix as posix7 } from "node:path";
 var FALLBACK = ["apps/*", "packages/*"];
 var ROOT_FALLBACK = ["*"];
 async function patterns(projectDir) {
-  const pkg = await readJsonc(join23(projectDir, "package.json"));
+  const pkg = await readJsonc(join24(projectDir, "package.json"));
   const fromPkg = Array.isArray(pkg?.workspaces) ? pkg.workspaces : pkg?.workspaces?.packages;
   let fromPnpm;
   try {
-    fromPnpm = (0, import_yaml2.parse)(await readFile14(join23(projectDir, "pnpm-workspace.yaml"), "utf8"))?.packages;
+    fromPnpm = (0, import_yaml2.parse)(await readFile14(join24(projectDir, "pnpm-workspace.yaml"), "utf8"))?.packages;
   } catch {
   }
   const list = [...Array.isArray(fromPkg) ? fromPkg : [], ...Array.isArray(fromPnpm) ? fromPnpm : []].filter((p) => typeof p === "string");
@@ -37925,15 +38364,15 @@ async function expand(projectDir, pattern) {
   const clean = posix7.normalize(pattern.replace(/^\.\//, "")).replace(/\/$/, "");
   if (clean.startsWith("..") || clean.startsWith("/")) return [];
   const star = /^(.*?)\/?\*\*?$/.exec(clean);
-  if (!star) return await isDir(join23(projectDir, clean)) ? [clean] : [];
+  if (!star) return await isDir(join24(projectDir, clean)) ? [clean] : [];
   const base = star[1];
-  if (base.includes("*") || !await isDir(join23(projectDir, base))) return [];
-  const entries = await readdir6(join23(projectDir, base), { withFileTypes: true });
+  if (base.includes("*") || !await isDir(join24(projectDir, base))) return [];
+  const entries = await readdir6(join24(projectDir, base), { withFileTypes: true });
   return entries.filter((e) => e.isDirectory() && !SKIP_DIRS.has(e.name)).map((e) => base ? `${base}/${e.name}` : e.name);
 }
 var UI_DEPS = ["react", "vue", "svelte", "solid-js", "preact", "@angular/core", "electron", "@tauri-apps/api"];
 var depsOf = async (dir) => {
-  const pkg = await readJsonc(join23(dir, "package.json"));
+  const pkg = await readJsonc(join24(dir, "package.json"));
   return /* @__PURE__ */ new Set([...Object.keys(pkg?.dependencies ?? {}), ...Object.keys(pkg?.devDependencies ?? {})]);
 };
 async function desktopKind(dir) {
@@ -37953,8 +38392,8 @@ async function appsIn(projectDir, list) {
   const detected = [];
   const ui = [];
   for (const dir of [...dirs].sort()) {
-    const abs = join23(projectDir, dir);
-    if (!await isFile(join23(abs, "package.json"))) continue;
+    const abs = join24(projectDir, dir);
+    if (!await isFile(join24(abs, "package.json"))) continue;
     const desktop = await desktopKind(abs);
     const deps = await depsOf(abs);
     const detectors = [];
@@ -37967,6 +38406,7 @@ async function appsIn(projectDir, list) {
 }
 
 // skills/docent/scripts/src/commands/init.mjs
+init_workspace();
 var IGNORE_LINES = ["auth/", "out/", "media/", ".session", "run.log", ".run-pid", ".run-approved"];
 var gitignoreHeader = () => t("# docent: \uB85C\uADF8\uC778 \uC138\uC158\xB7\uC0B0\uCD9C\uBB3C\xB7\uCEA1\uCC98(\uC2E4\uB370\uC774\uD130\uAC00 \uCC0D\uD790 \uC218 \uC788\uC74C)\uB294 \uCEE4\uBC0B\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4");
 function configYaml(detectors, app) {
@@ -38026,16 +38466,16 @@ async function exists2(path) {
 async function runInit(projectDir, { app } = {}) {
   const dir = docentDir(projectDir);
   await mkdir5(dir, { recursive: true });
-  const ignorePath = join24(dir, ".gitignore");
+  const ignorePath = join25(dir, ".gitignore");
   if (!await exists2(ignorePath)) {
-    await writeFile5(ignorePath, [gitignoreHeader(), ...IGNORE_LINES, ""].join("\n"));
+    await writeFile6(ignorePath, [gitignoreHeader(), ...IGNORE_LINES, ""].join("\n"));
   } else {
     const current2 = await readFile15(ignorePath, "utf8");
     const have = new Set(current2.split(/\r?\n/));
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
-    if (missing.length) await writeFile5(ignorePath, current2.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
+    if (missing.length) await writeFile6(ignorePath, current2.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
-  const configPath = join24(dir, "config.yaml");
+  const configPath = join25(dir, "config.yaml");
   if (await exists2(configPath)) {
     const config = await loadConfig(projectDir);
     return { created: false, detectors: config.detectors, ...config.app ? { app: config.app } : {}, ...app !== void 0 ? { appIgnored: true } : {} };
@@ -38047,21 +38487,21 @@ async function runInit(projectDir, { app } = {}) {
     } catch {
       throw new Error(t("--app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354\uC5EC\uC57C \uD569\uB2C8\uB2E4: {0}", app));
     }
-    if (!await isDir(join24(projectDir, rel))) throw new Error(t("--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", rel));
-    const detectors2 = await detect5(join24(projectDir, rel));
-    await writeFile5(configPath, configYaml(detectors2, rel));
-    return withDesktop({ created: true, detectors: detectors2, app: rel }, await desktopKind(join24(projectDir, rel)));
+    if (!await isDir(join25(projectDir, rel))) throw new Error(t("--app \uD3F4\uB354\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4: {0}", rel));
+    const detectors2 = await detect5(join25(projectDir, rel));
+    await writeFile6(configPath, configYaml(detectors2, rel));
+    return withDesktop({ created: true, detectors: detectors2, app: rel }, await desktopKind(join25(projectDir, rel)));
   }
   const detectors = await detect5(projectDir);
   if (!detectors.length) {
     const apps = await findWorkspaceApps(projectDir);
     if (apps.length === 1) {
-      await writeFile5(configPath, configYaml(apps[0].detectors, apps[0].dir));
+      await writeFile6(configPath, configYaml(apps[0].detectors, apps[0].dir));
       return withDesktop({ created: true, detectors: apps[0].detectors, app: apps[0].dir }, apps[0].desktop);
     }
     if (apps.length > 1) return { created: false, detectors: [], apps };
   }
-  await writeFile5(configPath, configYaml(detectors));
+  await writeFile6(configPath, configYaml(detectors));
   return withDesktop({ created: true, detectors }, await desktopKind(projectDir));
 }
 var withDesktop = (result, desktop) => desktop ? { ...result, desktop } : result;
@@ -38073,7 +38513,11 @@ async function detect5(dir) {
 
 // skills/docent/scripts/src/commands/inventory.mjs
 import { access as access3 } from "node:fs/promises";
-import { join as join25, posix as posix8 } from "node:path";
+import { join as join26, posix as posix8 } from "node:path";
+init_config();
+init_cli_text();
+init_paths();
+init_schema();
 
 // skills/docent/scripts/src/lib/screen-id.mjs
 import { createHash as createHash3 } from "node:crypto";
@@ -38123,6 +38567,7 @@ function assignIds(routes, previous = /* @__PURE__ */ new Map()) {
 }
 
 // skills/docent/scripts/src/commands/inventory.mjs
+init_workspace();
 function globToRegExp(glob) {
   const body = glob.split(/(\*\*|\*)/).map((part) => part === "**" ? ".*" : part === "*" ? "[^/]*" : part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join("");
   return new RegExp(`^${body}$`);
@@ -38141,7 +38586,7 @@ async function fileExists(path) {
 async function collectAgentEntries(projectDir, problems) {
   let data;
   try {
-    data = await readJsonIfExists(join25(docentDir(projectDir), "inventory.agent.json"));
+    data = await readJsonIfExists(join26(docentDir(projectDir), "inventory.agent.json"));
   } catch (err) {
     problems.push(`inventory.agent.json: ${t("JSON \uD615\uC2DD \uC624\uB958 ({0})", err.message)}`);
     return [];
@@ -38163,7 +38608,7 @@ async function checkEntry(projectDir, label, entry, problems) {
     return void 0;
   }
   for (const file of files) {
-    if (!await fileExists(join25(projectDir, file))) {
+    if (!await fileExists(join26(projectDir, file))) {
       problems.push(`${label}: ${t("\uD30C\uC77C \uC5C6\uC74C {0}", file)}`);
       return void 0;
     }
@@ -38179,12 +38624,12 @@ async function runInventory(projectDir) {
   const config = await loadConfig(projectDir);
   const problems = [];
   const warnings3 = [];
-  const previous = await readJsonIfExists(join25(docentDir(projectDir), "inventory.json"));
+  const previous = await readJsonIfExists(join26(docentDir(projectDir), "inventory.json"));
   const previousIds = new Map((previous?.screens ?? []).filter((s) => s.route).map((s) => [s.route, s.id]));
   const previousMenus = new Map((previous?.screens ?? []).filter((s) => s.menuPath).map((s) => [s.id, s.menuPath]));
   const pages = /* @__PURE__ */ new Map();
   const app = config.app;
-  const appDir = app ? join25(projectDir, app) : projectDir;
+  const appDir = app ? join26(projectDir, app) : projectDir;
   const inApp = (rel) => app ? posix8.join(app, rel) : rel;
   const appOk = !app || await fileExists(appDir);
   if (!appOk) problems.push(`config.yaml: ${t("app \uD3F4\uB354 {0}\uC774 \uC5C6\uC2B5\uB2C8\uB2E4", app)}`);
@@ -38237,7 +38682,7 @@ async function runInventory(projectDir) {
   }
   const menuOf = async (id) => {
     try {
-      const analyzed = await readJsonIfExists(join25(docentDir(projectDir), "screens", `${id}.json`));
+      const analyzed = await readJsonIfExists(join26(docentDir(projectDir), "screens", `${id}.json`));
       if (analyzed?.menuPath?.value?.length) return analyzed.menuPath.value;
     } catch {
     }
@@ -38265,17 +38710,23 @@ async function runInventory(projectDir) {
   const inventory = { version: 1, screens };
   const { valid, errors } = validateInventory(inventory);
   if (!valid) throw new Error(t("inventory.json \uC2A4\uD0A4\uB9C8 \uC624\uB958: {0}", errors.join("; ")));
-  await writeJson(join25(docentDir(projectDir), "inventory.json"), inventory);
+  await writeJson(join26(docentDir(projectDir), "inventory.json"), inventory);
   return { inventory, problems, warnings: warnings3 };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
+init_schema();
+init_cli_text();
 import { readFile as readFile17 } from "node:fs/promises";
-import { join as join27 } from "node:path";
+import { join as join28 } from "node:path";
+init_workspace();
 
 // skills/docent/scripts/src/commands/review.mjs
-import { readFile as readFile16, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join26 } from "node:path";
+init_cli_text();
+init_media();
+init_workspace();
+import { readFile as readFile16, writeFile as writeFile7 } from "node:fs/promises";
+import { join as join27 } from "node:path";
 var header = () => [
   t("# \uD655\uC778 \uD544\uC694 \uD56D\uBAA9"),
   "",
@@ -38352,42 +38803,42 @@ function renderReview(screens, previous, extra = {}) {
 }
 async function runReview(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join26(dir, "inventory.json"));
+  const inventory = await readJson(join27(dir, "inventory.json"));
   const screens = [];
   for (const { id } of inventory.screens) {
     try {
-      screens.push(await readJson(join26(dir, "screens", `${id}.json`)));
+      screens.push(await readJson(join27(dir, "screens", `${id}.json`)));
     } catch {
     }
   }
-  const path = join26(dir, "review.md");
+  const path = join27(dir, "review.md");
   let previous = /* @__PURE__ */ new Map();
   try {
     previous = parseReview(await readFile16(path, "utf8"));
   } catch {
   }
-  const crawl = await readJsonIfExists(join26(dir, "crawl.json")).catch(() => void 0);
+  const crawl = await readJsonIfExists(join27(dir, "crawl.json")).catch(() => void 0);
   const routes = new Map(inventory.screens.map((s) => [s.id, s.route]));
   const failures = await readFailures(projectDir);
   const text = renderReview(screens, previous, { crawl, routes, failures });
-  await writeFile6(path, text);
+  await writeFile7(path, text);
   return { items: text.split("\n").filter((l) => LINE.test(l)).length };
 }
 
 // skills/docent/scripts/src/commands/pending.mjs
 async function runPending(projectDir) {
   const dir = docentDir(projectDir);
-  const inventory = await readJson(join27(dir, "inventory.json"));
+  const inventory = await readJson(join28(dir, "inventory.json"));
   let answers = /* @__PURE__ */ new Map();
   try {
-    answers = parseReview(await readFile17(join27(dir, "review.md"), "utf8"));
+    answers = parseReview(await readFile17(join28(dir, "review.md"), "utf8"));
   } catch {
   }
   const pending = [];
   for (const { id } of inventory.screens) {
     let screen;
     try {
-      screen = await readJsonIfExists(join27(dir, "screens", `${id}.json`));
+      screen = await readJsonIfExists(join28(dir, "screens", `${id}.json`));
     } catch {
       screen = null;
     }
@@ -38421,20 +38872,26 @@ async function runPending(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/session.mjs
-import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
-import { join as join28 } from "node:path";
+init_workspace();
+import { mkdir as mkdir6, rm as rm4, writeFile as writeFile8 } from "node:fs/promises";
+import { join as join29 } from "node:path";
 async function startSession(projectDir) {
   await mkdir6(rootDocentDir(projectDir), { recursive: true });
-  await writeFile7(join28(rootDocentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await writeFile8(join29(rootDocentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm4(join28(rootDocentDir(projectDir), ".session"), { force: true });
+  await rm4(join29(rootDocentDir(projectDir), ".session"), { force: true });
 }
 
+// skills/docent/scripts/src/docent.mjs
+init_run();
+
 // skills/docent/scripts/src/commands/runtime.mjs
+init_cli_text();
+init_playwright();
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { join as join29 } from "node:path";
+import { join as join30 } from "node:path";
 async function runtimeStatus() {
   const found = await findPlaywright();
   return found ? { installed: true, from: found.from, dir: found.dir, version: found.version } : { installed: false, dir: runtimeDir() };
@@ -38447,13 +38904,17 @@ async function runtimeInstall() {
   const dir = runtimeDir();
   mkdirSync(dir, { recursive: true });
   run("npm", ["install", "--prefix", dir, "--no-save", "--no-package-lock", `playwright@${PLAYWRIGHT_VERSION}`]);
-  run(join29(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
+  run(join30(dir, "node_modules", ".bin", process.platform === "win32" ? "playwright.cmd" : "playwright"), ["install", "chromium"]);
   return runtimeStatus();
 }
 
 // skills/docent/scripts/src/commands/update.mjs
+init_media();
+init_cli_text();
+init_workspace();
 import { access as access4, readdir as readdir7 } from "node:fs/promises";
-import { join as join30 } from "node:path";
+import { join as join31 } from "node:path";
+init_scenarios();
 async function exists3(path) {
   try {
     await access4(path);
@@ -38471,16 +38932,16 @@ async function idsIn(dir, ext) {
 }
 async function runUpdate(projectDir) {
   const dir = docentDir(projectDir);
-  const before = new Set((await readJsonIfExists(join30(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
+  const before = new Set((await readJsonIfExists(join31(dir, "inventory.json")) ?? { screens: [] }).screens.map((s) => s.id));
   const { inventory, problems, warnings: warnings3 } = await runInventory(projectDir);
   const now = new Set(inventory.screens.map((s) => s.id));
   const added = [...now].filter((id) => !before.has(id)).sort();
   const media = mediaPaths(projectDir);
   const leftovers = /* @__PURE__ */ new Set([
-    ...await idsIn(join30(dir, "screens"), ".json"),
-    ...await idsIn(join30(dir, "scenarios"), ".json"),
-    ...await idsIn(join30(media.root, "img"), ".png"),
-    ...await idsIn(join30(media.root, "gif"), ".gif")
+    ...await idsIn(join31(dir, "screens"), ".json"),
+    ...await idsIn(join31(dir, "scenarios"), ".json"),
+    ...await idsIn(join31(media.root, "img"), ".png"),
+    ...await idsIn(join31(media.root, "gif"), ".gif")
   ]);
   const removed = [...leftovers].filter((id) => !now.has(id)).sort();
   const reanalyze = await runPending(projectDir);
@@ -38488,7 +38949,7 @@ async function runUpdate(projectDir) {
     const gone = new Set(removed);
     for (const { id } of inventory.screens) {
       if (reanalyze.some((x) => x.id === id)) continue;
-      const s = await readJsonIfExists(join30(dir, "screens", `${id}.json`)).catch(() => void 0);
+      const s = await readJsonIfExists(join31(dir, "screens", `${id}.json`)).catch(() => void 0);
       const refs = [s?.parentId, ...(s?.actions ?? []).flatMap((a) => [a.navigatesTo, a.opens])];
       if (refs.some((r) => r && gone.has(r))) reanalyze.push({ id, reason: t("\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870") });
     }
@@ -38500,6 +38961,10 @@ async function runUpdate(projectDir) {
 }
 
 // skills/docent/scripts/src/docent.mjs
+init_cli_text();
+init_config();
+init_playwright();
+init_workspace();
 var usage = () => [
   t("\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]"),
   t("  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)"),
@@ -38526,7 +38991,7 @@ var usage = () => [
   t("  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)"),
   t("  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC")
 ].join("\n");
-var ASSETS_DIR = join31(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join32(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -38569,7 +39034,8 @@ async function main() {
       if (r.appIgnored) console.log(t("--app\uC740 \uC4F0\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC571 \uD3F4\uB354\uB97C \uBC14\uAFB8\uB824\uBA74 .docent/config.yaml\uC758 app\uC744 \uACE0\uCE58\uC138\uC694."));
       if (r.app) console.log(t("\uC571 \uD3F4\uB354: {0}", r.app));
       console.log(t("\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}", r.detectors.length ? r.detectors.join(", ") : t("\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)")));
-      if (r.desktop) console.log(t("\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)", r.desktop));
+      if (r.desktop === "electron") console.log(t('\uB370\uC2A4\uD06C\uD1B1 \uC571(electron)\uC785\uB2C8\uB2E4: \uC2E4\uD589\xB7\uCEA1\uCC98\uB294 run.json\uC758 mode: "electron"\uC73C\uB85C \uD654\uBA74\uB9C8\uB2E4 \uC571\uC744 \uB744\uC6CC \uD569\uB2C8\uB2E4'));
+      else if (r.desktop) console.log(t("\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)", r.desktop));
       return 0;
     }
     case "inventory": {
@@ -38639,7 +39105,8 @@ ${r.commands}`);
       }
       if (sub === "start") {
         const r = await runStart(project, { install: args.includes("--install") });
-        console.log(r.reused ? t("\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}", r.baseUrl) : t("\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}", r.baseUrl));
+        if (r.electron) console.log(t("Electron \uC571\uC744 \uC900\uBE44\uD588\uC2B5\uB2C8\uB2E4. \uCEA1\uCC98\xB7\uB179\uD654\uAC00 \uD654\uBA74\uB9C8\uB2E4 \uC571\uC744 \uB744\uC6C1\uB2C8\uB2E4."));
+        else console.log(r.reused ? t("\uC774\uBBF8 \uC751\uB2F5 \uC911\uC778 \uC571\uC744 \uC501\uB2C8\uB2E4: {0}", r.baseUrl) : t("\uC571\uC744 \uB744\uC6E0\uC2B5\uB2C8\uB2E4: {0}", r.baseUrl));
         return 0;
       }
       if (sub === "stop") {
@@ -38649,7 +39116,8 @@ ${r.commands}`);
       }
       if (sub === "status") {
         const r = await runStatus(project);
-        console.log(r.configured ? `${r.baseUrl} \u2014 ${r.up ? t("\uC751\uB2F5 \uC911") : t("\uC751\uB2F5 \uC5C6\uC74C")}${r.pid ? ` (pid ${r.pid})` : ""}` : t(".docent/run.json \uC5C6\uC74C"));
+        if (r.electron) console.log(r.up ? t("Electron \uC571 \u2014 \uC9C4\uC785\uC810 \uC788\uC74C") : t("Electron \uC571 \u2014 \uC9C4\uC785\uC810 \uC5C6\uC74C(\uBE4C\uB4DC \uD544\uC694)"));
+        else console.log(r.configured ? `${r.baseUrl} \u2014 ${r.up ? t("\uC751\uB2F5 \uC911") : t("\uC751\uB2F5 \uC5C6\uC74C")}${r.pid ? ` (pid ${r.pid})` : ""}` : t(".docent/run.json \uC5C6\uC74C"));
         return 0;
       }
       break;

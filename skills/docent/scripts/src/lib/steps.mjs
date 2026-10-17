@@ -204,6 +204,12 @@ export async function maskContext(context, selectors) {
   }, css);
 }
 
+// 이미 열린 창에 가림 스타일을 넣는다(Electron 첫 창처럼 init script가 늦은 경우)
+export async function maskPage(page, selectors) {
+  if (!selectors?.length) return;
+  await page.addStyleTag({ content: `${selectors.join(', ')} { filter: blur(6px) !important; }` }).catch(() => {});
+}
+
 // 단계 값에 환경변수(${NAME})가 있는지 — 계정 같은 값이 캡처·GIF에 찍히지 않게 막는 데 쓴다
 export function usesEnvValue(steps) {
   return steps.some((s) => typeof s.value === 'string' && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(s.value));

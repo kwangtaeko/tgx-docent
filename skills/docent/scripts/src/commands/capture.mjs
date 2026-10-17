@@ -76,7 +76,7 @@ export async function openScreen(page, { baseUrl, path, setup, loginPath, onPage
   return undefined;
 }
 
-export async function runCapture(projectDir, ids) {
+export async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   const run = await loadRun(projectDir);
   const config = await loadConfig(projectDir);
   const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
@@ -84,6 +84,10 @@ export async function runCapture(projectDir, ids) {
   const paths = mediaPaths(projectDir);
   const loginPath = config.auth?.loginPath ?? '/login';
   await ensureMediaDirs(projectDir);
+  if (run.mode === 'electron') {
+    const { captureElectron } = await import('./electron.mjs');
+    return captureElectron(projectDir, run, config, targets, { launch: electronLauncher });
+  }
 
   const result = { captured: [], failed: [], skipped: [] };
   const browser = await launchBrowser();

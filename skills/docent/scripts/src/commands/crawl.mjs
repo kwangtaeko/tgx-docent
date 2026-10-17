@@ -61,6 +61,7 @@ async function sitemapLocations(origin) {
 
 export async function runCrawl(projectDir, { maxPages = 200, maxDepth = 3 } = {}) {
   const run = await loadRun(projectDir);
+  if (run.mode === 'electron') throw new Error(t('데스크톱 앱(Electron)은 링크로 돌 수 없어 crawl을 하지 않습니다. 화면 목록은 소스 분석 결과를 씁니다'));
   const inventory = await readJson(join(docentDir(projectDir), 'inventory.json'));
   const pages = inventory.screens.filter((s) => s.kind === 'page' && s.route);
   const origin = new URL(run.baseUrl).origin;

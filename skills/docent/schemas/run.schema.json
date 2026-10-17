@@ -4,9 +4,9 @@
   "title": "docent run.json (앱 실행 방법)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["mode", "baseUrl"],
+  "required": ["mode"],
   "properties": {
-    "mode": { "enum": ["auto", "url"] },
+    "mode": { "enum": ["auto", "url", "electron"] },
     "baseUrl": { "type": "string", "pattern": "^https?://" },
     "install": { "type": "array", "items": { "type": "string", "minLength": 1 } },
     "start": { "type": "string", "minLength": 1 },
@@ -21,8 +21,21 @@
         "path": { "type": "string", "pattern": "^/" },
         "timeoutSec": { "type": "integer", "minimum": 1, "maximum": 1800 }
       }
+    },
+    "electron": {
+      "description": "mode: electron — 데스크톱 앱을 Playwright Electron으로 화면마다 띄운다(baseUrl 없음). main은 cwd 기준 앱 진입점(빌드된 main 스크립트나 package.json이 있는 폴더)",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["main"],
+      "properties": {
+        "main": { "type": "string", "minLength": 1 },
+        "args": { "type": "array", "items": { "type": "string" } }
+      }
     }
   },
-  "if": { "properties": { "mode": { "const": "auto" } } },
-  "then": { "required": ["start"] }
+  "allOf": [
+    { "if": { "properties": { "mode": { "const": "auto" } } }, "then": { "required": ["start", "baseUrl"] } },
+    { "if": { "properties": { "mode": { "const": "url" } } }, "then": { "required": ["baseUrl"] } },
+    { "if": { "properties": { "mode": { "const": "electron" } } }, "then": { "required": ["electron"] } }
+  ]
 }
