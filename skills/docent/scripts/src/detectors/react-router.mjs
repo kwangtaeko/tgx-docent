@@ -74,7 +74,7 @@ export async function warnings(projectDir, inApp = (p) => p) {
   const config = await routeConfigFile(projectDir);
   if (!config) {
     if (await hasDependency(projectDir, ['@remix-run/react'])) return [];
-    return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: trees.flat() })));
+    return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: Object.assign(trees.flat(), { spreads: trees.flatMap((x) => x.spreads ?? []) }) })));
   }
   const source = await readFile(join(projectDir, config), 'utf8');
   const out = unreadWarnings([{ file: inApp(config), nodes: parseRouteConfig(source) }]);

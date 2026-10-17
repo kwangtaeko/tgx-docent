@@ -1,4 +1,4 @@
-// /docent pending: 다시 분석해야 하는 화면 — 분석 결과 없음, 소스 변경, 사용자가 답한 확인 항목.
+// /docent pending: 다시 분석해야 하는 화면 — 분석 결과 없음, 소스 변경, 지금 검사 규칙에 맞지 않음, 사용자가 답한 확인 항목.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { validateScreen } from '../lib/schema.mjs';
@@ -6,6 +6,7 @@ import { t } from '../lib/cli-text.mjs';
 import { hashFiles } from '../lib/source-hash.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { parseReview } from './review.mjs';
+import { screenContentProblems } from './validate.mjs';
 
 export async function runPending(projectDir) {
   const dir = docentDir(projectDir);
@@ -40,6 +41,12 @@ export async function runPending(projectDir) {
     }
     if (current !== screen.sourceHash) {
       pending.push({ id, reason: t('소스 변경') });
+      continue;
+    }
+    // docent를 올린 뒤 검사가 엄격해져(메뉴 이름 글자 등) 예전 분석이 맞지 않으면 다시 분석한다
+    const problems = await screenContentProblems(projectDir, screen);
+    if (problems.length) {
+      pending.push({ id, reason: t('검사 문제 {0}건', problems.length) });
       continue;
     }
     const answered = [...answers].filter(([key, v]) => key.startsWith(`${id}|`) && v.checked && v.answer).length;

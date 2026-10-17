@@ -56,7 +56,10 @@ async function checkMenuPath(projectDir, s, problems) {
   }
 }
 
-async function checkScreen(projectDir, s, ids, problems) {
+// 화면 내용의 문제(근거·글자·readFiles·section). 다른 화면과의 연결·소스 해시는 보지 않는다.
+// pending이 "검사 규칙이 바뀌어 지금 기준으로는 맞지 않는 분석"을 다시 분석 대상으로 고를 때도 쓴다
+export async function screenContentProblems(projectDir, s) {
+  const problems = [];
   for (const [ev, text] of evidenceChecks(s)) {
     // 근거가 여럿이면 한 곳에서라도 글자가 보이면 된다(문제는 마지막 근거의 것으로 알린다)
     let r;
@@ -84,6 +87,11 @@ async function checkScreen(projectDir, s, ids, problems) {
   for (const x of [...s.fields, ...s.actions]) {
     if (x.section !== undefined && !titles.has(x.section)) problems.push(`${s.id}: ${t('"{0}"의 section "{1}"이 sections에 없습니다', x.label, x.section)}`);
   }
+  return problems;
+}
+
+async function checkScreen(projectDir, s, ids, problems) {
+  problems.push(...(await screenContentProblems(projectDir, s)));
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t('없는 부모 화면 {0}', s.parentId)}`);
   for (const a of s.actions) {
     for (const key of ['navigatesTo', 'opens']) {

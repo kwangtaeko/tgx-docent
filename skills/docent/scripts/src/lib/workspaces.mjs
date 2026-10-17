@@ -5,8 +5,9 @@ import { parse } from 'yaml';
 import { DETECTORS } from '../detectors/index.mjs';
 import { isDir, isFile, readJsonc, SKIP_DIRS } from '../detectors/shared.mjs';
 
-// 워크스페이스 설정 없이 frontend/·backend/처럼 나눈 저장소도 있다
-const FALLBACK = ['apps/*', 'packages/*', '*'];
+const FALLBACK = ['apps/*', 'packages/*'];
+// 그래도 앱이 없으면: 워크스페이스 설정 없이 frontend/·backend/처럼 나눈 저장소
+const ROOT_FALLBACK = ['*'];
 
 async function patterns(projectDir) {
   const pkg = await readJsonc(join(projectDir, 'package.json'));
@@ -18,7 +19,7 @@ async function patterns(projectDir) {
     // 없거나 깨진 파일은 다른 출처로
   }
   const list = [...(Array.isArray(fromPkg) ? fromPkg : []), ...(Array.isArray(fromPnpm) ? fromPnpm : [])].filter((p) => typeof p === 'string');
-  return list.length ? list : FALLBACK;
+  return list.length ? { list, configured: true } : { list: FALLBACK, configured: false };
 }
 
 // 'apps/*'·'apps/**'는 apps 바로 아래 폴더, 그 밖에는 적힌 경로 그대로('!' 제외 패턴은 뺀다)
@@ -53,8 +54,15 @@ export async function desktopKind(dir) {
 // → [{ dir, detectors, desktop? }] 워크스페이스 폴더 중 감지기가 맞는 앱(이름순).
 // 감지기가 맞는 앱이 하나도 없으면, 화면 라이브러리(React·Vue 등)나 데스크톱 런타임을 쓰는 폴더를 detectors: []로 돌려준다
 export async function findWorkspaceApps(projectDir) {
+  const { list, configured } = await patterns(projectDir);
+  const apps = await appsIn(projectDir, list);
+  // 워크스페이스 설정도 apps/*·packages/*의 앱도 없을 때만 루트 바로 아래 폴더를 본다(docs/ 같은 보조 사이트를 앱 후보로 섞지 않게)
+  return apps.length || configured ? apps : appsIn(projectDir, ROOT_FALLBACK);
+}
+
+async function appsIn(projectDir, list) {
   const dirs = new Set();
-  for (const pattern of await patterns(projectDir)) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
+  for (const pattern of list) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
   const detected = [];
   const ui = [];
   for (const dir of [...dirs].sort()) {

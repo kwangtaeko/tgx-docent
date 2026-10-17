@@ -192,10 +192,9 @@ function parseObject(tokens, i) {
           break;
         }
         case 'children':
-          if (isP(value[0], '[')) {
-            node.children = parseArrayOfObjects(tokens, start);
-            node.spreads = spreadLines(tokens, start);
-          }
+          if (isP(value[0], '[')) node.children = parseArrayOfObjects(tokens, start);
+          // 변수·함수 호출로 붙인 자식(children: adminRoutes)은 읽지 못한다. 이 라우트는 레이아웃이라 화면도 아니다
+          else node.dynamicChildren = key.line;
           break;
         case 'redirect':
           node.redirect = true;
@@ -224,10 +223,29 @@ function spreadLines(tokens, i) {
   return lines;
 }
 
-// tokens[i] = '['. 배열 안의 라우트 객체
+// 라우트 목록 배열 맨 위의 스프레드: createBrowserRouter([...publicRoutes])·useRoutes([...])·routes: [...]·
+// const routes: RouteObject[] = [...]. 자식 배열의 스프레드는 parseArrayOfObjects가 따로 본다
+const ROUTER_CALLS = new Set(['createBrowserRouter', 'createHashRouter', 'createMemoryRouter', 'useRoutes']);
+const ROUTE_NAMES = new Set(['routes', 'RouteObject', 'RouteRecordRaw']);
+function routeArraySpreads(tokens) {
+  const lines = [];
+  tokens.forEach((tok, i) => {
+    if (!isP(tok, '[')) return;
+    const [p1, p2] = [tokens[i - 1], tokens[i - 2]];
+    const routeList =
+      (isP(p1, '(') && ROUTER_CALLS.has(p2?.v)) ||
+      (isP(p1, ':') && p2?.v === 'routes') ||
+      (isP(p1, '=') && tokens.slice(Math.max(0, i - 7), i - 1).some((t) => t.t === 'id' && ROUTE_NAMES.has(t.v)));
+    if (routeList) lines.push(...spreadLines(tokens, i));
+  });
+  return lines;
+}
+
+// tokens[i] = '['. 배열 안의 라우트 객체(바로 안의 스프레드 줄은 nodes.spreads)
 function parseArrayOfObjects(tokens, i) {
   const end = matching(tokens, i);
   const nodes = [];
+  nodes.spreads = spreadLines(tokens, i);
   for (let j = i + 1; j < end; j++) {
     if (!isP(tokens[j], '{')) continue;
     const r = parseObject(tokens, j);
@@ -249,6 +267,7 @@ export function parseRouteObjects(source) {
       i = r.end;
     }
   }
+  roots.spreads = routeArraySpreads(tokens);
   return roots;
 }
 
@@ -320,10 +339,13 @@ export function parseRouteConfig(source) {
 function parseConfigArray(tokens, i) {
   const end = matching(tokens, i);
   const nodes = [];
+  nodes.spreads = [];
   let j = i + 1;
   while (j < end) {
     let k = j;
     if (isP(tokens[k], '...')) k++;
+    // ...adminRoutes처럼 route()·prefix() 호출이 아닌 스프레드는 읽지 못한다
+    if (k > j && !(tokens[k]?.t === 'id' && CONFIG_CALLS.has(tokens[k].v))) nodes.spreads.push(tokens[j].line);
     if (tokens[k]?.t === 'id' && CONFIG_CALLS.has(tokens[k].v) && isP(tokens[k + 1], '(')) {
       const close = matching(tokens, k + 1);
       nodes.push(configNode(tokens, k, close));
@@ -348,8 +370,12 @@ function configNode(tokens, k, close) {
     j = isP(tokens[end], ',') ? end + 1 : end;
   }
   const str = (a) => (a && a.value.length === 1 && a.value[0].t === 'str' ? a.value[0].v : undefined);
-  const kids = (a) => (a && isP(a.value[0], '[') ? parseConfigArray(tokens, a.at) : []);
   const node = newNode(tokens[k].line);
+  const kids = (a) => {
+    if (a && isP(a.value[0], '[')) return parseConfigArray(tokens, a.at);
+    if (a) node.dynamicChildren = a.value[0]?.line ?? node.line; // route('admin', 'f', adminRoutes)
+    return [];
+  };
   const setPath = (a) => {
     const p = str(a);
     if (p === undefined) node.dynamicPath = true;
@@ -382,7 +408,7 @@ function joinPath(base, path) {
 export function flattenRoutes(nodes, base = '/') {
   const out = [];
   for (const node of nodes) {
-    if (node.dynamicPath) continue;
+    if (node.dynamicPath || node.dynamicChildren) continue;
     const full = node.index ? base : joinPath(base, node.path);
     if (node.children.length) out.push(...flattenRoutes(node.children, full));
     else if (node.component && !node.redirect) out.push({ path: full, node });
@@ -394,9 +420,10 @@ export function flattenRoutes(nodes, base = '/') {
 export function unreadRoutes(nodes) {
   const lines = [];
   const visit = (list) => {
+    lines.push(...(list.spreads ?? []));
     for (const node of list) {
       if (node.dynamicPath) lines.push(node.line);
-      lines.push(...(node.spreads ?? []));
+      if (node.dynamicChildren) lines.push(node.dynamicChildren);
       visit(node.children);
     }
   };

@@ -76,3 +76,8 @@ test('없는 화면의 시나리오와 파일명 불일치', async () => {
   await rm(join(docent, 'scenarios', 'ghost.json'));
   await mkdir(join(docent, 'scenarios'), { recursive: true });
 });
+
+test('GIF 대상: 글자 없는 동작(행 클릭)만 있는 화면은 뺀다', () => {
+  const list = [{ id: 'a', actions: [{ label: '행 클릭', unlabeled: true }] }, { id: 'b', actions: [{ label: '저장' }] }];
+  assert.deepEqual(gifTargets(list, DEFAULT_CONFIG), ['b']);
+});

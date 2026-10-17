@@ -4,11 +4,14 @@ import { loadConfig } from '../lib/config.mjs';
 import { t } from '../lib/cli-text.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 
-// screens: 화면 JSON 배열. 기본값은 버튼 동작이 있는 화면, config.gif.screens로 지정·제외
+// 녹화로 누를 수 있는 동작: 화면에 글자가 있는 버튼(글자 없는 행 클릭 등은 단계로 적을 수 없음)
+const clickable = (s) => (s.actions ?? []).filter((a) => !a.unlabeled);
+
+// screens: 화면 JSON 배열. 기본값은 글자 있는 버튼 동작이 있는 화면, config.gif.screens로 지정·제외
 export function gifTargets(screens, config) {
   const { include = [], exclude = [] } = config.gif?.screens ?? {};
   return screens
-    .filter((s) => (include.length ? include.includes(s.id) : (s.actions ?? []).length > 0))
+    .filter((s) => (include.length ? include.includes(s.id) : clickable(s).length > 0))
     .filter((s) => !exclude.includes(s.id))
     .map((s) => s.id);
 }

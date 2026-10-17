@@ -248,5 +248,6 @@ test('워크플로우: 메뉴에 있는 화면으로는 메뉴 이동 연결, �
   assert.equal(edgeKind(screens, 'a', 'b'), 'menu');
   assert.equal(edgeKind(screens, 'a--m', 'b'), undefined); // 창을 닫고 돌아간 뒤에 메뉴로
   assert.equal(edgeKind(screens, 'a', 'c'), undefined); // 메뉴에 없는 화면
-  assert.equal(edgeKind(screens, 'v', 'b'), 'menu'); // view의 부모는 닫고 돌아감이 아니지만 메뉴에 있으면 메뉴 이동
+  assert.equal(edgeKind(screens, 'v', 'b'), 'menu');
+  assert.equal(edgeKind(screens, 'a', 'a'), undefined); // 같은 화면에 머무는 단계 // view의 부모는 닫고 돌아감이 아니지만 메뉴에 있으면 메뉴 이동
 });

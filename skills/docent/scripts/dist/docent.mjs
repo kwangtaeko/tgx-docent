@@ -27636,6 +27636,7 @@ var commands_a_default = {
   "\uBD84\uC11D \uACB0\uACFC \uC5C6\uC74C": "No analysis result",
   "\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C": "Analysis result is unreadable",
   "\uC18C\uC2A4 \uBCC0\uACBD": "Source changed",
+  "\uAC80\uC0AC \uBB38\uC81C {0}\uAC74": "{0} check problem(s)",
   "\uD655\uC778 \uD56D\uBAA9 \uB2F5\uBCC0 {0}\uAC74": "{0} review item(s) answered",
   // commands/update.mjs
   "\uC0AD\uC81C\uB41C \uD654\uBA74 \uCC38\uC870": "Refers to a removed screen",
@@ -29387,7 +29388,7 @@ var WINDOW = /* @__PURE__ */ new Set(["modal", "popup"]);
 function edgeKind(screens, a, b) {
   const from = screens.get(a);
   const to = screens.get(b);
-  if (!from || !to) return void 0;
+  if (!from || !to || a === b) return void 0;
   if (from.parentId === b && from.kind !== "view") return "action";
   if (from.actions.some((x) => x.navigatesTo === b || x.opens === b)) return "action";
   if (!WINDOW.has(from.kind) && !WINDOW.has(to.kind) && to.menuPath) return "menu";
@@ -35824,7 +35825,8 @@ async function checkMenuPath(projectDir, s, problems) {
     if (!found) problems.push(`${s.id}: ${t('\uBA54\uB274 \uACBD\uB85C\uC758 "{0}"\uC774 \uADFC\uAC70({1}) \uADFC\uCC98\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', name5, places.join(", "))}`);
   }
 }
-async function checkScreen(projectDir, s, ids, problems) {
+async function screenContentProblems(projectDir, s) {
+  const problems = [];
   for (const [ev, text] of evidenceChecks(s)) {
     let r;
     for (const one of [ev].flat()) {
@@ -35849,6 +35851,10 @@ async function checkScreen(projectDir, s, ids, problems) {
   for (const x of [...s.fields, ...s.actions]) {
     if (x.section !== void 0 && !titles.has(x.section)) problems.push(`${s.id}: ${t('"{0}"\uC758 section "{1}"\uC774 sections\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', x.label, x.section)}`);
   }
+  return problems;
+}
+async function checkScreen(projectDir, s, ids, problems) {
+  problems.push(...await screenContentProblems(projectDir, s));
   if (s.parentId && !ids.has(s.parentId)) problems.push(`${s.id}: ${t("\uC5C6\uB294 \uBD80\uBAA8 \uD654\uBA74 {0}", s.parentId)}`);
   for (const a of s.actions) {
     for (const key of ["navigatesTo", "opens"]) {
@@ -36610,9 +36616,10 @@ function encodeGif(frames, { fps = 10, holdLastMs = 1500 } = {}) {
 
 // skills/docent/scripts/src/commands/scenarios.mjs
 import { join as join15 } from "node:path";
+var clickable = (s) => (s.actions ?? []).filter((a) => !a.unlabeled);
 function gifTargets(screens, config) {
   const { include = [], exclude = [] } = config.gif?.screens ?? {};
-  return screens.filter((s) => include.length ? include.includes(s.id) : (s.actions ?? []).length > 0).filter((s) => !exclude.includes(s.id)).map((s) => s.id);
+  return screens.filter((s) => include.length ? include.includes(s.id) : clickable(s).length > 0).filter((s) => !exclude.includes(s.id)).map((s) => s.id);
 }
 var isStale = (scenario, screen) => !scenario.locked && screen.sourceHash !== scenario.sourceHash;
 var needsPath = (entry) => entry.kind !== "page" || !entry.route || entry.route.includes("[");
@@ -37139,10 +37146,8 @@ function parseObject(tokens, i) {
           break;
         }
         case "children":
-          if (isP(value[0], "[")) {
-            node.children = parseArrayOfObjects(tokens, start);
-            node.spreads = spreadLines(tokens, start);
-          }
+          if (isP(value[0], "[")) node.children = parseArrayOfObjects(tokens, start);
+          else node.dynamicChildren = key.line;
           break;
         case "redirect":
           node.redirect = true;
@@ -37168,9 +37173,22 @@ function spreadLines(tokens, i) {
   }
   return lines;
 }
+var ROUTER_CALLS = /* @__PURE__ */ new Set(["createBrowserRouter", "createHashRouter", "createMemoryRouter", "useRoutes"]);
+var ROUTE_NAMES = /* @__PURE__ */ new Set(["routes", "RouteObject", "RouteRecordRaw"]);
+function routeArraySpreads(tokens) {
+  const lines = [];
+  tokens.forEach((tok, i) => {
+    if (!isP(tok, "[")) return;
+    const [p1, p2] = [tokens[i - 1], tokens[i - 2]];
+    const routeList = isP(p1, "(") && ROUTER_CALLS.has(p2?.v) || isP(p1, ":") && p2?.v === "routes" || isP(p1, "=") && tokens.slice(Math.max(0, i - 7), i - 1).some((t2) => t2.t === "id" && ROUTE_NAMES.has(t2.v));
+    if (routeList) lines.push(...spreadLines(tokens, i));
+  });
+  return lines;
+}
 function parseArrayOfObjects(tokens, i) {
   const end = matching(tokens, i);
   const nodes = [];
+  nodes.spreads = spreadLines(tokens, i);
   for (let j = i + 1; j < end; j++) {
     if (!isP(tokens[j], "{")) continue;
     const r = parseObject(tokens, j);
@@ -37190,6 +37208,7 @@ function parseRouteObjects(source) {
       i = r.end;
     }
   }
+  roots.spreads = routeArraySpreads(tokens);
   return roots;
 }
 function parseJsxRoutes(source) {
@@ -37255,10 +37274,12 @@ function parseRouteConfig(source) {
 function parseConfigArray(tokens, i) {
   const end = matching(tokens, i);
   const nodes = [];
+  nodes.spreads = [];
   let j = i + 1;
   while (j < end) {
     let k = j;
     if (isP(tokens[k], "...")) k++;
+    if (k > j && !(tokens[k]?.t === "id" && CONFIG_CALLS.has(tokens[k].v))) nodes.spreads.push(tokens[j].line);
     if (tokens[k]?.t === "id" && CONFIG_CALLS.has(tokens[k].v) && isP(tokens[k + 1], "(")) {
       const close = matching(tokens, k + 1);
       nodes.push(configNode(tokens, k, close));
@@ -37282,8 +37303,12 @@ function configNode(tokens, k, close) {
     j = isP(tokens[end], ",") ? end + 1 : end;
   }
   const str = (a) => a && a.value.length === 1 && a.value[0].t === "str" ? a.value[0].v : void 0;
-  const kids = (a) => a && isP(a.value[0], "[") ? parseConfigArray(tokens, a.at) : [];
   const node = newNode(tokens[k].line);
+  const kids = (a) => {
+    if (a && isP(a.value[0], "[")) return parseConfigArray(tokens, a.at);
+    if (a) node.dynamicChildren = a.value[0]?.line ?? node.line;
+    return [];
+  };
   const setPath = (a) => {
     const p = str(a);
     if (p === void 0) node.dynamicPath = true;
@@ -37313,7 +37338,7 @@ function joinPath(base, path) {
 function flattenRoutes(nodes, base = "/") {
   const out = [];
   for (const node of nodes) {
-    if (node.dynamicPath) continue;
+    if (node.dynamicPath || node.dynamicChildren) continue;
     const full = node.index ? base : joinPath(base, node.path);
     if (node.children.length) out.push(...flattenRoutes(node.children, full));
     else if (node.component && !node.redirect) out.push({ path: full, node });
@@ -37323,9 +37348,10 @@ function flattenRoutes(nodes, base = "/") {
 function unreadRoutes(nodes) {
   const lines = [];
   const visit = (list) => {
+    lines.push(...list.spreads ?? []);
     for (const node of list) {
       if (node.dynamicPath) lines.push(node.line);
-      lines.push(...node.spreads ?? []);
+      if (node.dynamicChildren) lines.push(node.dynamicChildren);
       visit(node.children);
     }
   };
@@ -37577,7 +37603,7 @@ async function warnings(projectDir, inApp = (p) => p) {
   const config = await routeConfigFile(projectDir);
   if (!config) {
     if (await hasDependency(projectDir, ["@remix-run/react"])) return [];
-    return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: trees.flat() })));
+    return unreadWarnings((await codeRouters(projectDir)).map(({ file, trees }) => ({ file: inApp(file), nodes: Object.assign(trees.flat(), { spreads: trees.flatMap((x) => x.spreads ?? []) }) })));
   }
   const source = await readFile11(join20(projectDir, config), "utf8");
   const out = unreadWarnings([{ file: inApp(config), nodes: parseRouteConfig(source) }]);
@@ -37762,7 +37788,8 @@ function detectorByName(name5) {
 var import_yaml2 = __toESM(require_dist(), 1);
 import { readFile as readFile14, readdir as readdir5 } from "node:fs/promises";
 import { join as join23, posix as posix7 } from "node:path";
-var FALLBACK = ["apps/*", "packages/*", "*"];
+var FALLBACK = ["apps/*", "packages/*"];
+var ROOT_FALLBACK = ["*"];
 async function patterns(projectDir) {
   const pkg = await readJsonc(join23(projectDir, "package.json"));
   const fromPkg = Array.isArray(pkg?.workspaces) ? pkg.workspaces : pkg?.workspaces?.packages;
@@ -37772,7 +37799,7 @@ async function patterns(projectDir) {
   } catch {
   }
   const list = [...Array.isArray(fromPkg) ? fromPkg : [], ...Array.isArray(fromPnpm) ? fromPnpm : []].filter((p) => typeof p === "string");
-  return list.length ? list : FALLBACK;
+  return list.length ? { list, configured: true } : { list: FALLBACK, configured: false };
 }
 async function expand(projectDir, pattern) {
   if (pattern.startsWith("!")) return [];
@@ -37797,8 +37824,13 @@ async function desktopKind(dir) {
   return void 0;
 }
 async function findWorkspaceApps(projectDir) {
+  const { list, configured } = await patterns(projectDir);
+  const apps = await appsIn(projectDir, list);
+  return apps.length || configured ? apps : appsIn(projectDir, ROOT_FALLBACK);
+}
+async function appsIn(projectDir, list) {
   const dirs = /* @__PURE__ */ new Set();
-  for (const pattern of await patterns(projectDir)) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
+  for (const pattern of list) for (const dir of await expand(projectDir, pattern)) dirs.add(dir);
   const detected = [];
   const ui = [];
   for (const dir of [...dirs].sort()) {
@@ -38256,6 +38288,11 @@ async function runPending(projectDir) {
     }
     if (current !== screen.sourceHash) {
       pending.push({ id, reason: t("\uC18C\uC2A4 \uBCC0\uACBD") });
+      continue;
+    }
+    const problems = await screenContentProblems(projectDir, screen);
+    if (problems.length) {
+      pending.push({ id, reason: t("\uAC80\uC0AC \uBB38\uC81C {0}\uAC74", problems.length) });
       continue;
     }
     const answered = [...answers].filter(([key, v]) => key.startsWith(`${id}|`) && v.checked && v.answer).length;

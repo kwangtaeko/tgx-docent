@@ -59,7 +59,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 ### 3. 화면 분석
 
-1. 대상은 `$DOCENT pending`이 보여 주는 화면입니다: 분석 결과가 없거나, 소스가 바뀌었거나, 사용자가 `review.md`에 답을 달고 체크한 화면. (최신인 화면은 건너뛰므로 중단 후 다시 실행하면 이어서 진행됩니다.) `/docent-analyze <화면ID>`처럼 지정하면 그 화면, `all`이면 전체를 다시 분석합니다
+1. 대상은 `$DOCENT pending`이 보여 주는 화면입니다: 분석 결과가 없거나, 소스가 바뀌었거나, docent를 올린 뒤 검사가 엄격해져 예전 분석이 맞지 않거나, 사용자가 `review.md`에 답을 달고 체크한 화면. (최신인 화면은 건너뛰므로 중단 후 다시 실행하면 이어서 진행됩니다.) `/docent-analyze <화면ID>`처럼 지정하면 그 화면, `all`이면 전체를 다시 분석합니다
 2. 화면마다 `screen-analyzer` 서브에이전트를 호출합니다. 동시에 `config.yaml`의 `analyze.concurrency`개(기본 4)까지. 서브에이전트가 없는 에이전트는 `<SKILL_DIR>/agents/screen-analyzer.md`의 지시를 화면 하나씩 직접 수행합니다. 전달할 것: 프로젝트 루트, `SKILL_DIR`, `DOCENT`, 화면 ID와 inventory 항목, `review.md`에서 그 화면 key(`<화면ID>|…`)의 줄 중 사용자가 체크하고 답한 항목
 3. 분석 중 하위 화면(자체 입력·버튼이 있는 모달·팝업) 후보가 보고되면 `.docent/inventory.agent.json`에 `{ "route": null, "kind": "modal", "parentRoute": "<부모 route>", "name": "<영문 이름>", "files": [...], "evidence": "<여는 지점>" }`로 추가하고 `$DOCENT inventory` 후 그 화면도 분석합니다
 4. 분석이 끝난 화면의 `menuPath.value`는 `inventory.json`에도 반영됩니다(다음 `inventory` 실행 때 유지)

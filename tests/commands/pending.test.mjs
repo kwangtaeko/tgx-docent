@@ -37,3 +37,13 @@ test('깨진 화면 파일은 다시 분석 대상', async () => {
   await writeFile(join(docent, 'screens', 'orders.json'), 'null');
   assert.deepEqual(await runPending(dir), [{ id: 'orders', reason: '분석 결과를 읽을 수 없음' }]);
 });
+
+test('예전 기준으로 분석해 지금 검사에 맞지 않는 화면도 다시 분석한다(docent를 올린 뒤)', async () => {
+  const { dir, docent } = await golden();
+  const { readFile } = await import('node:fs/promises');
+  const path = join(docent, 'screens', 'orders-new.json');
+  const s = JSON.parse(await readFile(path, 'utf8'));
+  s.menuPath.value = ['주문관리', '근거에 없는 메뉴'];
+  await writeFile(path, JSON.stringify(s));
+  assert.deepEqual((await runPending(dir)).map((x) => x.id), ['orders-new']);
+});

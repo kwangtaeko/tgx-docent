@@ -8,7 +8,7 @@ const WINDOW = new Set(['modal', 'popup']);
 export function edgeKind(screens, a, b) {
   const from = screens.get(a);
   const to = screens.get(b);
-  if (!from || !to) return undefined;
+  if (!from || !to || a === b) return undefined; // 같은 화면에 머무는 단계는 연결이 아니다
   if (from.parentId === b && from.kind !== 'view') return 'action';
   if (from.actions.some((x) => x.navigatesTo === b || x.opens === b)) return 'action';
   if (!WINDOW.has(from.kind) && !WINDOW.has(to.kind) && to.menuPath) return 'menu';

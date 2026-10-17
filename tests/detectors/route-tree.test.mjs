@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath } from '../../skills/docent/scripts/src/detectors/route-tree.mjs';
+import { findImport, flattenRoutes, parseJsxRoutes, parseRouteConfig, parseRouteObjects, toDocentPath, unreadRoutes } from '../../skills/docent/scripts/src/detectors/route-tree.mjs';
 
 const paths = (nodes) => flattenRoutes(nodes).map((r) => r.path);
 
@@ -98,4 +98,17 @@ test('정규식이 (.*)·(.+)인 단독 파라미터도 Not-found catch-all', ()
   assert.equal(toDocentPath('/:catchAll(.*)'), undefined);
   assert.equal(toDocentPath('/:all(.+)'), undefined);
   assert.equal(toDocentPath('/docs/:rest(.*)'), '/docs/[...rest]');
+});
+
+test('읽지 못한 라우트: 변수 자식, 맨 위 스프레드, routes.ts의 스프레드·변수 자식', () => {
+  const childVar = parseRouteObjects("createBrowserRouter([\n{ path:'/admin', element:<L/>, children: adminRoutes },\n{ path:'/a', element:<A/> }])");
+  assert.deepEqual(unreadRoutes(childVar), [2]);
+  assert.deepEqual(paths(childVar), ['/a']); // 자식을 모르는 레이아웃은 화면이 아니다
+  assert.deepEqual(unreadRoutes(parseRouteObjects("createBrowserRouter([\n...publicRoutes,\n{ path:'/a', element:<A/> }])")), [2]);
+  assert.deepEqual(unreadRoutes(parseRouteObjects("const routes: RouteObject[] = [\n...x,\n{ path:'/a', element:<A/> }]")), [2]);
+  // 라우트 목록이 아닌 배열의 스프레드는 무시
+  assert.deepEqual(unreadRoutes(parseRouteObjects("foo([...bar]); const x = [...y]; createBrowserRouter([{ path:'/a', element:<A/> }])")), []);
+  const cfg = parseRouteConfig("export default [\nindex('h.tsx'),\n...adminRoutes,\n...prefix('x', [route('y', 'y.tsx')]),\nroute('z', 'z.tsx', zRoutes)] satisfies RouteConfig;");
+  assert.deepEqual(unreadRoutes(cfg), [3, 5]);
+  assert.deepEqual(paths(cfg), ['/', '/x/y']);
 });

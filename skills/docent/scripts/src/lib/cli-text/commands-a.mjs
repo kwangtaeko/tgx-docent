@@ -45,6 +45,7 @@ export default {
   '분석 결과 없음': 'No analysis result',
   '분석 결과를 읽을 수 없음': 'Analysis result is unreadable',
   '소스 변경': 'Source changed',
+  '검사 문제 {0}건': '{0} check problem(s)',
   '확인 항목 답변 {0}건': '{0} review item(s) answered',
 
   // commands/update.mjs
