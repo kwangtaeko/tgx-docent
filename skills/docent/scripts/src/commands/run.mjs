@@ -39,7 +39,9 @@ function commandsHash(run) {
 export function describeCommands(run) {
   return [
     ...(run.install ?? []).map((c) => t('설치: {0}', c)),
-    run.electron ? t('실행: Electron {0}', [run.electron.main, ...(run.electron.args ?? [])].join(' ')) : t('실행: {0}', run.start),
+    // 승인 화면에는 실행될 수 있는 것을 모두 보인다(모드와 상관없이 적힌 start·electron 모두)
+    ...(run.start !== undefined ? [t('실행: {0}', run.start)] : []),
+    ...(run.electron ? [t('실행: Electron {0}', [run.electron.main, ...(run.electron.args ?? [])].join(' '))] : []),
     ...(run.stop !== undefined ? [t('정리: {0}', run.stop)] : []),
     t('위치: {0}', run.cwd ?? '.'),
     ...Object.entries(run.env ?? {}).map(([k, v]) => t('환경: {0}={1}', k, v)),

@@ -17,7 +17,9 @@ export function gifTargets(screens, config) {
 }
 
 const isStale = (scenario, screen) => !scenario.locked && screen.sourceHash !== scenario.sourceHash;
-const needsPath = (entry) => entry.kind !== 'page' || !entry.route || entry.route.includes('[');
+// 웹: 하위 화면·동적 경로는 실제 경로가 필요하다. 데스크톱 앱(electron): 처음 뜨는 화면(/) 말고는 여는 준비 단계가 필요하다
+export const opensDirectly = (entry) => entry.kind === 'page' && (!entry.route || entry.route === '/');
+const needsPath = (entry, electron) => (electron ? !opensDirectly(entry) : entry.kind !== 'page' || !entry.route || entry.route.includes('['));
 
 // 시나리오를 (다시) 써야 하는 화면: 캡처 경로 필요(동적·하위 화면), GIF 대상, 낡음
 export async function runScenarios(projectDir) {
@@ -30,13 +32,14 @@ export async function runScenarios(projectDir) {
     if (s?.sourceHash) screens.set(id, s);
   }
   const gif = new Set(gifTargets([...screens.values()], config));
+  const electron = (await readJsonIfExists(join(dir, 'run.json')).catch(() => undefined))?.mode === 'electron';
   const list = [];
   for (const entry of inventory.screens) {
     const screen = screens.get(entry.id);
     if (!screen) continue;
     const scenario = await readJsonIfExists(join(dir, 'scenarios', `${entry.id}.json`)).catch(() => undefined);
     if (!scenario) {
-      if (needsPath(entry)) list.push({ id: entry.id, reason: t('캡처 경로 필요') });
+      if (needsPath(entry, electron)) list.push({ id: entry.id, reason: t('캡처 경로 필요') });
       else if (gif.has(entry.id)) list.push({ id: entry.id, reason: t('GIF 대상') });
     } else if (isStale(scenario, screen)) {
       list.push({ id: entry.id, reason: t('낡음') });

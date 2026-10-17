@@ -187,6 +187,8 @@ test('combine: 앱 작업 여러 개를 한 매뉴얼로 합친다(ID에 앱 이
   assert.ok(wf.includes('사용자 웹 · ') && wf.includes('s_web_orders'));
   assert.ok(r.files.includes('README.md'));
   assert.ok((await readFile(join(out, 'README.md'), 'utf8')).includes('2026-10-14'));
+  // 모은 캡처는 레포 안에 남기지 않는다
+  assert.deepEqual((await readdir(join(dir, '.docent'))).filter((n) => n.includes('combined')), []);
 });
 
 test('combine: 앱 작업 하나가 검증에 실패하면 그 앱 이름과 함께 멈춘다', async () => {

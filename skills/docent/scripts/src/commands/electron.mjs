@@ -3,7 +3,10 @@ import { writeFile } from 'node:fs/promises';
 import { t } from '../lib/cli-text.mjs';
 import { launchElectron } from '../lib/electron.mjs';
 import { clearFailure, mediaPaths, recordFailure } from '../lib/media.mjs';
-import { maskPage, runSteps, usesEnvValue } from '../lib/steps.mjs';
+import { maskContext, maskPage, runSteps, usesEnvValue } from '../lib/steps.mjs';
+import { docentDir, readJson } from '../lib/workspace.mjs';
+import { join } from 'node:path';
+import { opensDirectly } from './scenarios.mjs';
 import { CAPTURE_VIEWPORT, loadScenario } from './capture.mjs';
 import { framesToGif, GIF_VIEWPORT, recordSkipReason, recordSteps } from './record.mjs';
 import { approved, childEnv, describeCommands, runCwd } from './run.mjs';
@@ -20,10 +23,12 @@ async function launcherFor(projectDir, run, launch) {
   return (size) => launch({ ...options, size });
 }
 
-// 앱이 처음 띄우는 화면(주소 / 의 page)은 시나리오 없이, 그 밖에는 준비 단계(메뉴 클릭 등)가 있는 시나리오가 필요하다
-const opensDirectly = (screen) => screen.kind === 'page' && (!screen.route || screen.route === '/');
+// 앱이 처음 띄우는 화면(주소 / 의 page)은 시나리오 없이, 그 밖에는 준비 단계(메뉴 클릭 등)가 있는 시나리오가 필요하다(opensDirectly)
+const NEEDS_SETUP = () => t('데스크톱 앱에서 이 화면을 여는 준비 단계(메뉴 클릭 등)가 시나리오에 필요합니다');
 
 async function openOnApp(handle, config, setup) {
+  // 이미 뜬 첫 창에는 스타일을 바로, 이후 새 창·새로 읽는 문서에는 init script로 가린다
+  await maskContext(handle.context, config.mask.selectors);
   await maskPage(handle.page, config.mask.selectors);
   let shown = handle.page;
   if (setup?.length) {
@@ -40,7 +45,7 @@ export async function captureElectron(projectDir, run, config, targets, { launch
   for (const screen of targets) {
     const scenario = await loadScenario(projectDir, screen.id);
     if (!opensDirectly(screen) && !scenario?.setup?.length) {
-      result.skipped.push({ id: screen.id, reason: t('데스크톱 앱에서 이 화면을 여는 준비 단계(메뉴 클릭 등)가 시나리오에 필요합니다') });
+      result.skipped.push({ id: screen.id, reason: NEEDS_SETUP() });
       continue;
     }
     if (scenario && usesEnvValue(scenario.setup)) {
@@ -70,9 +75,10 @@ export async function recordElectron(projectDir, run, config, ids, { launch = la
   const start = await launcherFor(projectDir, run, launch);
   const paths = mediaPaths(projectDir);
   const result = { recorded: [], failed: [], skipped: [] };
+  const entries = new Map((await readJson(join(docentDir(projectDir), 'inventory.json'))).screens.map((e) => [e.id, e]));
   for (const id of ids) {
     const scenario = await loadScenario(projectDir, id);
-    const skip = await recordSkipReason(projectDir, id, scenario);
+    const skip = (await recordSkipReason(projectDir, id, scenario)) ?? (entries.get(id) && !opensDirectly(entries.get(id)) && !scenario.setup.length ? NEEDS_SETUP() : undefined);
     if (skip) {
       result.skipped.push({ id, reason: skip });
       continue;

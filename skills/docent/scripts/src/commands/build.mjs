@@ -1,5 +1,6 @@
 // /docent-build: 검증을 통과한 분석 결과로 .docent/out/에 프리셋·형식에 맞는 산출물(HTML·README·PDF·PPTX)을 만든다.
-import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { loadConfig } from '../lib/config.mjs';
 import { t } from '../lib/cli-text.mjs';
@@ -113,7 +114,13 @@ const prefixed = (ws, id) => (id === undefined ? undefined : `${ws}.${id}`);
 // 앱 하나의 분석 결과를 합친 매뉴얼용으로 바꾼다: ID·연결에 앱 이름, 메뉴 경로·기능·워크플로우 이름 앞에 앱 제목
 function renameApp(part, ws, title) {
   const re = (id) => prefixed(ws, id);
-  const inventory = part.inventory.screens.map((e) => ({ ...e, id: re(e.id), ...(e.parentId ? { parentId: re(e.parentId) } : {}), app: title }));
+  const inventory = part.inventory.screens.map((e) => ({
+    ...e,
+    id: re(e.id),
+    ...(e.parentId ? { parentId: re(e.parentId) } : {}),
+    ...(e.menuPath ? { menuPath: [title, ...e.menuPath] } : {}),
+    app: title,
+  }));
   const screens = new Map();
   for (const [id, s] of part.screens) {
     screens.set(re(id), {
@@ -133,11 +140,9 @@ function renameApp(part, ws, title) {
   return { inventory, screens, summary, media };
 }
 
-// 루트 config.yaml의 combine: 앱 작업마다 검증·읽기 → 하나의 산출물 입력으로. 캡처·GIF는 바뀐 ID로 한곳에 모은다
-async function loadCombined(projectDir, config, warnings) {
-  const root = docentDir(projectDir);
-  const mediaRoot = join(root, '.combined-media');
-  await rm(mediaRoot, { recursive: true, force: true });
+// 루트 config.yaml의 combine: 앱 작업마다 검증·읽기 → 하나의 산출물 입력으로.
+// 캡처·GIF는 바뀐 ID로 임시 폴더에 모은다(실제 데이터가 찍혔을 수 있어 레포 안에 남기지 않는다. build가 끝나면 지운다)
+async function loadCombined(projectDir, config, warnings, mediaRoot) {
   const merged = { inventory: { version: 1, screens: [] }, screens: new Map(), summary: { oneLiner: { value: '', screens: [] }, features: [], workflows: [] }, media: { images: new Set(), gifs: new Set() } };
   const oneLiners = [];
   const dates = [];
@@ -177,7 +182,23 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
   const skipped = [];
   // 루트에서 combine이 있으면 앱 작업들을 합친 매뉴얼, 아니면 지금 고른 작업 하나
   const combined = !workspaceName() && config.combine.length > 0;
-  const loaded = combined ? await loadCombined(projectDir, config, warnings) : await loadWorkspace(projectDir);
+  const staging = combined ? await mkdtemp(join(tmpdir(), 'docent-combined-')) : undefined;
+  try {
+    return await buildFrom(projectDir, config, combined ? await loadCombined(projectDir, config, warnings, staging) : await loadWorkspace(projectDir), {
+      assetsDir,
+      preset,
+      formats,
+      browserFactory,
+      warnings,
+      skipped,
+      combined,
+    });
+  } finally {
+    if (staging) await rm(staging, { recursive: true, force: true });
+  }
+}
+
+async function buildFrom(projectDir, config, loaded, { assetsDir, preset, formats, browserFactory, warnings, skipped, combined }) {
   const options = resolveOutputOptions(config, { preset, formats });
   const dir = docentDir(projectDir);
   const { inventory, screens, media, mediaRoot } = loaded;

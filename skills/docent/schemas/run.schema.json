@@ -34,8 +34,8 @@
     }
   },
   "allOf": [
-    { "if": { "properties": { "mode": { "const": "auto" } } }, "then": { "required": ["start", "baseUrl"] } },
-    { "if": { "properties": { "mode": { "const": "url" } } }, "then": { "required": ["baseUrl"] } },
-    { "if": { "properties": { "mode": { "const": "electron" } } }, "then": { "required": ["electron"] } }
+    { "if": { "properties": { "mode": { "const": "auto" } } }, "then": { "required": ["start", "baseUrl"], "not": { "required": ["electron"] } } },
+    { "if": { "properties": { "mode": { "const": "url" } } }, "then": { "required": ["baseUrl"], "not": { "required": ["electron"] } } },
+    { "if": { "properties": { "mode": { "const": "electron" } } }, "then": { "required": ["electron"], "not": { "required": ["start"] } } }
   ]
 }
