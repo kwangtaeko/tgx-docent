@@ -36,6 +36,8 @@
 
 `.docent/config.yaml`에서 언어(`language: ko | en`)와 색 테마(`output.theme: indigo | blue | emerald | rose | slate`)를 고릅니다. 언어는 화면 분석 전에 정합니다(화면 설명도 그 언어로 씁니다). 화면에 보이는 버튼 이름·메시지는 번역하지 않고 화면 그대로 인용합니다.
 
+사용자 웹과 관리자 웹처럼 앱 여러 개를 매뉴얼 하나로 묶을 수도 있습니다. 앱마다 따로 분석한 뒤(`--workspace <이름>`) 루트 `config.yaml`의 `combine` 목록대로 합칩니다.
+
 코드가 바뀌면 `/docent-update`로 바뀐 화면만 다시 처리합니다.
 
 ## 지원 스택

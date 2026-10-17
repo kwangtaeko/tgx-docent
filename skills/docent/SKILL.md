@@ -48,7 +48,26 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 ### 1. 준비
 
-`$DOCENT init`. 감지기는 `nextjs`(App·Pages Router), `react-router`(v6 코드 라우터·v7 `app/routes.ts`와 `flatRoutes()`·Remix v2 파일 이름 라우팅), `vue`(Vue Router·Nuxt, `srcDir`·`dir.pages` 포함), `sveltekit`입니다. 산출물 언어는 `config.yaml`의 `language`(`ko` 기본, `en` 영어)입니다. 사용자가 영어 문서를 원하면 `language: en`으로 바꿉니다(분석 전에 정해야 서술 항목도 그 언어로 씁니다). `$DOCENT`의 안내 문구도 이 언어를 따르며, 환경변수 `DOCENT_LANG`가 있으면 그것이 우선합니다. 모노레포라 루트에서 감지되지 않으면 `init`이 워크스페이스(`package.json` workspaces, `pnpm-workspace.yaml`, 설정이 없으면 `apps/*`·`packages/*`와 `frontend/`처럼 루트 바로 아래 폴더)에서 앱을 찾습니다. 하나면 `config.yaml`의 `app`으로 정하고, 여럿이면 후보 목록을 보여 주므로 어느 앱을 문서로 만들지 사용자에게 물어 `$DOCENT init --app <폴더>`로 다시 실행합니다(앱 하나당 `.docent` 하나, 앱을 바꾸려면 `app`을 고칩니다). 감지기가 맞는 앱이 없으면 React·Vue 등을 쓰는 화면 앱 폴더를 후보로 고릅니다. `init`이 데스크톱 앱(Electron·Tauri)이라고 알리면 화면 분석·산출물은 소스만으로 만들고 6단계(실행·캡처)는 건너뜁니다. 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다(Spring·WebForms·Django·PHP 등은 `<SKILL_DIR>/references/stacks/`의 힌트로 찾습니다).
+`$DOCENT init`. 감지기는 `nextjs`(App·Pages Router), `react-router`(v6 코드 라우터·v7 `app/routes.ts`와 `flatRoutes()`·Remix v2 파일 이름 라우팅), `vue`(Vue Router·Nuxt, `srcDir`·`dir.pages` 포함), `sveltekit`입니다. 산출물 언어는 `config.yaml`의 `language`(`ko` 기본, `en` 영어)입니다. 사용자가 영어 문서를 원하면 `language: en`으로 바꿉니다(분석 전에 정해야 서술 항목도 그 언어로 씁니다). `$DOCENT`의 안내 문구도 이 언어를 따르며, 환경변수 `DOCENT_LANG`가 있으면 그것이 우선합니다. 모노레포라 루트에서 감지되지 않으면 `init`이 워크스페이스(`package.json` workspaces, `pnpm-workspace.yaml`, 설정이 없으면 `apps/*`·`packages/*`와 `frontend/`처럼 루트 바로 아래 폴더)에서 앱을 찾습니다. 하나면 `config.yaml`의 `app`으로 정하고, 여럿이면 후보 목록을 보여 주므로 어느 앱을 문서로 만들지 사용자에게 물어 `$DOCENT init --app <폴더>`로 다시 실행합니다(앱을 바꾸려면 `app`을 고칩니다). 여러 앱을 한 매뉴얼로 묶기를 원하면 아래 "여러 앱을 한 매뉴얼로"를 따릅니다. 감지기가 맞는 앱이 없으면 React·Vue 등을 쓰는 화면 앱 폴더를 후보로 고릅니다. `init`이 데스크톱 앱(Electron·Tauri)이라고 알리면 화면 분석·산출물은 소스만으로 만들고 6단계(실행·캡처)는 건너뜁니다. 감지된 프레임워크가 없으면 "감지기가 없는 스택이라 에이전트가 화면을 찾는다"고 알립니다(Spring·WebForms·Django·PHP 등은 `<SKILL_DIR>/references/stacks/`의 힌트로 찾습니다).
+
+### 여러 앱을 한 매뉴얼로
+
+사용자 웹과 관리자 웹처럼 앱 여러 개를 매뉴얼 하나로 묶을 때:
+
+1. 앱마다 짧은 작업 이름(소문자·숫자·`-`, 예: `web`, `admin`)을 정하고 `$DOCENT init --app <폴더> --workspace <이름>`을 실행합니다. 그 앱의 작업은 `.docent/apps/<이름>/`에 따로 생깁니다
+2. 앱마다 2~6단계를 그대로 진행합니다. 이때 `DOCENT`는 `node <SKILL_DIR>/scripts/dist/docent.mjs --workspace <이름>`이고, 서브에이전트에 작업 폴더(`.docent/apps/<이름>/`)를 함께 전달합니다. 실행·캡처도 앱마다 따로 합니다(`run.json`도 앱마다)
+3. 루트 `.docent/config.yaml`에 합칠 순서대로 적습니다. 산출물 언어·프리셋·테마·제목·`projectName`은 이 루트 설정을 따릅니다
+
+   ```yaml
+   language: ko
+   combine:
+     - workspace: web
+       title: 사용자 웹   # 없으면 그 앱의 제품 이름
+     - workspace: admin
+       title: 관리자 웹
+   ```
+
+4. `$DOCENT build`(`--workspace` 없이)를 실행하면 앱마다 검증한 뒤 `.docent/out/`에 하나로 합칩니다. 화면 ID 앞에 작업 이름이 붙고(`web.orders`), 화면 목록은 앱별로 나뉘며, 메뉴 구조·기능·워크플로우 이름 앞에 앱 제목이 붙습니다. 앱을 넘나드는 워크플로우는 그리지 않습니다(앱마다 따로 검증)
 
 ### 2. 화면 목록
 

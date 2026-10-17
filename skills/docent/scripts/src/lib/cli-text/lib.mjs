@@ -29,6 +29,8 @@ export default {
   '문자열': 'a string',
   '양의 정수': 'a positive integer',
   'config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 ({0})': 'config.yaml: app must be a folder path inside the project ({0})',
+  'config.yaml: combine의 항목은 앱 작업 이름(소문자·숫자·-)이어야 합니다 ({0})': 'config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})',
+  'config.yaml: combine에 같은 앱 작업이 두 번 있습니다': 'config.yaml: combine lists the same app workspace twice',
   'config.yaml: language는 {0} 중 하나여야 합니다 ({1})': 'config.yaml: language must be one of {0} ({1})',
   '.docent/config.yaml 형식 오류: {0}': 'Invalid .docent/config.yaml: {0}',
 

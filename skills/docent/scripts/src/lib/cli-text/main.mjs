@@ -1,7 +1,10 @@
 // 명령줄 안내 영어 번역표(main). 열쇠는 소스의 한국어 문구 그대로, {0}·{1}은 인자 자리
 export default {
   // 사용법
-  '사용법: docent <명령> [--project <디렉터리>]': 'Usage: docent <command> [--project <dir>]',
+  '사용법: docent <명령> [--project <디렉터리>] [--workspace <이름>]': 'Usage: docent <command> [--project <dir>] [--workspace <name>]',
+  '  --workspace <이름>  앱 여러 개를 한 매뉴얼로 묶을 때 앱마다 따로 쓰는 작업(.docent/apps/<이름>/)':
+    '  --workspace <name>  Per-app workspace when combining several apps into one manual (.docent/apps/<name>/)',
+  '--workspace는 소문자·숫자·-로 된 이름이어야 합니다: {0}': '--workspace must be a name of lowercase letters, digits and -: {0}',
   '명령:': 'Commands:',
   '  init [--app <폴더>]': '  init [--app <dir>]',
   '                 프로젝트를 파악해 .docent/config.yaml을 만듭니다(모노레포는 문서로 만들 앱 폴더)':

@@ -1,6 +1,6 @@
 // docent PreToolUse 훅: 분석 세션(.docent/.session) 중에만 비밀 파일 읽기를 막는다. (설계 문서 12장)
 // 번들하지 않는 단일 파일이며 Node 표준 라이브러리만 쓴다.
-import { readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, isAbsolute, join, posix, relative, sep } from 'node:path';
 
 const DEFAULT_PATTERNS = ['.env', '.env.*', 'appsettings*.json', 'web.config', '*.pem', '*.key', '*.pfx', 'id_rsa*'];
@@ -28,11 +28,22 @@ function sessionActive(cwd) {
   }
 }
 
-// config.yaml의 secrets.paths 목록만 읽는 최소 파서
+// 루트와 앱 작업(.docent/apps/*/)의 config.yaml에 적힌 secrets.paths
 function configPatterns(cwd) {
+  const files = [join(cwd, '.docent', 'config.yaml')];
+  try {
+    for (const name of readdirSync(join(cwd, '.docent', 'apps'))) files.push(join(cwd, '.docent', 'apps', name, 'config.yaml'));
+  } catch {
+    // 앱 작업 없음
+  }
+  return files.flatMap(filePatterns);
+}
+
+// config.yaml의 secrets.paths 목록만 읽는 최소 파서
+function filePatterns(file) {
   let text;
   try {
-    text = readFileSync(join(cwd, '.docent', 'config.yaml'), 'utf8');
+    text = readFileSync(file, 'utf8');
   } catch {
     return [];
   }

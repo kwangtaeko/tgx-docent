@@ -156,3 +156,51 @@ test('산출물 이름: output.projectName > 앱의 제품 이름 > package.json
   await runBuild(dir, { assetsDir: REAL_ASSETS, formats: ['readme'] });
   assert.match(await readFile(join(docent, 'out', 'README.md'), 'utf8'), /^# 사내 생성기$/m);
 });
+
+test('combine: 앱 작업 여러 개를 한 매뉴얼로 합친다(ID에 앱 이름, 앱별 목록, 캡처 모으기)', async () => {
+  const { cp, rename } = await import('node:fs/promises');
+  const dir = await copyFixture();
+  const docent = await copyGoldenWorkspace(dir);
+  await writeFile(join(docent, 'config.yaml'), 'date: 2026-10-13\ndetectors: [nextjs]\n');
+  await mkdir(join(docent, 'media', 'img'), { recursive: true });
+  await writeFile(join(docent, 'media', 'img', 'orders.png'), 'png');
+  // 같은 분석 결과를 두 앱 작업으로(ID가 겹쳐도 합친 매뉴얼에서는 앱 이름으로 구분된다)
+  const apps = join(dir, '.docent-apps');
+  await mkdir(apps);
+  await rename(docent, join(apps, 'web'));
+  await cp(join(apps, 'web'), join(apps, 'admin'), { recursive: true });
+  await mkdir(join(dir, '.docent'));
+  await rename(apps, join(dir, '.docent', 'apps'));
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'date: 2026-10-14\ncombine:\n  - workspace: web\n    title: 사용자 웹\n  - admin\n');
+
+  const r = await runBuild(dir, { assetsDir: await fakeAssets() });
+  const out = join(dir, '.docent', 'out');
+  assert.ok(r.files.includes('html/screens/web.orders.html') && r.files.includes('html/screens/admin.orders.html'), r.files.join('\n'));
+  assert.ok(r.files.includes('html/media/img/web.orders.png') && r.files.includes('html/media/img/admin.orders.png'));
+  const list = await readFile(join(out, 'html', 'screens.html'), 'utf8');
+  assert.ok(list.includes('<tr class="app-row"><th colspan="6">사용자 웹</th></tr>'));
+  // 제목을 적지 않은 앱은 그 앱의 제품 이름(package.json name)
+  assert.ok(/<tr class="app-row"><th colspan="6">[^<]+<\/th><\/tr>/.test(list.split('사용자 웹')[1]));
+  const screen = await readFile(join(out, 'html', 'screens', 'web.orders-new.html'), 'utf8');
+  assert.ok(screen.includes('href="web.orders-new--customer-search.html"'), '연결도 앱 이름이 붙은 ID로');
+  const wf = await readFile(join(out, 'html', 'workflows.html'), 'utf8');
+  assert.ok(wf.includes('사용자 웹 · ') && wf.includes('s_web_orders'));
+  assert.ok(r.files.includes('README.md'));
+  assert.ok((await readFile(join(out, 'README.md'), 'utf8')).includes('2026-10-14'));
+});
+
+test('combine: 앱 작업 하나가 검증에 실패하면 그 앱 이름과 함께 멈춘다', async () => {
+  const { rename } = await import('node:fs/promises');
+  const dir = await copyFixture();
+  const docent = await copyGoldenWorkspace(dir);
+  await writeFile(join(docent, 'config.yaml'), 'detectors: [nextjs]\n');
+  const { rm } = await import('node:fs/promises');
+  await rm(join(docent, 'summary.json'));
+  const apps = join(dir, '.docent-apps');
+  await mkdir(apps);
+  await rename(docent, join(apps, 'web'));
+  await mkdir(join(dir, '.docent'));
+  await rename(apps, join(dir, '.docent', 'apps'));
+  await writeFile(join(dir, '.docent', 'config.yaml'), 'combine: [web]\n');
+  await assert.rejects(runBuild(dir, { assetsDir: await fakeAssets() }), /\(web\)/);
+});

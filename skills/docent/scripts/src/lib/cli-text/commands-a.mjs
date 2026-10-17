@@ -96,6 +96,8 @@ export default {
 
   // commands/build.mjs
   '검증에 실패해 빌드를 멈췄습니다:': 'Build stopped because validation failed:',
+  '앱 작업 {0}의 language({1})가 루트 config.yaml({2})와 다릅니다. 화면 설명이 섞인 언어로 나옵니다':
+    'App workspace {0} has language {1} but the root config.yaml has {2}. Screen descriptions will be in mixed languages',
   '확인 필요 항목 {0}건이 남아 있습니다(.docent/review.md). 납품 전에 확인하세요':
     '{0} review item(s) remain (.docent/review.md). Check them before delivery',
   'Playwright가 없어 PDF를 만들지 못했습니다(docent runtime install)':

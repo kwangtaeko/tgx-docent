@@ -5,6 +5,7 @@ import { parse } from 'yaml';
 import { LANGUAGES } from '../renderers/i18n.mjs';
 import { t } from './cli-text.mjs';
 import { normalizeRel } from './paths.mjs';
+import { docentDir, WORKSPACE_NAME } from './workspace.mjs';
 
 export const DEFAULT_CONFIG = Object.freeze({
   language: 'ko',
@@ -18,6 +19,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   gif: { screens: { include: [], exclude: [] } },
   // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
   output: { preset: 'handover', formats: ['html', 'readme'], organization: '', revisions: [] },
+  // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
+  combine: [],
 });
 
 function isObject(v) {
@@ -35,7 +38,7 @@ function merge(base, override) {
   return out;
 }
 
-const ARRAY_KEYS = ['detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
+const ARRAY_KEYS = ['combine', 'detectors', 'screens.include', 'screens.exclude', 'secrets.paths', 'mask.selectors', 'gif.screens.include', 'gif.screens.exclude', 'output.formats', 'output.revisions'];
 const OBJECT_KEYS = ['screens', 'screens.idMap', 'secrets', 'analyze', 'mask', 'gif', 'gif.screens', 'output'];
 const STRING_KEYS = ['language', 'app', 'output.preset', 'output.theme', 'output.projectName', 'output.title', 'output.organization'];
 
@@ -68,14 +71,25 @@ function checkConfig(config) {
       throw new Error(t('config.yaml: app은 프로젝트 안의 폴더 경로여야 합니다 ({0})', config.app));
     }
   }
+  // combine: 이름만 적은 항목(- web)도 받는다
+  config.combine = config.combine.map((item) => {
+    const entry = typeof item === 'string' ? { workspace: item } : item;
+    if (!isObject(entry) || typeof entry.workspace !== 'string' || !WORKSPACE_NAME.test(entry.workspace)) {
+      throw new Error(t('config.yaml: combine의 항목은 앱 작업 이름(소문자·숫자·-)이어야 합니다 ({0})', JSON.stringify(item)));
+    }
+    if (entry.title !== undefined && typeof entry.title !== 'string') fail('combine[].title', t('문자열'));
+    return { workspace: entry.workspace, ...(entry.title ? { title: entry.title } : {}) };
+  });
+  if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t('config.yaml: combine에 같은 앱 작업이 두 번 있습니다'));
   if (!LANGUAGES.includes(config.language)) throw new Error(t('config.yaml: language는 {0} 중 하나여야 합니다 ({1})', LANGUAGES.join(', '), config.language));
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail('analyze.concurrency', t('양의 정수'));
   return config;
 }
 
-export async function loadConfig(projectDir) {
-  const path = join(projectDir, '.docent', 'config.yaml');
+// workspace: 앱 작업 이름(기본은 이번 실행에서 고른 작업, 빈 값이면 루트)
+export async function loadConfig(projectDir, workspace) {
+  const path = join(docentDir(projectDir, workspace), 'config.yaml');
   let text;
   try {
     text = await readFile(path, 'utf8');

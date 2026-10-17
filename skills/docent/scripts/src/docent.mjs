@@ -20,11 +20,13 @@ import { setCliLanguage, t } from './lib/cli-text.mjs';
 import { loadConfig } from './lib/config.mjs';
 import { PlaywrightMissing } from './lib/playwright.mjs';
 import { hashFiles } from './lib/source-hash.mjs';
+import { setWorkspace, WORKSPACE_NAME } from './lib/workspace.mjs';
 
 // 안내 문구는 언어를 정한 뒤에 만든다(모듈을 읽을 때가 아니라)
 const usage = () =>
   [
-    t('사용법: docent <명령> [--project <디렉터리>]'),
+    t('사용법: docent <명령> [--project <디렉터리>] [--workspace <이름>]'),
+    t('  --workspace <이름>  앱 여러 개를 한 매뉴얼로 묶을 때 앱마다 따로 쓰는 작업(.docent/apps/<이름>/)'),
     '',
     t('명령:'),
     t('  init [--app <폴더>]'),
@@ -55,11 +57,13 @@ const ASSETS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'as
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
+  let workspace = '';
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--project') project = resolve(argv[++i]);
+    else if (argv[i] === '--workspace') workspace = argv[++i] ?? '';
     else args.push(argv[i]);
   }
-  return { args, project };
+  return { args, project, workspace };
 }
 
 function listProblems(title, problems) {
@@ -67,8 +71,13 @@ function listProblems(title, problems) {
 }
 
 async function main() {
-  const { args, project } = parseArgs(process.argv.slice(2));
+  const { args, project, workspace } = parseArgs(process.argv.slice(2));
   const [command, sub] = args;
+  if (workspace && !WORKSPACE_NAME.test(workspace)) {
+    console.error(t('--workspace는 소문자·숫자·-로 된 이름이어야 합니다: {0}', workspace));
+    return 1;
+  }
+  setWorkspace(workspace);
   // 안내 문구 언어: DOCENT_LANG > config.yaml의 language > ko. 설정이 깨졌으면 여기서는 넘어가고 명령이 알린다
   let configLanguage = 'ko';
   try {

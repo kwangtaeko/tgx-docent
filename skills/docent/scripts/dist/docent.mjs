@@ -10460,14 +10460,14 @@ var require_utils = __commonJS({
         BYTE_HEX[i] = "%" + HEX_DIGITS[i >> 4] + HEX_DIGITS[i & 15];
       }
     }
-    function percentEncodeNonAscii(cp) {
-      if (cp < 2048) {
-        return BYTE_HEX[192 | cp >> 6] + BYTE_HEX[128 | cp & 63];
+    function percentEncodeNonAscii(cp2) {
+      if (cp2 < 2048) {
+        return BYTE_HEX[192 | cp2 >> 6] + BYTE_HEX[128 | cp2 & 63];
       }
-      if (cp < 65536) {
-        return BYTE_HEX[224 | cp >> 12] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+      if (cp2 < 65536) {
+        return BYTE_HEX[224 | cp2 >> 12] + BYTE_HEX[128 | cp2 >> 6 & 63] + BYTE_HEX[128 | cp2 & 63];
       }
-      return BYTE_HEX[240 | cp >> 18] + BYTE_HEX[128 | cp >> 12 & 63] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+      return BYTE_HEX[240 | cp2 >> 18] + BYTE_HEX[128 | cp2 >> 12 & 63] + BYTE_HEX[128 | cp2 >> 6 & 63] + BYTE_HEX[128 | cp2 & 63];
     }
     function stringArrayToHexStripped(input) {
       let acc = "";
@@ -10831,8 +10831,8 @@ var require_utils = __commonJS({
     function encodeFragment(input) {
       return encodeComponent(input, isQueryFragmentCharacter);
     }
-    function isEscapeSafe(cp) {
-      return cp >= 48 && cp <= 57 || cp >= 65 && cp <= 90 || cp >= 97 && cp <= 122 || cp === 42 || cp === 43 || cp === 45 || cp === 46 || cp === 47 || cp === 64 || cp === 95;
+    function isEscapeSafe(cp2) {
+      return cp2 >= 48 && cp2 <= 57 || cp2 >= 65 && cp2 <= 90 || cp2 >= 97 && cp2 <= 122 || cp2 === 42 || cp2 === 43 || cp2 === 45 || cp2 === 46 || cp2 === 47 || cp2 === 64 || cp2 === 95;
     }
     function normalizeQueryFragmentEncoding(input) {
       let output = "";
@@ -17349,11 +17349,11 @@ var require_stream_writable = __commonJS({
       this.corkedRequestsFree = new CorkedRequest(this);
     }
     WritableState.prototype.getBuffer = function getBuffer() {
-      var current = this.bufferedRequest;
+      var current2 = this.bufferedRequest;
       var out = [];
-      while (current) {
-        out.push(current);
-        current = current.next;
+      while (current2) {
+        out.push(current2);
+        current2 = current2.next;
       }
       return out;
     };
@@ -27446,8 +27446,8 @@ import { createInterface } from "node:readline/promises";
 
 // skills/docent/scripts/src/lib/config.mjs
 var import_yaml = __toESM(require_dist(), 1);
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile as readFile2 } from "node:fs/promises";
+import { join as join2 } from "node:path";
 
 // skills/docent/scripts/src/renderers/i18n.mjs
 var LANGUAGES = ["ko", "en"];
@@ -27672,6 +27672,7 @@ var commands_a_default = {
   "# GIF\uB97C \uB9CC\uB4E4 \uD654\uBA74(\uAE30\uBCF8: \uBC84\uD2BC \uB3D9\uC791\uC774 \uC788\uB294 \uD654\uBA74):": "# screens to make GIFs for (default: screens with button actions):",
   // commands/build.mjs
   "\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:": "Build stopped because validation failed:",
+  "\uC571 \uC791\uC5C5 {0}\uC758 language({1})\uAC00 \uB8E8\uD2B8 config.yaml({2})\uC640 \uB2E4\uB985\uB2C8\uB2E4. \uD654\uBA74 \uC124\uBA85\uC774 \uC11E\uC778 \uC5B8\uC5B4\uB85C \uB098\uC635\uB2C8\uB2E4": "App workspace {0} has language {1} but the root config.yaml has {2}. Screen descriptions will be in mixed languages",
   "\uD655\uC778 \uD544\uC694 \uD56D\uBAA9 {0}\uAC74\uC774 \uB0A8\uC544 \uC788\uC2B5\uB2C8\uB2E4(.docent/review.md). \uB0A9\uD488 \uC804\uC5D0 \uD655\uC778\uD558\uC138\uC694": "{0} review item(s) remain (.docent/review.md). Check them before delivery",
   "Playwright\uAC00 \uC5C6\uC5B4 PDF\uB97C \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4(docent runtime install)": "PDF not built: Playwright is not installed (docent runtime install)",
   "PDF\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8\uC774 \uC900\uBE44\uB418\uC9C0 \uC54A\uC544 Mermaid \uC6D0\uBB38\uC774 \uB4E4\uC5B4\uAC14\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4": "Workflow diagrams in the PDF were not ready; the PDF may contain raw Mermaid text",
@@ -27761,6 +27762,8 @@ var lib_default = {
   "\uBB38\uC790\uC5F4": "a string",
   "\uC591\uC758 \uC815\uC218": "a positive integer",
   "config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: app must be a folder path inside the project ({0})",
+  "config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})": "config.yaml: each combine item must be an app workspace name (lowercase letters, digits, -) ({0})",
+  "config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4": "config.yaml: combine lists the same app workspace twice",
   "config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})": "config.yaml: language must be one of {0} ({1})",
   ".docent/config.yaml \uD615\uC2DD \uC624\uB958: {0}": "Invalid .docent/config.yaml: {0}",
   // lib/output-options.mjs
@@ -27782,7 +27785,9 @@ var lib_default = {
 // skills/docent/scripts/src/lib/cli-text/main.mjs
 var main_default = {
   // 사용법
-  "\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]": "Usage: docent <command> [--project <dir>]",
+  "\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]": "Usage: docent <command> [--project <dir>] [--workspace <name>]",
+  "  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)": "  --workspace <name>  Per-app workspace when combining several apps into one manual (.docent/apps/<name>/)",
+  "--workspace\uB294 \uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-\uB85C \uB41C \uC774\uB984\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4: {0}": "--workspace must be a name of lowercase letters, digits and -: {0}",
   "\uBA85\uB839:": "Commands:",
   "  init [--app <\uD3F4\uB354>]": "  init [--app <dir>]",
   "                 \uD504\uB85C\uC81D\uD2B8\uB97C \uD30C\uC545\uD574 .docent/config.yaml\uC744 \uB9CC\uB4ED\uB2C8\uB2E4(\uBAA8\uB178\uB808\uD3EC\uB294 \uBB38\uC11C\uB85C \uB9CC\uB4E4 \uC571 \uD3F4\uB354)": "                 Detect the project and create .docent/config.yaml (in a monorepo, the app folder to document)",
@@ -27880,6 +27885,47 @@ function normalizeRel(p) {
   return n.replace(/\/$/, "");
 }
 
+// skills/docent/scripts/src/lib/workspace.mjs
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+var WORKSPACE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var current = "";
+function setWorkspace(name5 = "") {
+  if (name5 && !WORKSPACE_NAME.test(name5)) throw new Error(`invalid workspace: ${name5}`);
+  current = name5;
+}
+var workspaceName = () => current;
+async function withWorkspace(name5, fn) {
+  const before = current;
+  setWorkspace(name5);
+  try {
+    return await fn();
+  } finally {
+    current = before;
+  }
+}
+function rootDocentDir(projectDir) {
+  return join(projectDir, ".docent");
+}
+function docentDir(projectDir, name5 = current) {
+  return name5 ? join(projectDir, ".docent", "apps", name5) : rootDocentDir(projectDir);
+}
+async function readJson(path) {
+  return JSON.parse(await readFile(path, "utf8"));
+}
+async function readJsonIfExists(path) {
+  try {
+    return await readJson(path);
+  } catch (err) {
+    if (err.code === "ENOENT") return void 0;
+    throw err;
+  }
+}
+async function writeJson(path, data) {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify(data, null, 2) + "\n");
+}
+
 // skills/docent/scripts/src/lib/config.mjs
 var DEFAULT_CONFIG = Object.freeze({
   language: "ko",
@@ -27892,7 +27938,9 @@ var DEFAULT_CONFIG = Object.freeze({
   mask: { selectors: [] },
   gif: { screens: { include: [], exclude: [] } },
   // title은 비우면 language에 맞는 기본값(사용자 매뉴얼 | User Manual)
-  output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] }
+  output: { preset: "handover", formats: ["html", "readme"], organization: "", revisions: [] },
+  // 루트 config.yaml에서만: 한 매뉴얼로 합칠 앱 작업(.docent/apps/<이름>/) [{ workspace, title? }]
+  combine: []
 });
 function isObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -27906,7 +27954,7 @@ function merge(base, override) {
   }
   return out;
 }
-var ARRAY_KEYS = ["detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
+var ARRAY_KEYS = ["combine", "detectors", "screens.include", "screens.exclude", "secrets.paths", "mask.selectors", "gif.screens.include", "gif.screens.exclude", "output.formats", "output.revisions"];
 var OBJECT_KEYS = ["screens", "screens.idMap", "secrets", "analyze", "mask", "gif", "gif.screens", "output"];
 var STRING_KEYS = ["language", "app", "output.preset", "output.theme", "output.projectName", "output.title", "output.organization"];
 var get = (obj, path) => path.split(".").reduce((o, k) => isObject(o) ? o[k] : void 0, obj);
@@ -27934,16 +27982,25 @@ function checkConfig(config) {
       throw new Error(t("config.yaml: app\uC740 \uD504\uB85C\uC81D\uD2B8 \uC548\uC758 \uD3F4\uB354 \uACBD\uB85C\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({0})", config.app));
     }
   }
+  config.combine = config.combine.map((item) => {
+    const entry = typeof item === "string" ? { workspace: item } : item;
+    if (!isObject(entry) || typeof entry.workspace !== "string" || !WORKSPACE_NAME.test(entry.workspace)) {
+      throw new Error(t("config.yaml: combine\uC758 \uD56D\uBAA9\uC740 \uC571 \uC791\uC5C5 \uC774\uB984(\uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-)\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4 ({0})", JSON.stringify(item)));
+    }
+    if (entry.title !== void 0 && typeof entry.title !== "string") fail("combine[].title", t("\uBB38\uC790\uC5F4"));
+    return { workspace: entry.workspace, ...entry.title ? { title: entry.title } : {} };
+  });
+  if (new Set(config.combine.map((c) => c.workspace)).size !== config.combine.length) throw new Error(t("config.yaml: combine\uC5D0 \uAC19\uC740 \uC571 \uC791\uC5C5\uC774 \uB450 \uBC88 \uC788\uC2B5\uB2C8\uB2E4"));
   if (!LANGUAGES.includes(config.language)) throw new Error(t("config.yaml: language\uB294 {0} \uC911 \uD558\uB098\uC5EC\uC57C \uD569\uB2C8\uB2E4 ({1})", LANGUAGES.join(", "), config.language));
   const n = config.analyze.concurrency;
   if (!Number.isInteger(n) || n < 1) fail("analyze.concurrency", t("\uC591\uC758 \uC815\uC218"));
   return config;
 }
-async function loadConfig(projectDir) {
-  const path = join(projectDir, ".docent", "config.yaml");
+async function loadConfig(projectDir, workspace) {
+  const path = join2(docentDir(projectDir, workspace), "config.yaml");
   let text;
   try {
-    text = await readFile(path, "utf8");
+    text = await readFile2(path, "utf8");
   } catch (err) {
     if (err.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
     throw err;
@@ -27962,7 +28019,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
-import { dirname, join as join2 } from "node:path";
+import { dirname as dirname2, join as join3 } from "node:path";
 var PLAYWRIGHT_VERSION = "1.56.1";
 var PlaywrightMissing = class extends Error {
   constructor(message) {
@@ -27971,11 +28028,11 @@ var PlaywrightMissing = class extends Error {
   }
 };
 function runtimeDir() {
-  return process.env.DOCENT_RUNTIME_DIR || join2(homedir(), ".cache", "docent", "runtime");
+  return process.env.DOCENT_RUNTIME_DIR || join3(homedir(), ".cache", "docent", "runtime");
 }
 var require2 = createRequire(import.meta.url);
 function loadFromDir(pkgDir) {
-  const pkgJson = join2(pkgDir, "package.json");
+  const pkgJson = join3(pkgDir, "package.json");
   if (!existsSync(pkgJson)) return void 0;
   const { version } = JSON.parse(readFileSync(pkgJson, "utf8"));
   return { module: require2(pkgDir), version };
@@ -27990,13 +28047,13 @@ function globalRoot() {
 async function findPlaywright() {
   const candidates = [];
   if (process.env.DOCENT_PLAYWRIGHT) candidates.push(["env", process.env.DOCENT_PLAYWRIGHT]);
-  candidates.push(["runtime", join2(runtimeDir(), "node_modules", "playwright")]);
+  candidates.push(["runtime", join3(runtimeDir(), "node_modules", "playwright")]);
   try {
-    candidates.push(["local", dirname(require2.resolve("playwright/package.json"))]);
+    candidates.push(["local", dirname2(require2.resolve("playwright/package.json"))]);
   } catch {
   }
   const root = globalRoot();
-  if (root) candidates.push(["global", join2(root, "playwright")]);
+  if (root) candidates.push(["global", join3(root, "playwright")]);
   for (const [from, dir] of candidates) {
     const found = loadFromDir(dir);
     if (found) return { ...found, from, dir };
@@ -28023,28 +28080,6 @@ ${err.message.split("\n")[0]}`);
     }
     throw err;
   }
-}
-
-// skills/docent/scripts/src/lib/workspace.mjs
-import { mkdir, readFile as readFile2, writeFile } from "node:fs/promises";
-import { dirname as dirname2, join as join3 } from "node:path";
-function docentDir(projectDir) {
-  return join3(projectDir, ".docent");
-}
-async function readJson(path) {
-  return JSON.parse(await readFile2(path, "utf8"));
-}
-async function readJsonIfExists(path) {
-  try {
-    return await readJson(path);
-  } catch (err) {
-    if (err.code === "ENOENT") return void 0;
-    throw err;
-  }
-}
-async function writeJson(path, data) {
-  await mkdir(dirname2(path), { recursive: true });
-  await writeFile(path, JSON.stringify(data, null, 2) + "\n");
 }
 
 // skills/docent/scripts/src/commands/run.mjs
@@ -29168,7 +29203,7 @@ async function authSave(projectDir) {
 }
 
 // skills/docent/scripts/src/commands/build.mjs
-import { copyFile, mkdir as mkdir3, readFile as readFile7, readdir as readdir2, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { copyFile, cp, mkdir as mkdir3, readFile as readFile7, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { basename, dirname as dirname3, join as join11 } from "node:path";
 
 // skills/docent/scripts/src/lib/project-date.mjs
@@ -29399,7 +29434,7 @@ function edgeKind(screens, a, b) {
 var messageText = (text) => escapeHtml(text).replace(/\{([^{}\n]{1,30})\}/g, '<span class="ph">$1</span>');
 var LOOSE_MESSAGE_LIMIT = 5;
 var flag = (item, T) => item.confidence === "low" ? `<mark class="flag">${T.flag}</mark> ` : "";
-var nodeId = (id) => `s_${id.replace(/-/g, "_")}`;
+var nodeId = (id) => `s_${id.replace(/[^A-Za-z0-9_]/g, "_")}`;
 var mediaOf = (input) => input.media ?? { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() };
 var presetOf = (input) => input.options?.preset ?? "handover";
 var keepEvidence = (input) => presetOf(input) === "handover";
@@ -29562,11 +29597,15 @@ ${revisionsBody(input)}` : ""}`;
 function listBody(input) {
   const { inventory, screens } = input;
   const T = textOf(input);
+  let app;
   const rows = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
-    const menu = s.menuPath?.value.join(" \u203A ") ?? "";
+    const head = entry.app !== void 0 && entry.app !== app ? `<tr class="app-row"><th colspan="6">${escapeHtml(app = entry.app)}</th></tr>
+` : "";
+    const path = s.menuPath?.value ?? [];
+    const menu = (entry.app !== void 0 && path[0] === entry.app ? path.slice(1) : path).join(" \u203A ");
     const where = entry.route ?? (entry.kind === "view" ? `${routeOf(inventory, entry.parentId)} \xB7 ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
-    return `<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</td></tr>`;
+    return `${head}<tr><td><code>${escapeHtml(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${escapeHtml(s.title.value)}</a></td><td>${escapeHtml(where)}</td><td>${escapeHtml(menu)}</td><td>${escapeHtml(s.roles.map((r) => r.value).join(", "))}</td><td>${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}</td></tr>`;
   }).join("\n");
   return `<h1>${T.screenList}</h1>
 <p class="lead">${T.totalScreens(inventory.screens.length)}</p>
@@ -29852,6 +29891,7 @@ th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-we
 /* \uD654\uBA74 \uBAA9\uB85D: ID\xB7\uD654\uBA74\xB7\uACBD\uB85C\xB7\uBA54\uB274\uB294 \uC904\uC744 \uBC14\uAFB8\uC9C0 \uC54A\uACE0, \uB0A8\uB294 \uD3ED\uC740 \uBAA9\uC801 \uCE78\uC774 \uC4F4\uB2E4(\uC881\uC73C\uBA74 \uD45C\uB9CC \uAC00\uB85C\uB85C \uBC00\uB9BC) */
 .screen-list td:nth-child(-n+4) { white-space: nowrap; }
 .screen-list td:last-child { min-width: 16rem; }
+.screen-list tr.app-row th { background: var(--accent-soft); color: var(--fg); font-size: 0.9rem; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover td { background: var(--bg-soft); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
@@ -35533,19 +35573,19 @@ function rowHeight(row) {
 }
 function chunkRows(rows) {
   const chunks = [];
-  let current = [];
+  let current2 = [];
   let height = 0;
   for (const row of rows) {
     const h = rowHeight(row);
-    if (current.length && (current.length >= MAX_ROWS || height + h > TABLE_BUDGET_IN)) {
-      chunks.push(current);
-      current = [];
+    if (current2.length && (current2.length >= MAX_ROWS || height + h > TABLE_BUDGET_IN)) {
+      chunks.push(current2);
+      current2 = [];
       height = 0;
     }
-    current.push(row);
+    current2.push(row);
     height += h;
   }
-  if (current.length) chunks.push(current);
+  if (current2.length) chunks.push(current2);
   return chunks.length ? chunks : [[]];
 }
 var splitEvery = (list, n) => list.length ? Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, (i + 1) * n)) : [[]];
@@ -35764,7 +35804,7 @@ function resolveOutputOptions(config, cli = {}) {
 }
 
 // skills/docent/scripts/src/commands/validate.mjs
-import { readdir } from "node:fs/promises";
+import { readdir as readdir2 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 
 // skills/docent/scripts/src/lib/source-hash.mjs
@@ -35898,7 +35938,7 @@ function checkSummary(summary, screens, known, problems) {
 async function checkScenarios(projectDir, dir, ids, problems) {
   let files = [];
   try {
-    files = (await readdir(join10(dir, "scenarios"))).filter((f) => f.endsWith(".json")).sort();
+    files = (await readdir2(join10(dir, "scenarios"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
     return;
   }
@@ -35932,7 +35972,7 @@ async function runValidate(projectDir, { only = [] } = {}) {
   const screens = /* @__PURE__ */ new Map();
   let files = [];
   try {
-    files = (await readdir(join10(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
+    files = (await readdir2(join10(dir, "screens"))).filter((f) => f.endsWith(".json")).sort();
   } catch {
     problems.push(`screens/: ${t("\uB514\uB809\uD130\uB9AC \uC5C6\uC74C")}`);
   }
@@ -36002,11 +36042,11 @@ async function put(outDir, rel, content, files) {
   await writeFile3(path, content);
   files.push(rel);
 }
-async function collectMedia(projectDir, inventory) {
+async function collectMedia(mediaRoot, inventory) {
   const ids = new Set(inventory.screens.map((s) => s.id));
   const pick2 = async (sub, ext) => {
     try {
-      const names = await readdir2(join11(docentDir(projectDir), "media", sub));
+      const names = await readdir3(join11(mediaRoot, sub));
       return new Set(names.filter((n) => n.endsWith(`.${ext}`)).map((n) => n.slice(0, -ext.length - 1)).filter((id) => ids.has(id)));
     } catch {
       return /* @__PURE__ */ new Set();
@@ -36023,27 +36063,106 @@ function uncertainCount(screens) {
   return n;
 }
 var safeFileName = (name5, language2) => name5.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "") || stringsFor(language2).defaultFileName;
-async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
+async function loadWorkspace(projectDir) {
   const { ok, problems } = await runValidate(projectDir);
-  if (!ok) throw new Error(`${t("\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:")}
+  if (!ok) {
+    const where = workspaceName() ? ` (${workspaceName()})` : "";
+    throw new Error(`${t("\uAC80\uC99D\uC5D0 \uC2E4\uD328\uD574 \uBE4C\uB4DC\uB97C \uBA48\uCDC4\uC2B5\uB2C8\uB2E4:")}${where}
 ${problems.map((p) => `- ${p}`).join("\n")}`);
+  }
   const config = await loadConfig(projectDir);
-  const options = resolveOutputOptions(config, { preset, formats });
-  const warnings3 = [];
-  const skipped = [];
   const dir = docentDir(projectDir);
   const inventory = await readJson(join11(dir, "inventory.json"));
   const screens = /* @__PURE__ */ new Map();
   for (const { id } of inventory.screens) screens.set(id, await readJson(join11(dir, "screens", `${id}.json`)));
-  const media = await collectMedia(projectDir, inventory);
+  const mediaRoot = join11(dir, "media");
+  return {
+    config,
+    inventory,
+    screens,
+    summary: await readJson(join11(dir, "summary.json")),
+    mediaRoot,
+    media: await collectMedia(mediaRoot, inventory),
+    date: projectDate(projectDir, config, [.../* @__PURE__ */ new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
+    projectName: await projectName(projectDir, config)
+  };
+}
+var prefixed = (ws, id) => id === void 0 ? void 0 : `${ws}.${id}`;
+function renameApp(part, ws, title2) {
+  const re = (id) => prefixed(ws, id);
+  const inventory = part.inventory.screens.map((e) => ({ ...e, id: re(e.id), ...e.parentId ? { parentId: re(e.parentId) } : {}, app: title2 }));
+  const screens = /* @__PURE__ */ new Map();
+  for (const [id, s] of part.screens) {
+    screens.set(re(id), {
+      ...s,
+      id: re(id),
+      ...s.parentId ? { parentId: re(s.parentId) } : {},
+      ...s.menuPath ? { menuPath: { ...s.menuPath, value: [title2, ...s.menuPath.value] } } : {},
+      actions: s.actions.map((a) => ({ ...a, ...a.navigatesTo ? { navigatesTo: re(a.navigatesTo) } : {}, ...a.opens ? { opens: re(a.opens) } : {} }))
+    });
+  }
+  const summary = {
+    oneLiner: { ...part.summary.oneLiner, screens: part.summary.oneLiner.screens.map(re) },
+    features: part.summary.features.map((f) => ({ ...f, menu: `${title2} \xB7 ${f.menu}`, screens: f.screens.map(re) })),
+    workflows: part.summary.workflows.map((w) => ({ ...w, name: `${title2} \xB7 ${w.name}`, steps: w.steps.map(re) }))
+  };
+  const media = { images: new Set([...part.media.images].map(re)), gifs: new Set([...part.media.gifs].map(re)) };
+  return { inventory, screens, summary, media };
+}
+async function loadCombined(projectDir, config, warnings3) {
+  const root = docentDir(projectDir);
+  const mediaRoot = join11(root, ".combined-media");
+  await rm2(mediaRoot, { recursive: true, force: true });
+  const merged = { inventory: { version: 1, screens: [] }, screens: /* @__PURE__ */ new Map(), summary: { oneLiner: { value: "", screens: [] }, features: [], workflows: [] }, media: { images: /* @__PURE__ */ new Set(), gifs: /* @__PURE__ */ new Set() } };
+  const oneLiners = [];
+  const dates = [];
+  for (const { workspace, title: given } of config.combine) {
+    const part = await withWorkspace(workspace, () => loadWorkspace(projectDir));
+    if (part.config.language !== config.language) warnings3.push(t("\uC571 \uC791\uC5C5 {0}\uC758 language({1})\uAC00 \uB8E8\uD2B8 config.yaml({2})\uC640 \uB2E4\uB985\uB2C8\uB2E4. \uD654\uBA74 \uC124\uBA85\uC774 \uC11E\uC778 \uC5B8\uC5B4\uB85C \uB098\uC635\uB2C8\uB2E4", workspace, part.config.language, config.language));
+    const title2 = given ?? part.projectName;
+    const app = renameApp(part, workspace, title2);
+    merged.inventory.screens.push(...app.inventory);
+    for (const [id, s] of app.screens) merged.screens.set(id, s);
+    oneLiners.push(part.summary.oneLiner.value);
+    merged.summary.oneLiner.screens.push(...app.summary.oneLiner.screens);
+    merged.summary.features.push(...app.summary.features);
+    merged.summary.workflows.push(...app.summary.workflows);
+    for (const [kind, set, ext] of [["img", "images", "png"], ["gif", "gifs", "gif"]]) {
+      for (const id of part.media[set]) {
+        await mkdir3(join11(mediaRoot, kind), { recursive: true });
+        await cp(join11(part.mediaRoot, kind, `${id}.${ext}`), join11(mediaRoot, kind, `${prefixed(workspace, id)}.${ext}`));
+      }
+      for (const id of app.media[set]) merged.media[set].add(id);
+    }
+    dates.push(part.date);
+  }
+  merged.summary.oneLiner.value = oneLiners.join(" ");
+  return {
+    ...merged,
+    mediaRoot,
+    // 날짜: config.date가 있으면 그것, 없으면 앱 중 가장 최근
+    date: config.date ? String(config.date) : dates.sort().at(-1),
+    projectName: await projectName(projectDir, config)
+  };
+}
+async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
+  const config = await loadConfig(projectDir);
+  const warnings3 = [];
+  const skipped = [];
+  const combined = !workspaceName() && config.combine.length > 0;
+  const loaded = combined ? await loadCombined(projectDir, config, warnings3) : await loadWorkspace(projectDir);
+  const options = resolveOutputOptions(config, { preset, formats });
+  const dir = docentDir(projectDir);
+  const { inventory, screens, media, mediaRoot } = loaded;
   const input = {
     options,
     media,
     inventory,
     screens,
-    summary: await readJson(join11(dir, "summary.json")),
-    date: projectDate(projectDir, config, [.../* @__PURE__ */ new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
-    projectName: await projectName(projectDir, config)
+    summary: loaded.summary,
+    date: loaded.date,
+    projectName: loaded.projectName,
+    ...combined ? { apps: config.combine.length } : {}
   };
   if (options.preset === "delivery") {
     const n = uncertainCount(screens);
@@ -36068,7 +36187,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
       if (!set.size) continue;
       await mkdir3(join11(outDir, "html", "media", kind), { recursive: true });
       for (const id of set) {
-        await copyFile(join11(dir, "media", kind, `${id}.${ext}`), join11(outDir, "html", "media", kind, `${id}.${ext}`));
+        await copyFile(join11(mediaRoot, kind, `${id}.${ext}`), join11(outDir, "html", "media", kind, `${id}.${ext}`));
         files.push(`html/media/${kind}/${id}.${ext}`);
       }
     }
@@ -36099,7 +36218,7 @@ ${problems.map((p) => `- ${p}`).join("\n")}`);
           const failed = diagrams.filter((d) => !d).length;
           if (failed) warnings3.push(t("\uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 {0}\uAC1C\uB97C \uADF8\uB9AC\uC9C0 \uBABB\uD574 \uB2E8\uACC4 \uBAA9\uB85D\uB9CC \uB123\uC5C8\uC2B5\uB2C8\uB2E4", failed));
         } else if (input.summary.workflows.length) warnings3.push(t("Playwright\uAC00 \uC5C6\uC5B4 PPT\uC758 \uC6CC\uD06C\uD50C\uB85C\uC6B0 \uB2E4\uC774\uC5B4\uADF8\uB7A8 \uB300\uC2E0 \uB2E8\uACC4 \uBAA9\uB85D\uC744 \uB123\uC5C8\uC2B5\uB2C8\uB2E4"));
-        const buf = await renderPptx(input, { diagrams, mediaDir: join11(dir, "media") });
+        const buf = await renderPptx(input, { diagrams, mediaDir: mediaRoot });
         await writeFile3(join11(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);
       }
@@ -36303,26 +36422,26 @@ async function runStep(page2, step, env, timeoutMs) {
 async function runSteps(page2, steps, { env = process.env, timeoutMs = 5e3, onStep, onPage, openers = [] } = {}) {
   const opened = [...openers];
   let retried = -1;
-  let current = page2;
+  let current2 = page2;
   const back = async () => {
     let moved = false;
-    while (current.isClosed() && opened.length) {
-      current = opened.pop();
+    while (current2.isClosed() && opened.length) {
+      current2 = opened.pop();
       moved = true;
     }
-    if (moved && onPage) await onPage(current);
+    if (moved && onPage) await onPage(current2);
   };
   for (let index = 0; index < steps.length; index++) {
     try {
       await back();
-      const result = await runStep(current, steps[index], env, timeoutMs);
+      const result = await runStep(current2, steps[index], env, timeoutMs);
       if (steps[index].popup && result) {
-        opened.push(current);
-        current = result;
-        if (onPage) await onPage(current);
+        opened.push(current2);
+        current2 = result;
+        if (onPage) await onPage(current2);
       }
     } catch (err) {
-      if (current.isClosed() && opened.length) {
+      if (current2.isClosed() && opened.length) {
         await back();
         if (retried !== index) {
           retried = index;
@@ -36787,7 +36906,7 @@ import { readFile as readFile9 } from "node:fs/promises";
 import { join as join18 } from "node:path";
 
 // skills/docent/scripts/src/detectors/shared.mjs
-import { readFile as readFile8, readdir as readdir3, stat as stat2 } from "node:fs/promises";
+import { readFile as readFile8, readdir as readdir4, stat as stat2 } from "node:fs/promises";
 import { join as join17, posix as posix2 } from "node:path";
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".docent", ".next", ".nuxt", ".output", ".svelte-kit"]);
 var ROOT_SKIP_DIRS = /* @__PURE__ */ new Set(["dist", "build", "coverage"]);
@@ -36842,7 +36961,7 @@ async function isDir(path) {
 }
 async function walk(projectDir, rel) {
   const out = [];
-  for (const entry of await readdir3(join17(projectDir, rel), { withFileTypes: true })) {
+  for (const entry of await readdir4(join17(projectDir, rel), { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name) || !rel && ROOT_SKIP_DIRS.has(entry.name)) continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) out.push(...await walk(projectDir, child));
@@ -36973,7 +37092,7 @@ import { readFile as readFile11 } from "node:fs/promises";
 import { join as join20, posix as posix4 } from "node:path";
 
 // skills/docent/scripts/src/detectors/flat-routes.mjs
-import { readFile as readFile10, readdir as readdir4 } from "node:fs/promises";
+import { readFile as readFile10, readdir as readdir5 } from "node:fs/promises";
 import { join as join19, posix as posix3 } from "node:path";
 
 // skills/docent/scripts/src/detectors/route-tree.mjs
@@ -37443,7 +37562,7 @@ var isPathless = (name5) => {
 };
 async function routeModules(projectDir, routesDir) {
   const modules = [];
-  for (const entry of await readdir4(join19(projectDir, routesDir), { withFileTypes: true })) {
+  for (const entry of await readdir5(join19(projectDir, routesDir), { withFileTypes: true })) {
     if (entry.name.startsWith(".")) continue;
     const rel = `${routesDir}/${entry.name}`;
     if (entry.isFile() && MODULE_EXT.test(entry.name) && !entry.name.endsWith(".d.ts") && !isTestFile(rel)) {
@@ -37786,7 +37905,7 @@ function detectorByName(name5) {
 
 // skills/docent/scripts/src/lib/workspaces.mjs
 var import_yaml2 = __toESM(require_dist(), 1);
-import { readFile as readFile14, readdir as readdir5 } from "node:fs/promises";
+import { readFile as readFile14, readdir as readdir6 } from "node:fs/promises";
 import { join as join23, posix as posix7 } from "node:path";
 var FALLBACK = ["apps/*", "packages/*"];
 var ROOT_FALLBACK = ["*"];
@@ -37809,7 +37928,7 @@ async function expand(projectDir, pattern) {
   if (!star) return await isDir(join23(projectDir, clean)) ? [clean] : [];
   const base = star[1];
   if (base.includes("*") || !await isDir(join23(projectDir, base))) return [];
-  const entries = await readdir5(join23(projectDir, base), { withFileTypes: true });
+  const entries = await readdir6(join23(projectDir, base), { withFileTypes: true });
   return entries.filter((e) => e.isDirectory() && !SKIP_DIRS.has(e.name)).map((e) => base ? `${base}/${e.name}` : e.name);
 }
 var UI_DEPS = ["react", "vue", "svelte", "solid-js", "preact", "@angular/core", "electron", "@tauri-apps/api"];
@@ -37911,10 +38030,10 @@ async function runInit(projectDir, { app } = {}) {
   if (!await exists2(ignorePath)) {
     await writeFile5(ignorePath, [gitignoreHeader(), ...IGNORE_LINES, ""].join("\n"));
   } else {
-    const current = await readFile15(ignorePath, "utf8");
-    const have = new Set(current.split(/\r?\n/));
+    const current2 = await readFile15(ignorePath, "utf8");
+    const have = new Set(current2.split(/\r?\n/));
     const missing = IGNORE_LINES.filter((l) => !have.has(l));
-    if (missing.length) await writeFile5(ignorePath, current.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
+    if (missing.length) await writeFile5(ignorePath, current2.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
   }
   const configPath = join24(dir, "config.yaml");
   if (await exists2(configPath)) {
@@ -38280,13 +38399,13 @@ async function runPending(projectDir) {
       pending.push({ id, reason: t("\uBD84\uC11D \uACB0\uACFC\uB97C \uC77D\uC744 \uC218 \uC5C6\uC74C") });
       continue;
     }
-    let current;
+    let current2;
     try {
-      current = await hashFiles(projectDir, screen.readFiles);
+      current2 = await hashFiles(projectDir, screen.readFiles);
     } catch {
-      current = void 0;
+      current2 = void 0;
     }
-    if (current !== screen.sourceHash) {
+    if (current2 !== screen.sourceHash) {
       pending.push({ id, reason: t("\uC18C\uC2A4 \uBCC0\uACBD") });
       continue;
     }
@@ -38305,11 +38424,11 @@ async function runPending(projectDir) {
 import { mkdir as mkdir6, rm as rm4, writeFile as writeFile7 } from "node:fs/promises";
 import { join as join28 } from "node:path";
 async function startSession(projectDir) {
-  await mkdir6(docentDir(projectDir), { recursive: true });
-  await writeFile7(join28(docentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
+  await mkdir6(rootDocentDir(projectDir), { recursive: true });
+  await writeFile7(join28(rootDocentDir(projectDir), ".session"), (/* @__PURE__ */ new Date()).toISOString() + "\n");
 }
 async function endSession(projectDir) {
-  await rm4(join28(docentDir(projectDir), ".session"), { force: true });
+  await rm4(join28(rootDocentDir(projectDir), ".session"), { force: true });
 }
 
 // skills/docent/scripts/src/commands/runtime.mjs
@@ -38333,7 +38452,7 @@ async function runtimeInstall() {
 }
 
 // skills/docent/scripts/src/commands/update.mjs
-import { access as access4, readdir as readdir6 } from "node:fs/promises";
+import { access as access4, readdir as readdir7 } from "node:fs/promises";
 import { join as join30 } from "node:path";
 async function exists3(path) {
   try {
@@ -38345,7 +38464,7 @@ async function exists3(path) {
 }
 async function idsIn(dir, ext) {
   try {
-    return (await readdir6(dir)).filter((n) => n.endsWith(ext)).map((n) => n.slice(0, -ext.length));
+    return (await readdir7(dir)).filter((n) => n.endsWith(ext)).map((n) => n.slice(0, -ext.length));
   } catch {
     return [];
   }
@@ -38382,7 +38501,8 @@ async function runUpdate(projectDir) {
 
 // skills/docent/scripts/src/docent.mjs
 var usage = () => [
-  t("\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>]"),
+  t("\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]"),
+  t("  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)"),
   "",
   t("\uBA85\uB839:"),
   t("  init [--app <\uD3F4\uB354>]"),
@@ -38410,19 +38530,26 @@ var ASSETS_DIR = join31(dirname4(fileURLToPath(import.meta.url)), "..", "..", "a
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
+  let workspace = "";
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--project") project = resolve3(argv[++i]);
+    else if (argv[i] === "--workspace") workspace = argv[++i] ?? "";
     else args.push(argv[i]);
   }
-  return { args, project };
+  return { args, project, workspace };
 }
 function listProblems(title2, problems) {
   if (problems.length) console.log(`${title2}
 ${problems.map((p) => `- ${p}`).join("\n")}`);
 }
 async function main() {
-  const { args, project } = parseArgs(process.argv.slice(2));
+  const { args, project, workspace } = parseArgs(process.argv.slice(2));
   const [command, sub] = args;
+  if (workspace && !WORKSPACE_NAME.test(workspace)) {
+    console.error(t("--workspace\uB294 \uC18C\uBB38\uC790\xB7\uC22B\uC790\xB7-\uB85C \uB41C \uC774\uB984\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4: {0}", workspace));
+    return 1;
+  }
+  setWorkspace(workspace);
   let configLanguage = "ko";
   try {
     configLanguage = (await loadConfig(project)).language;

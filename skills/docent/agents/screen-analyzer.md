@@ -13,6 +13,7 @@ tools: Read, Grep, Glob, Write, Bash
 - `.docent/review.md`에서 이 화면에 대해 사용자가 답한 항목(있으면). 답은 근거가 있는 사실로 반영하되, 소스로 확인할 수 없으면 `evidence`는 답이 가리키는 소스 위치로 두고 `confidence`는 `medium`으로 둡니다
 - `SKILL_DIR`: docent 스킬 폴더의 절대 경로(참고 문서가 있는 곳)
 - `DOCENT`: docent CLI 실행 명령(예: `node <SKILL_DIR>/scripts/dist/docent.mjs`). 대상 프로젝트 루트에서 실행합니다
+- 작업 폴더: 기본은 `.docent/`. 앱 여러 개를 한 매뉴얼로 묶는 중이면 `.docent/apps/<이름>/`이고 `DOCENT`에 `--workspace <이름>`이 붙어 있습니다. 이 문서의 `.docent/…` 경로는 모두 작업 폴더 기준으로 읽습니다
 
 ## 출력
 

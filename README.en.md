@@ -36,6 +36,8 @@ Pick a preset for your audience:
 
 In `.docent/config.yaml`, pick the language (`language: ko | en`) and a color theme (`output.theme: indigo | blue | emerald | rose | slate`). Set the language before analyzing screens, so the screen descriptions are written in it too. Button names and messages shown on screen are quoted as they appear, not translated.
 
+Several apps, such as a user site and an admin site, can also go into one manual. Each app is analyzed on its own (`--workspace <name>`), and the root `config.yaml` lists them under `combine` to merge them.
+
 When the code changes, `/docent-update` redoes only the screens that changed.
 
 ## Supported stacks

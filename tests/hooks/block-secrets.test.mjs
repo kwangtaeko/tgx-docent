@@ -66,3 +66,10 @@ test('./로 시작하는 경로도 디렉터리 패턴과 맞춘다', async () =
   assert.equal(hook(dir, 'Read', { file_path: 'config/./secret.yml' }).status, 2);
   assert.equal(hook(dir, 'Read', { file_path: 'config/other.yml' }).status, 0);
 });
+
+test('앱 작업(.docent/apps/*/config.yaml)의 secrets.paths도 더한다', async () => {
+  const dir = await project({ session: new Date() });
+  await mkdir(join(dir, '.docent', 'apps', 'admin'), { recursive: true });
+  await writeFile(join(dir, '.docent', 'apps', 'admin', 'config.yaml'), 'secrets:\n  paths:\n    - admin.secret.json\n');
+  assert.equal(hook(dir, 'Read', { file_path: join(dir, 'admin.secret.json') }).status, 2);
+});

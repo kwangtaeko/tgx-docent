@@ -11,7 +11,8 @@ const messageText = (text) => h(text).replace(/\{([^{}\n]{1,30})\}/g, '<span cla
 const LOOSE_MESSAGE_LIMIT = 5;
 const flag = (item, T) => (item.confidence === 'low' ? `<mark class="flag">${T.flag}</mark> ` : '');
 // Mermaid 예약어(end, class, style 등)와 겹치지 않게 접두어를 붙인다
-const nodeId = (id) => `s_${id.replace(/-/g, '_')}`;
+// Mermaid 노드 이름: 영문·숫자·_만(합친 매뉴얼의 web.home 같은 ID도)
+const nodeId = (id) => `s_${id.replace(/[^A-Za-z0-9_]/g, '_')}`;
 const mediaOf = (input) => input.media ?? { images: new Set(), gifs: new Set() };
 export const presetOf = (input) => input.options?.preset ?? 'handover';
 const keepEvidence = (input) => presetOf(input) === 'handover';
@@ -207,12 +208,16 @@ function renderIndex(input) {
 export function listBody(input) {
   const { inventory, screens } = input;
   const T = textOf(input);
+  let app;
   const rows = inventory.screens
     .map((entry) => {
       const s = screens.get(entry.id);
-      const menu = s.menuPath?.value.join(' › ') ?? '';
+      // 합친 매뉴얼: 앱이 바뀌는 곳에 앱 이름 줄(메뉴 칸에서는 앱 이름을 다시 쓰지 않는다)
+      const head = entry.app !== undefined && entry.app !== app ? `<tr class="app-row"><th colspan="6">${h((app = entry.app))}</th></tr>\n` : '';
+      const path = s.menuPath?.value ?? [];
+      const menu = (entry.app !== undefined && path[0] === entry.app ? path.slice(1) : path).join(' › ');
       const where = entry.route ?? (entry.kind === 'view' ? `${routeOf(inventory, entry.parentId)} · ${T.viewNote}` : T.childOf(screenTitle(screens, entry.parentId)));
-      return `<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose, T)}${h(s.purpose.value)}</td></tr>`;
+      return `${head}<tr><td><code>${h(entry.id)}</code></td><td><a href="${screenHref(input, entry.id)}">${h(s.title.value)}</a></td><td>${h(where)}</td><td>${h(menu)}</td><td>${h(s.roles.map((r) => r.value).join(', '))}</td><td>${flag(s.purpose, T)}${h(s.purpose.value)}</td></tr>`;
     })
     .join('\n');
   return `<h1>${T.screenList}</h1>
@@ -544,6 +549,7 @@ th { background: var(--bg-soft); color: var(--muted); font-size: 0.8rem; font-we
 /* 화면 목록: ID·화면·경로·메뉴는 줄을 바꾸지 않고, 남는 폭은 목적 칸이 쓴다(좁으면 표만 가로로 밀림) */
 .screen-list td:nth-child(-n+4) { white-space: nowrap; }
 .screen-list td:last-child { min-width: 16rem; }
+.screen-list tr.app-row th { background: var(--accent-soft); color: var(--fg); font-size: 0.9rem; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover td { background: var(--bg-soft); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }

@@ -95,3 +95,18 @@ test('--format 값이 비면 실패 코드', async () => {
   assert.equal(r.status, 1, r.stdout);
   assert.match(r.stdout + r.stderr, /만들 형식이 없습니다/);
 });
+
+test('--workspace: 앱 작업 폴더(.docent/apps/<이름>/)에서 init → inventory, 세션 표시는 루트에', async () => {
+  const dir = await copyFixture();
+  let r = run(['init', '--workspace', 'web'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  await stat(join(dir, '.docent', 'apps', 'web', 'config.yaml'));
+  r = run(['inventory', '--workspace', 'web'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  await stat(join(dir, '.docent', 'apps', 'web', 'inventory.json'));
+  r = run(['session', 'start', '--workspace', 'web'], dir);
+  assert.equal(r.status, 0, r.stderr);
+  await stat(join(dir, '.docent', '.session'));
+  r = run(['inventory', '--workspace', 'Bad_Name'], dir);
+  assert.equal(r.status, 1);
+});

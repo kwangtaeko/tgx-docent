@@ -1,10 +1,10 @@
 // /docent-build: 검증을 통과한 분석 결과로 .docent/out/에 프리셋·형식에 맞는 산출물(HTML·README·PDF·PPTX)을 만든다.
-import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { loadConfig } from '../lib/config.mjs';
 import { t } from '../lib/cli-text.mjs';
 import { projectDate } from '../lib/project-date.mjs';
-import { docentDir, readJson } from '../lib/workspace.mjs';
+import { docentDir, readJson, withWorkspace, workspaceName } from '../lib/workspace.mjs';
 import { renderSite } from '../renderers/html.mjs';
 import { stringsFor } from '../renderers/i18n.mjs';
 import { renderReadme } from '../renderers/readme.mjs';
@@ -56,11 +56,11 @@ async function put(outDir, rel, content, files) {
 }
 
 // .docent/media의 캡처·GIF 중 inventory에 있는 화면 것만(실패 이미지 media/fail은 넣지 않는다)
-async function collectMedia(projectDir, inventory) {
+async function collectMedia(mediaRoot, inventory) {
   const ids = new Set(inventory.screens.map((s) => s.id));
   const pick = async (sub, ext) => {
     try {
-      const names = await readdir(join(docentDir(projectDir), 'media', sub));
+      const names = await readdir(join(mediaRoot, sub));
       return new Set(names.filter((n) => n.endsWith(`.${ext}`)).map((n) => n.slice(0, -ext.length - 1)).filter((id) => ids.has(id)));
     } catch {
       return new Set();
@@ -82,27 +82,114 @@ function uncertainCount(screens) {
 // 파일 이름: 경로·예약 문자는 _로, 공백은 뺀다(사용자 매뉴얼 → 사용자매뉴얼, User Manual → UserManual)
 const safeFileName = (name, language) => name.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '') || stringsFor(language).defaultFileName;
 
-export async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
+// 지금 고른 작업(루트 또는 앱 작업)의 분석 결과를 검증하고 읽는다
+async function loadWorkspace(projectDir) {
   const { ok, problems } = await runValidate(projectDir);
-  if (!ok) throw new Error(`${t('검증에 실패해 빌드를 멈췄습니다:')}\n${problems.map((p) => `- ${p}`).join('\n')}`);
-
+  if (!ok) {
+    const where = workspaceName() ? ` (${workspaceName()})` : '';
+    throw new Error(`${t('검증에 실패해 빌드를 멈췄습니다:')}${where}\n${problems.map((p) => `- ${p}`).join('\n')}`);
+  }
   const config = await loadConfig(projectDir);
-  const options = resolveOutputOptions(config, { preset, formats });
-  const warnings = [];
-  const skipped = [];
   const dir = docentDir(projectDir);
   const inventory = await readJson(join(dir, 'inventory.json'));
   const screens = new Map();
   for (const { id } of inventory.screens) screens.set(id, await readJson(join(dir, 'screens', `${id}.json`)));
-  const media = await collectMedia(projectDir, inventory);
+  const mediaRoot = join(dir, 'media');
+  return {
+    config,
+    inventory,
+    screens,
+    summary: await readJson(join(dir, 'summary.json')),
+    mediaRoot,
+    media: await collectMedia(mediaRoot, inventory),
+    date: projectDate(projectDir, config, [...new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
+    projectName: await projectName(projectDir, config),
+  };
+}
+
+// 화면 ID 앞에 앱 작업 이름을 붙인다(합친 매뉴얼에서 앱끼리 ID가 겹치지 않게): web + home → web.home
+const prefixed = (ws, id) => (id === undefined ? undefined : `${ws}.${id}`);
+
+// 앱 하나의 분석 결과를 합친 매뉴얼용으로 바꾼다: ID·연결에 앱 이름, 메뉴 경로·기능·워크플로우 이름 앞에 앱 제목
+function renameApp(part, ws, title) {
+  const re = (id) => prefixed(ws, id);
+  const inventory = part.inventory.screens.map((e) => ({ ...e, id: re(e.id), ...(e.parentId ? { parentId: re(e.parentId) } : {}), app: title }));
+  const screens = new Map();
+  for (const [id, s] of part.screens) {
+    screens.set(re(id), {
+      ...s,
+      id: re(id),
+      ...(s.parentId ? { parentId: re(s.parentId) } : {}),
+      ...(s.menuPath ? { menuPath: { ...s.menuPath, value: [title, ...s.menuPath.value] } } : {}),
+      actions: s.actions.map((a) => ({ ...a, ...(a.navigatesTo ? { navigatesTo: re(a.navigatesTo) } : {}), ...(a.opens ? { opens: re(a.opens) } : {}) })),
+    });
+  }
+  const summary = {
+    oneLiner: { ...part.summary.oneLiner, screens: part.summary.oneLiner.screens.map(re) },
+    features: part.summary.features.map((f) => ({ ...f, menu: `${title} · ${f.menu}`, screens: f.screens.map(re) })),
+    workflows: part.summary.workflows.map((w) => ({ ...w, name: `${title} · ${w.name}`, steps: w.steps.map(re) })),
+  };
+  const media = { images: new Set([...part.media.images].map(re)), gifs: new Set([...part.media.gifs].map(re)) };
+  return { inventory, screens, summary, media };
+}
+
+// 루트 config.yaml의 combine: 앱 작업마다 검증·읽기 → 하나의 산출물 입력으로. 캡처·GIF는 바뀐 ID로 한곳에 모은다
+async function loadCombined(projectDir, config, warnings) {
+  const root = docentDir(projectDir);
+  const mediaRoot = join(root, '.combined-media');
+  await rm(mediaRoot, { recursive: true, force: true });
+  const merged = { inventory: { version: 1, screens: [] }, screens: new Map(), summary: { oneLiner: { value: '', screens: [] }, features: [], workflows: [] }, media: { images: new Set(), gifs: new Set() } };
+  const oneLiners = [];
+  const dates = [];
+  for (const { workspace, title: given } of config.combine) {
+    const part = await withWorkspace(workspace, () => loadWorkspace(projectDir));
+    if (part.config.language !== config.language) warnings.push(t('앱 작업 {0}의 language({1})가 루트 config.yaml({2})와 다릅니다. 화면 설명이 섞인 언어로 나옵니다', workspace, part.config.language, config.language));
+    const title = given ?? part.projectName;
+    const app = renameApp(part, workspace, title);
+    merged.inventory.screens.push(...app.inventory);
+    for (const [id, s] of app.screens) merged.screens.set(id, s);
+    oneLiners.push(part.summary.oneLiner.value);
+    merged.summary.oneLiner.screens.push(...app.summary.oneLiner.screens);
+    merged.summary.features.push(...app.summary.features);
+    merged.summary.workflows.push(...app.summary.workflows);
+    for (const [kind, set, ext] of [['img', 'images', 'png'], ['gif', 'gifs', 'gif']]) {
+      for (const id of part.media[set]) {
+        await mkdir(join(mediaRoot, kind), { recursive: true });
+        await cp(join(part.mediaRoot, kind, `${id}.${ext}`), join(mediaRoot, kind, `${prefixed(workspace, id)}.${ext}`));
+      }
+      for (const id of app.media[set]) merged.media[set].add(id);
+    }
+    dates.push(part.date);
+  }
+  merged.summary.oneLiner.value = oneLiners.join(' ');
+  return {
+    ...merged,
+    mediaRoot,
+    // 날짜: config.date가 있으면 그것, 없으면 앱 중 가장 최근
+    date: config.date ? String(config.date) : dates.sort().at(-1),
+    projectName: await projectName(projectDir, config),
+  };
+}
+
+export async function runBuild(projectDir, { assetsDir, preset, formats, browserFactory = launchBrowser } = {}) {
+  const config = await loadConfig(projectDir);
+  const warnings = [];
+  const skipped = [];
+  // 루트에서 combine이 있으면 앱 작업들을 합친 매뉴얼, 아니면 지금 고른 작업 하나
+  const combined = !workspaceName() && config.combine.length > 0;
+  const loaded = combined ? await loadCombined(projectDir, config, warnings) : await loadWorkspace(projectDir);
+  const options = resolveOutputOptions(config, { preset, formats });
+  const dir = docentDir(projectDir);
+  const { inventory, screens, media, mediaRoot } = loaded;
   const input = {
     options,
     media,
     inventory,
     screens,
-    summary: await readJson(join(dir, 'summary.json')),
-    date: projectDate(projectDir, config, [...new Set([...inventory.screens.flatMap((s) => s.files), ...[...screens.values()].flatMap((s) => s.readFiles)])]),
-    projectName: await projectName(projectDir, config),
+    summary: loaded.summary,
+    date: loaded.date,
+    projectName: loaded.projectName,
+    ...(combined ? { apps: config.combine.length } : {}),
   };
   if (options.preset === 'delivery') {
     const n = uncertainCount(screens);
@@ -130,7 +217,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
       if (!set.size) continue;
       await mkdir(join(outDir, 'html', 'media', kind), { recursive: true });
       for (const id of set) {
-        await copyFile(join(dir, 'media', kind, `${id}.${ext}`), join(outDir, 'html', 'media', kind, `${id}.${ext}`));
+        await copyFile(join(mediaRoot, kind, `${id}.${ext}`), join(outDir, 'html', 'media', kind, `${id}.${ext}`));
         files.push(`html/media/${kind}/${id}.${ext}`);
       }
     }
@@ -163,7 +250,7 @@ export async function runBuild(projectDir, { assetsDir, preset, formats, browser
           if (failed) warnings.push(t('워크플로우 다이어그램 {0}개를 그리지 못해 단계 목록만 넣었습니다', failed));
         }
         else if (input.summary.workflows.length) warnings.push(t('Playwright가 없어 PPT의 워크플로우 다이어그램 대신 단계 목록을 넣었습니다'));
-        const buf = await renderPptx(input, { diagrams, mediaDir: join(dir, 'media') });
+        const buf = await renderPptx(input, { diagrams, mediaDir: mediaRoot });
         await writeFile(join(outDir, `${base}.pptx`), buf);
         files.push(`${base}.pptx`);
       }

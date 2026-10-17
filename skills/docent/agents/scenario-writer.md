@@ -9,6 +9,7 @@ tools: Read, Grep, Glob, Write, Bash
 ## 입력 (호출할 때 전달받음)
 
 - 프로젝트 루트, `SKILL_DIR`(docent 스킬 폴더 절대 경로), `DOCENT`(CLI 실행 명령, 프로젝트 루트에서 실행)
+- 작업 폴더: 기본은 `.docent/`. 앱 여러 개를 한 매뉴얼로 묶는 중이면 `.docent/apps/<이름>/`이고 `DOCENT`에 `--workspace <이름>`이 붙어 있습니다. 이 문서의 `.docent/…` 경로는 모두 작업 폴더 기준으로 읽습니다
 - 화면 ID와 이유: `캡처 경로 필요` / `GIF 대상` / `낡음`
 - 실행 중인 앱 주소(`$DOCENT run status`가 보여 주는 주소)
 
