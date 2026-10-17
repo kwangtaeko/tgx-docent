@@ -21,6 +21,15 @@
 
 대상 프로젝트에서 `/docent`를 실행합니다. docent가 화면 목록을 보여 주고 확인을 받은 뒤 화면을 분석합니다. 앱 실행 계획(설치·실행 명령)을 보여 주고 동의를 받으면 앱을 띄워 캡처합니다. 마지막으로 산출물을 만듭니다.
 
+### 업데이트
+
+docent는 하루에 한 번 GitHub에 새 버전이 있는지 확인하고, 있으면 `init`·`build` 때 업데이트 명령과 함께 알립니다. 공개된 버전 파일을 읽기만 하며 아무 정보도 보내지 않습니다(끄기: `DOCENT_NO_UPDATE_CHECK=1`). 직접 업데이트하려면 터미널에서 아래를 실행한 뒤 Claude Code를 다시 시작하거나 `/reload-plugins`를 실행합니다. `/plugin` 메뉴의 마켓플레이스 설정에서 자동 업데이트를 켤 수도 있습니다.
+
+```
+claude plugin marketplace update tgx-docent
+claude plugin update docent@tgx-docent
+```
+
 ## 산출물
 
 - `.docent/out/html/index.html` — 소개·화면 목록·화면별 매뉴얼(캡처·조작 GIF)·워크플로우

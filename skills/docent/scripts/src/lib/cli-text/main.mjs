@@ -97,4 +97,9 @@ export default {
   // auth · runtime
   '로그인 상태를 저장했습니다: {0}': 'Saved the login state: {0}',
   'Playwright 없음 — 설치 위치: {0} (docent runtime install)': 'Playwright not found — install location: {0} (docent runtime install)',
+  // 새 버전 알림(docent.mjs)
+  '  version        설치된 버전과 새 버전 여부': '  version        Show the installed version and whether a newer one exists',
+  'docent 새 버전 {0}이 있습니다(지금 {1}). 업데이트하려면 터미널에서:': 'A new docent version {0} is available (installed: {1}). To update, run in a terminal:',
+  '그다음 Claude Code를 다시 시작하거나 /reload-plugins를 실행하세요. (알림 끄기: DOCENT_NO_UPDATE_CHECK=1)':
+    'Then restart Claude Code or run /reload-plugins. (To turn this notice off: DOCENT_NO_UPDATE_CHECK=1)',
 };

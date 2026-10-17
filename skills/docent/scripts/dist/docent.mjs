@@ -7279,7 +7279,7 @@ var require_public_api = __commonJS({
       }
       return doc;
     }
-    function parse3(src, reviver, options) {
+    function parse4(src, reviver, options) {
       let _reviver = void 0;
       if (typeof reviver === "function") {
         _reviver = reviver;
@@ -7320,7 +7320,7 @@ var require_public_api = __commonJS({
         return value.toString(options);
       return new Document.Document(value, _replacer, options).toString(options);
     }
-    exports.parse = parse3;
+    exports.parse = parse4;
     exports.parseAllDocuments = parseAllDocuments;
     exports.parseDocument = parseDocument;
     exports.stringify = stringify;
@@ -7822,7 +7822,11 @@ var init_main = __esm({
       "GIF {0}\uAC1C, \uC2E4\uD328 {1}\uAC1C, \uAC74\uB108\uB700 {2}\uAC1C \u2192 .docent/media/gif": "Recorded {0} GIFs, failed {1}, skipped {2} \u2192 .docent/media/gif",
       // auth · runtime
       "\uB85C\uADF8\uC778 \uC0C1\uD0DC\uB97C \uC800\uC7A5\uD588\uC2B5\uB2C8\uB2E4: {0}": "Saved the login state: {0}",
-      "Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)": "Playwright not found \u2014 install location: {0} (docent runtime install)"
+      "Playwright \uC5C6\uC74C \u2014 \uC124\uCE58 \uC704\uCE58: {0} (docent runtime install)": "Playwright not found \u2014 install location: {0} (docent runtime install)",
+      // 새 버전 알림(docent.mjs)
+      "  version        \uC124\uCE58\uB41C \uBC84\uC804\uACFC \uC0C8 \uBC84\uC804 \uC5EC\uBD80": "  version        Show the installed version and whether a newer one exists",
+      "docent \uC0C8 \uBC84\uC804 {0}\uC774 \uC788\uC2B5\uB2C8\uB2E4(\uC9C0\uAE08 {1}). \uC5C5\uB370\uC774\uD2B8\uD558\uB824\uBA74 \uD130\uBBF8\uB110\uC5D0\uC11C:": "A new docent version {0} is available (installed: {1}). To update, run in a terminal:",
+      "\uADF8\uB2E4\uC74C Claude Code\uB97C \uB2E4\uC2DC \uC2DC\uC791\uD558\uAC70\uB098 /reload-plugins\uB97C \uC2E4\uD589\uD558\uC138\uC694. (\uC54C\uB9BC \uB044\uAE30: DOCENT_NO_UPDATE_CHECK=1)": "Then restart Claude Code or run /reload-plugins. (To turn this notice off: DOCENT_NO_UPDATE_CHECK=1)"
     };
   }
 });
@@ -11918,7 +11922,7 @@ var require_fast_uri = __commonJS({
         normalizeString(uri, options);
       } else if (typeof uri === "object") {
         uri = /** @type {T} */
-        parse3(serialize(uri, options), options);
+        parse4(serialize(uri, options), options);
       }
       return uri;
     }
@@ -11958,8 +11962,8 @@ var require_fast_uri = __commonJS({
     function resolveComponent(base, relative, options, skipNormalization) {
       const target = {};
       if (!skipNormalization) {
-        base = parse3(serialize(base, options), options);
-        relative = parse3(serialize(relative, options), options);
+        base = parse4(serialize(base, options), options);
+        relative = parse4(serialize(relative, options), options);
       }
       options = options || {};
       if (!options.tolerant && relative.scheme) {
@@ -12258,7 +12262,7 @@ var require_fast_uri = __commonJS({
       }
       return { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme };
     }
-    function parse3(uri, opts) {
+    function parse4(uri, opts) {
       return parseWithStatus(uri, opts).parsed;
     }
     function normalizeString(uri, opts) {
@@ -12295,7 +12299,7 @@ var require_fast_uri = __commonJS({
       resolveComponent,
       equal,
       serialize,
-      parse: parse3
+      parse: parse4
     };
     module.exports = fastUri;
     module.exports.default = fastUri;
@@ -18677,10 +18681,10 @@ var require_packer_sync = __commonJS({
 var require_png_sync = __commonJS({
   "node_modules/pngjs/lib/png-sync.js"(exports) {
     "use strict";
-    var parse3 = require_parser_sync();
+    var parse4 = require_parser_sync();
     var pack = require_packer_sync();
     exports.read = function(buffer, options) {
-      return parse3(buffer, options || {});
+      return parse4(buffer, options || {});
     };
     exports.write = function(png, options) {
       return pack(png, options);
@@ -19106,7 +19110,7 @@ var require_BufferList = __commonJS({
         this.head = this.tail = null;
         this.length = 0;
       };
-      BufferList.prototype.join = function join34(s) {
+      BufferList.prototype.join = function join35(s) {
         if (this.length === 0) return "";
         var p = this.head;
         var ret = "" + p.data;
@@ -30169,8 +30173,8 @@ var init_capture = __esm({
 
 // skills/docent/scripts/src/docent.mjs
 init_auth();
-import { dirname as dirname4, join as join33, resolve as resolve3 } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname as dirname5, join as join34, resolve as resolve3 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // skills/docent/scripts/src/commands/build.mjs
 init_config();
@@ -36314,8 +36318,8 @@ var PptxGenJS = class {
       const data = yield this.exportPresentation({ compression, outputType });
       if (isNode) {
         const { promises: fs } = yield import("node:fs");
-        const { writeFile: writeFile9 } = fs;
-        yield writeFile9(fileName, data);
+        const { writeFile: writeFile10 } = fs;
+        yield writeFile10(fileName, data);
         return fileName;
       }
       yield this.writeFileToBrowser(fileName, data);
@@ -39029,6 +39033,70 @@ init_cli_text();
 init_config();
 init_playwright();
 init_workspace();
+
+// skills/docent/scripts/src/lib/update-check.mjs
+import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { mkdir as mkdir7, readFile as readFile18, writeFile as writeFile9 } from "node:fs/promises";
+import { homedir as homedir2 } from "node:os";
+import { dirname as dirname4, join as join33 } from "node:path";
+import { fileURLToPath } from "node:url";
+var LATEST_URL = "https://raw.githubusercontent.com/kwangtaeko/tgx-docent/main/.claude-plugin/plugin.json";
+var MARKETPLACE = "tgx-docent";
+var PLUGIN = "docent";
+var DAY_MS = 24 * 36e5;
+var TIMEOUT_MS = 2e3;
+function installedVersion(from = fileURLToPath(import.meta.url)) {
+  let dir = dirname4(from);
+  for (let i = 0; i < 8; i++) {
+    const file = join33(dir, ".claude-plugin", "plugin.json");
+    if (existsSync3(file)) {
+      try {
+        return JSON.parse(readFileSync3(file, "utf8")).version;
+      } catch {
+        return void 0;
+      }
+    }
+    const up = dirname4(dir);
+    if (up === dir) break;
+    dir = up;
+  }
+  return void 0;
+}
+var parse3 = (v) => typeof v === "string" && /^\d+\.\d+\.\d+$/.test(v) ? v.split(".").map(Number) : void 0;
+function isNewer(latest, current2) {
+  const [a, b] = [parse3(latest), parse3(current2)];
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return false;
+}
+var cacheFile = () => join33(process.env.DOCENT_CACHE_DIR || join33(homedir2(), ".cache", "docent"), "update-check.json");
+async function fetchLatest(fetchImpl) {
+  const res = await fetchImpl(LATEST_URL, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) return void 0;
+  return (await res.json())?.version;
+}
+async function checkForUpdate({ now = Date.now(), fetchImpl = globalThis.fetch, current: current2 = installedVersion(), env = process.env } = {}) {
+  if (env.DOCENT_NO_UPDATE_CHECK || env.CI || !current2 || typeof fetchImpl !== "function") return void 0;
+  try {
+    let cached;
+    try {
+      cached = JSON.parse(await readFile18(cacheFile(), "utf8"));
+    } catch {
+    }
+    let latest = cached?.latest;
+    if (!cached || typeof cached.checkedAt !== "number" || now - cached.checkedAt >= DAY_MS || now < cached.checkedAt) {
+      latest = await fetchLatest(fetchImpl);
+      await mkdir7(dirname4(cacheFile()), { recursive: true });
+      await writeFile9(cacheFile(), JSON.stringify({ checkedAt: now, latest: latest ?? null }) + "\n");
+    }
+    return isNewer(latest, current2) ? { current: current2, latest } : void 0;
+  } catch {
+    return void 0;
+  }
+}
+var UPDATE_COMMANDS = [`claude plugin marketplace update ${MARKETPLACE}`, `claude plugin update ${PLUGIN}@${MARKETPLACE}`];
+
+// skills/docent/scripts/src/docent.mjs
 var usage = () => [
   t("\uC0AC\uC6A9\uBC95: docent <\uBA85\uB839> [--project <\uB514\uB809\uD130\uB9AC>] [--workspace <\uC774\uB984>]"),
   t("  --workspace <\uC774\uB984>  \uC571 \uC5EC\uB7EC \uAC1C\uB97C \uD55C \uB9E4\uB274\uC5BC\uB85C \uBB36\uC744 \uB54C \uC571\uB9C8\uB2E4 \uB530\uB85C \uC4F0\uB294 \uC791\uC5C5(.docent/apps/<\uC774\uB984>/)"),
@@ -39044,6 +39112,7 @@ var usage = () => [
   "  build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]",
   t("                 .docent/out/\uC5D0 \uC0B0\uCD9C\uBB3C\uC744 \uB9CC\uB4ED\uB2C8\uB2E4"),
   t("  hash <\uD30C\uC77C\u2026>   \uD654\uBA74 JSON\uC758 sourceHash \uAC12\uC744 \uACC4\uC0B0\uD569\uB2C8\uB2E4"),
+  t("  version        \uC124\uCE58\uB41C \uBC84\uC804\uACFC \uC0C8 \uBC84\uC804 \uC5EC\uBD80"),
   t("  run approve    \uC0AC\uC6A9\uC790\uAC00 \uB3D9\uC758\uD55C run.json \uBA85\uB839\uC744 \uC774 \uCEF4\uD4E8\uD130\uC5D0\uC11C \uC2B9\uC778(.docent/.run-approved)"),
   t("  run start [--install] | stop | status  .docent/run.json\uB300\uB85C \uB300\uC0C1 \uC571 \uC2E4\uD589\xB7\uC911\uC9C0\xB7\uD655\uC778"),
   t("  crawl          \uC2E4\uD589 \uC911\uC778 \uC571\uC744 \uB9C1\uD06C\uB85C \uB3CC\uBA70 \uD654\uBA74 \uBAA9\uB85D\uACFC \uB300\uC870(.docent/crawl.json)"),
@@ -39055,7 +39124,7 @@ var usage = () => [
   t("  session start  \uBD84\uC11D \uC138\uC158 \uC2DC\uC791(\uBE44\uBC00 \uD30C\uC77C \uC77D\uAE30 \uCC28\uB2E8)"),
   t("  session end    \uBD84\uC11D \uC138\uC158 \uC885\uB8CC")
 ].join("\n");
-var ASSETS_DIR = join33(dirname4(fileURLToPath(import.meta.url)), "..", "..", "assets");
+var ASSETS_DIR = join34(dirname5(fileURLToPath2(import.meta.url)), "..", "..", "assets");
 function parseArgs(argv) {
   const args = [];
   let project = process.cwd();
@@ -39066,6 +39135,14 @@ function parseArgs(argv) {
     else args.push(argv[i]);
   }
   return { args, project, workspace };
+}
+async function printUpdateNotice() {
+  const update = await checkForUpdate();
+  if (!update) return;
+  console.log(`
+${t("docent \uC0C8 \uBC84\uC804 {0}\uC774 \uC788\uC2B5\uB2C8\uB2E4(\uC9C0\uAE08 {1}). \uC5C5\uB370\uC774\uD2B8\uD558\uB824\uBA74 \uD130\uBBF8\uB110\uC5D0\uC11C:", update.latest, update.current)}`);
+  for (const c of UPDATE_COMMANDS) console.log(`  ${c}`);
+  console.log(t("\uADF8\uB2E4\uC74C Claude Code\uB97C \uB2E4\uC2DC \uC2DC\uC791\uD558\uAC70\uB098 /reload-plugins\uB97C \uC2E4\uD589\uD558\uC138\uC694. (\uC54C\uB9BC \uB044\uAE30: DOCENT_NO_UPDATE_CHECK=1)"));
 }
 function listProblems(title2, problems) {
   if (problems.length) console.log(`${title2}
@@ -39100,6 +39177,7 @@ async function main() {
       console.log(t("\uAC10\uC9C0\uB41C \uD504\uB808\uC784\uC6CC\uD06C: {0}", r.detectors.length ? r.detectors.join(", ") : t("\uC5C6\uC74C (\uC5D0\uC774\uC804\uD2B8 \uD0D0\uC0C9\uC73C\uB85C \uD654\uBA74\uC744 \uCC3E\uC2B5\uB2C8\uB2E4)")));
       if (r.desktop === "electron") console.log(t('\uB370\uC2A4\uD06C\uD1B1 \uC571(electron)\uC785\uB2C8\uB2E4: \uC2E4\uD589\xB7\uCEA1\uCC98\uB294 run.json\uC758 mode: "electron"\uC73C\uB85C \uD654\uBA74\uB9C8\uB2E4 \uC571\uC744 \uB744\uC6CC \uD569\uB2C8\uB2E4'));
       else if (r.desktop) console.log(t("\uB370\uC2A4\uD06C\uD1B1 \uC571({0})\uC785\uB2C8\uB2E4: \uD654\uBA74 \uBD84\uC11D\xB7\uC0B0\uCD9C\uBB3C\uC740 \uC18C\uC2A4\uB9CC\uC73C\uB85C \uB9CC\uB4E4\uACE0, \uD654\uBA74 \uCEA1\uCC98\xB7GIF\uB294 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4(\uC2E4\uD589\xB7\uCEA1\uCC98 \uB2E8\uACC4\uB294 \uAC74\uB108\uB701\uB2C8\uB2E4)", r.desktop));
+      await printUpdateNotice();
       return 0;
     }
     case "inventory": {
@@ -39152,6 +39230,12 @@ async function main() {
       for (const f of r.files.filter((f2) => !f2.startsWith("html/") || f2 === "html/index.html")) console.log(`- ${f}`);
       for (const w of r.warnings) console.log(t("\uACBD\uACE0: {0}", w));
       for (const k of r.skipped) console.log(t("\uAC74\uB108\uB700({0}): {1}", k.format, k.reason));
+      await printUpdateNotice();
+      return 0;
+    }
+    case "version": {
+      console.log(`docent ${installedVersion() ?? "?"}`);
+      await printUpdateNotice();
       return 0;
     }
     case "hash": {

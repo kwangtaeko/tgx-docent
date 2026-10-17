@@ -8,7 +8,8 @@ import { copyFixture, EXPECTED, writeAgentModal } from './helpers/fixture.mjs';
 const CLI = resolve('skills/docent/scripts/dist/docent.mjs');
 
 function run(args, cwd) {
-  return spawnSync('node', [CLI, ...args], { cwd, encoding: 'utf8' });
+  // 새 버전 확인(네트워크)은 테스트에서 끈다
+  return spawnSync('node', [CLI, ...args], { cwd, encoding: 'utf8', env: { ...process.env, DOCENT_NO_UPDATE_CHECK: '1' } });
 }
 
 test('번들 CLI로 init → inventory → validate → build', async () => {

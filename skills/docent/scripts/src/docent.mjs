@@ -21,6 +21,7 @@ import { loadConfig } from './lib/config.mjs';
 import { PlaywrightMissing } from './lib/playwright.mjs';
 import { hashFiles } from './lib/source-hash.mjs';
 import { setWorkspace, WORKSPACE_NAME } from './lib/workspace.mjs';
+import { checkForUpdate, installedVersion, UPDATE_COMMANDS } from './lib/update-check.mjs';
 
 // 안내 문구는 언어를 정한 뒤에 만든다(모듈을 읽을 때가 아니라)
 const usage = () =>
@@ -39,6 +40,7 @@ const usage = () =>
     '  build [--preset delivery|handover|portfolio] [--format html,readme,pdf,pptx]',
     t('                 .docent/out/에 산출물을 만듭니다'),
     t('  hash <파일…>   화면 JSON의 sourceHash 값을 계산합니다'),
+    t('  version        설치된 버전과 새 버전 여부'),
     t('  run approve    사용자가 동의한 run.json 명령을 이 컴퓨터에서 승인(.docent/.run-approved)'),
     t('  run start [--install] | stop | status  .docent/run.json대로 대상 앱 실행·중지·확인'),
     t('  crawl          실행 중인 앱을 링크로 돌며 화면 목록과 대조(.docent/crawl.json)'),
@@ -64,6 +66,15 @@ function parseArgs(argv) {
     else args.push(argv[i]);
   }
   return { args, project, workspace };
+}
+
+// 새 버전이 있으면 업데이트 명령과 함께 알린다(하루 한 번 확인, 실패는 조용히)
+async function printUpdateNotice() {
+  const update = await checkForUpdate();
+  if (!update) return;
+  console.log(`\n${t('docent 새 버전 {0}이 있습니다(지금 {1}). 업데이트하려면 터미널에서:', update.latest, update.current)}`);
+  for (const c of UPDATE_COMMANDS) console.log(`  ${c}`);
+  console.log(t('그다음 Claude Code를 다시 시작하거나 /reload-plugins를 실행하세요. (알림 끄기: DOCENT_NO_UPDATE_CHECK=1)'));
 }
 
 function listProblems(title, problems) {
@@ -99,6 +110,7 @@ async function main() {
       console.log(t('감지된 프레임워크: {0}', r.detectors.length ? r.detectors.join(', ') : t('없음 (에이전트 탐색으로 화면을 찾습니다)')));
       if (r.desktop === 'electron') console.log(t('데스크톱 앱(electron)입니다: 실행·캡처는 run.json의 mode: "electron"으로 화면마다 앱을 띄워 합니다'));
       else if (r.desktop) console.log(t('데스크톱 앱({0})입니다: 화면 분석·산출물은 소스만으로 만들고, 화면 캡처·GIF는 지원하지 않습니다(실행·캡처 단계는 건너뜁니다)', r.desktop));
+      await printUpdateNotice();
       return 0;
     }
     case 'inventory': {
@@ -151,6 +163,12 @@ async function main() {
       for (const f of r.files.filter((f) => !f.startsWith('html/') || f === 'html/index.html')) console.log(`- ${f}`);
       for (const w of r.warnings) console.log(t('경고: {0}', w));
       for (const k of r.skipped) console.log(t('건너뜀({0}): {1}', k.format, k.reason));
+      await printUpdateNotice();
+      return 0;
+    }
+    case 'version': {
+      console.log(`docent ${installedVersion() ?? '?'}`);
+      await printUpdateNotice();
       return 0;
     }
     case 'hash': {

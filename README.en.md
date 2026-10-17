@@ -21,6 +21,15 @@ docent is a Claude Code plugin that reads a web app's source code and writes a *
 
 Run `/docent` in your project. docent shows you the screen list and asks you to confirm it, then analyzes each screen. Next it shows its plan for installing and starting the app; if you agree, it starts the app and takes screenshots. Finally it builds the output.
 
+### Updates
+
+Once a day docent checks GitHub for a newer version and, if there is one, tells you during `init` and `build` along with the update commands. It only reads the published version file and sends nothing (turn it off with `DOCENT_NO_UPDATE_CHECK=1`). To update yourself, run the commands below in a terminal, then restart Claude Code or run `/reload-plugins`. You can also turn on auto-update for the marketplace in the `/plugin` menu.
+
+```
+claude plugin marketplace update tgx-docent
+claude plugin update docent@tgx-docent
+```
+
 ## Output
 
 - `.docent/out/html/index.html` — introduction, screen list, a manual page for each screen (screenshot and GIF), and workflows

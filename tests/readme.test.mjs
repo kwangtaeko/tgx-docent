@@ -12,7 +12,7 @@ test('README가 가리키는 docs/assets 파일이 모두 있고 1MB 이하', as
 });
 
 test('한/영 README의 명령 블록이 같다', () => {
-  const commands = (md) => new Set([...md.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].flatMap((m) => m[1].split('\n')).filter((l) => /^(\/plugin|npm|node)\b/.test(l.trim())).map((l) => l.trim()));
+  const commands = (md) => new Set([...md.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].flatMap((m) => m[1].split('\n')).filter((l) => /^(\/plugin|npm|node|claude)\b/.test(l.trim())).map((l) => l.trim()));
   assert.ok(commands(ko).size >= 2);
   assert.deepEqual(commands(en), commands(ko));
 });
