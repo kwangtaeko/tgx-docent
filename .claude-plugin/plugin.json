@@ -18,6 +18,11 @@
     "vue",
     "sveltekit",
     "spring",
+    "electron",
+    "monorepo",
+    "pdf",
+    "pptx",
+    "gif",
     "korean"
   ],
   "agents": [
