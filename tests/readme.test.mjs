@@ -6,7 +6,7 @@ const ko = await readFile('README.md', 'utf8');
 const en = await readFile('README.en.md', 'utf8').catch(() => '');
 
 test('README가 가리키는 docs/assets 파일이 모두 있고 1MB 이하', async () => {
-  const refs = new Set([...`${ko}\n${en}`.matchAll(/docs\/assets\/[\w.-]+/g)].map((m) => m[0]));
+  const refs = new Set([...`${ko}\n${en}`.matchAll(/docs\/assets\/[\w.-]+\.(?:png|gif|jpe?g|svg)/g)].map((m) => m[0]));
   assert.ok(refs.size >= 3, [...refs].join());
   for (const ref of refs) assert.ok((await stat(ref)).size <= 1024 * 1024, ref);
 });

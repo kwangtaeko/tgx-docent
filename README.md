@@ -6,11 +6,11 @@
 
 ![산출물 소개 페이지](docs/assets/demo-index.png)
 
-| 화면별 매뉴얼 | 조작 GIF |
+| 화면별 매뉴얼 | 워크플로우 |
 | --- | --- |
-| ![화면별 매뉴얼](docs/assets/demo-screen.png) | ![주문 등록 조작](docs/assets/demo.gif) |
+| ![화면별 매뉴얼](docs/assets/demo-screen.png) | ![워크플로우](docs/assets/demo-workflow.png) |
 
-<sub>예시는 이 레포의 샘플 앱(`fixtures/nextjs-sample`)으로 만들었습니다. `npm run demo`로 다시 만들 수 있습니다.</sub>
+<sub>예시는 음악 학원 수강생 예약 PWA(Next.js, 네오뮤직)의 수강생 화면 5개에 docent를 적용한 결과입니다. 그 앱은 DB·로그인 없이 띄울 수 없어, 화면 캡처는 그 저장소의 확인용 목업(실제 컴포넌트와 CSS로 만든 화면)에서 가져왔고 휴대폰 크기(`capture.device: mobile`)로 보였습니다. 실제 앱을 띄워 찍는 캡처·조작 GIF는 이 레포의 샘플 앱으로 `npm run demo`를 실행해 볼 수 있습니다.</sub>
 
 ## 설치
 
@@ -72,6 +72,6 @@ npm run demo
 
 - `npm test` — 전체 테스트
 - `npm run build` — CLI 번들(`skills/docent/scripts/dist`) 다시 만들기. 소스를 고쳤으면 꼭 실행해 커밋합니다
-- `npm run demo` — README 데모 자산(`docs/assets/`) 다시 만들기
+- `npm run demo` — 샘플 앱(`fixtures/nextjs-sample`)을 실행·캡처·녹화해 산출물 예시를 `docs/assets/sample/`에 만들기(커밋하지 않음)
 
 설계는 `docs/superpowers/specs/2026-10-13-docent-design.md`, 구현 계획은 `docs/superpowers/plans/`에 있습니다. 라이선스는 MIT입니다.

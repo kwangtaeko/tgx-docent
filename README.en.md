@@ -6,11 +6,11 @@ docent is a Claude Code plugin that reads a web app's source code and writes a *
 
 ![Output overview page](docs/assets/demo-index.png)
 
-| Screen manual | Screen in use |
+| Screen manual | Workflow |
 | --- | --- |
-| ![Screen manual](docs/assets/demo-screen.png) | ![Order entry](docs/assets/demo.gif) |
+| ![Screen manual](docs/assets/demo-screen.png) | ![Workflow](docs/assets/demo-workflow.png) |
 
-<sub>These examples come from the sample app in this repo (`fixtures/nextjs-sample`). Run `npm run demo` to rebuild them. The demo is in Korean; set `language: en` for English output.</sub>
+<sub>These examples are docent's output for five student screens of a music academy's booking PWA (Next.js, NeoMusiq). That app cannot start without its database and login, so the screen captures come from the confirmation mockup in its repository (built from the real components and CSS), shown at phone size (`capture.device: mobile`). To see captures and GIFs taken from a running app, run `npm run demo` on the sample app in this repo. The demo is in Korean; set `language: en` for English output.</sub>
 
 ## Install
 
@@ -72,6 +72,6 @@ npm run demo
 
 - `npm test` — run all tests
 - `npm run build` — rebuild the CLI bundle (`skills/docent/scripts/dist`). Run it and commit the result whenever you change the source
-- `npm run demo` — rebuild the README demo assets (`docs/assets/`)
+- `npm run demo` — run, capture and record the sample app (`fixtures/nextjs-sample`) and write example output to `docs/assets/sample/` (not committed)
 
 The design is in `docs/superpowers/specs/2026-10-13-docent-design.md` and the implementation plans are in `docs/superpowers/plans/`. MIT license.

@@ -1,5 +1,5 @@
-// README 데모 자산 만들기: fixtures/nextjs-sample을 임시 폴더에서 docent CLI로 실행·캡처·녹화·빌드하고
-// docs/assets/에 산출물 화면 캡처 두 장과 조작 GIF를 둔다. (개인 정보가 없는 픽스처만 쓴다)
+// 샘플 앱 산출물 예시 만들기: fixtures/nextjs-sample을 임시 폴더에서 docent CLI로 실행·캡처·녹화·빌드하고
+// docs/assets/sample/에 산출물 화면 캡처 두 장과 조작 GIF를 둔다(커밋하지 않음)
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readdir, stat, symlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -11,7 +11,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const FIXTURE = join(ROOT, 'fixtures', 'nextjs-sample');
 const EXPECTED = join(ROOT, 'fixtures', 'expected', 'nextjs-sample');
 const CLI = join(ROOT, 'skills', 'docent', 'scripts', 'dist', 'docent.mjs');
-const OUT = join(ROOT, 'docs', 'assets');
+const OUT = join(ROOT, 'docs', 'assets', 'sample');
 const MAX_BYTES = 1024 * 1024;
 
 function freePort() {
