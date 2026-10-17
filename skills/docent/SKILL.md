@@ -54,7 +54,7 @@ description: 웹앱 프로젝트의 소스를 분석하고 앱을 띄워, 화면
 
 1. `$DOCENT inventory`를 실행합니다
 2. 감지기가 없거나, `inventory`가 경로를 읽지 못한 라우트가 있다고 경고하거나(변수 경로·스프레드로 붙인 라우트 — 경고에 위치가 나옵니다), 메뉴·링크를 보니 빠진 화면이 의심되면 `route-explorer` 에이전트(서브에이전트가 없으면 `<SKILL_DIR>/agents/route-explorer.md`의 지시를 직접 수행)에 프로젝트 루트·`SKILL_DIR`·`DOCENT`(그리고 `config.yaml`에 `app`이 있으면 그 앱 폴더 — 그 안에서 찾되 경로는 프로젝트 루트 기준)를 전달해 `.docent/inventory.agent.json`을 쓰게 하고(스택별 힌트는 `<SKILL_DIR>/references/stacks/`) `$DOCENT inventory`를 다시 실행합니다
-3. 화면 목록(ID·경로)을 사용자에게 보여 주고 확인받습니다. 빼거나 더할 화면은 `config.yaml`의 `screens.exclude`/`include`, 화면 코드 체계가 있으면 `screens.idMap`으로 반영하고 다시 실행합니다. 메뉴·링크 어디에서도 들어가지 않는 인쇄·PDF 생성 전용 화면(`/export/*`, `/print/*` 등), 관리용 숨은 화면은 매뉴얼 대상인지 물어보고 아니면 `screens.exclude`를 제안합니다
+3. 화면 목록(ID·경로)을 사용자에게 보여 주고 확인받습니다. 빼거나 더할 화면은 `config.yaml`의 `screens.exclude`/`include`, 화면 코드 체계가 있으면 `screens.idMap`으로 반영하고 다시 실행합니다. 메뉴·링크 어디에서도 들어가지 않는 인쇄·PDF 생성 전용 화면(`/export/*`, `/print/*` 등), 관리용 숨은 화면은 매뉴얼 대상인지 물어보고 아니면 `screens.exclude`를 제안합니다. 감지기는 라우트에 연결된 컴포넌트를 모두 화면으로 세므로, 다른 화면으로 보내기만 하는 경로(`/` → 권한별 첫 메뉴로 이동하는 컴포넌트)와 준비 중 안내만 그리는 경로도 목록에 나옵니다. 라우트 파일에서 그런 컴포넌트가 보이면 빼자고 제안하고, 화면 분석 중 에이전트가 "이동만 하는 화면"이라고 보고해도 `screens.exclude`로 뺍니다
 4. 화면이 50개를 넘으면 화면 수와 대략의 시간(화면당 1~2분)을 알리고 진행 여부를 확인받습니다. 일부만 하려면 `screens.include`로 좁힙니다
 
 ### 3. 화면 분석
