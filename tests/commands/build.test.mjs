@@ -187,6 +187,8 @@ test('combine: 앱 작업 여러 개를 한 매뉴얼로 합친다(ID에 앱 이
   assert.ok(wf.includes('사용자 웹 · ') && wf.includes('s_web_orders'));
   assert.ok(r.files.includes('README.md'));
   assert.ok((await readFile(join(out, 'README.md'), 'utf8')).includes('2026-10-14'));
+  // 앱마다 캡처 크기: web은 데스크톱(기본)
+  assert.ok(!(await readFile(join(out, 'html', 'screens', 'web.orders.html'), 'utf8')).includes('frame phone'));
   // 모은 캡처는 레포 안에 남기지 않는다
   assert.deepEqual((await readdir(join(dir, '.docent'))).filter((n) => n.includes('combined')), []);
 });

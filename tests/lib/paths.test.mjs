@@ -35,4 +35,7 @@ test('urlPath: route group·병렬 슬롯은 주소에 없고, 가로챔과 동�
   assert.equal(urlPath('/@modal/(.)photo/[id]'), '/(.)photo/[id]');
   assert.equal(urlPath('/orders/[id]'), '/orders/[id]');
   assert.equal(urlPath(null), null);
+  // 경로 패턴의 괄호는 route group이 아니다
+  assert.equal(urlPath('/user/(\\d+)'), '/user/(\\d+)');
+  assert.equal(urlPath('/(en|ko)/home'), '/(en|ko)/home');
 });

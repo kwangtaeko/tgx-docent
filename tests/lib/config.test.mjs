@@ -97,6 +97,8 @@ test('capture.device는 desktop(기본) | mobile', async () => {
   await writeFile(join(dir, '.docent', 'config.yaml'), 'capture:\n  device: mobile\n');
   assert.equal((await loadConfig(dir)).capture.device, 'mobile');
   assert.deepEqual(captureContextOptions('mobile').viewport, { width: 390, height: 844 });
+  assert.match(captureContextOptions('mobile').userAgent, /iPhone/);
+  assert.equal(captureContextOptions('desktop').userAgent, undefined);
   await writeFile(join(dir, '.docent', 'config.yaml'), 'capture:\n  device: tablet\n');
   await assert.rejects(loadConfig(dir), /capture\.device/);
 });

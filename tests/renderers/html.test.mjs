@@ -261,3 +261,14 @@ test('capture.device: mobile이면 캡처를 휴대폰 폭 틀로 보인다', as
   assert.ok(html.includes('<figure class="frame phone">'));
   assert.ok(renderSite(input).get('assets/style.css').includes('.frame.phone { max-width: 400px'));
 });
+
+test('합친 매뉴얼은 화면(앱)마다 캡처 크기를 따른다', async () => {
+  const input = await loadGolden();
+  input.media = { images: new Set(['orders', 'home']), gifs: new Set() };
+  input.inventory.screens.find((e) => e.id === 'orders').device = 'mobile';
+  input.inventory.screens.find((e) => e.id === 'home').device = 'desktop';
+  input.options = { ...input.options, device: 'desktop' };
+  const site = renderSite(input);
+  assert.ok(site.get('screens/orders.html').includes('<figure class="frame phone">'));
+  assert.ok(!site.get('screens/home.html').includes('frame phone'));
+});

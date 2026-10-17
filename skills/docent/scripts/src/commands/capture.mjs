@@ -12,7 +12,9 @@ import { loadRun } from './run.mjs';
 export const CAPTURE_VIEWPORT = { width: 1280, height: 800 };
 // 휴대폰 우선 웹앱(PWA): 390 폭, 글자가 또렷하게 2배 밀도
 export const MOBILE_VIEWPORT = { width: 390, height: 844 };
-const MOBILE = { isMobile: true, hasTouch: true };
+// 휴대폰 사용자 에이전트: 주소·UA로 휴대폰 화면을 고르는 앱도 휴대폰 화면을 보낸다(Playwright의 iPhone 장치 설정과 같은 값)
+export const MOBILE_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+const MOBILE = { isMobile: true, hasTouch: true, userAgent: MOBILE_USER_AGENT };
 
 // 움직임 줄이기: 등장 애니메이션을 끄는 사이트가 많아 캡처에 내용이 다 찍힌다
 export function captureContextOptions(device = 'desktop') {

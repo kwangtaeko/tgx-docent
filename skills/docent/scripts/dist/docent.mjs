@@ -7862,7 +7862,7 @@ function normalizeRel(p) {
 }
 function urlPath(route) {
   if (!route) return route;
-  const segs = route.split("/").filter((seg) => seg && !(/^\([^.][^)]*\)$/.test(seg) || seg.startsWith("@")));
+  const segs = route.split("/").filter((seg) => seg && !(/^\([\w-]+\)$/.test(seg) || /^@[\w-]+$/.test(seg)));
   return "/" + segs.join("/");
 }
 var init_paths = __esm({
@@ -29906,7 +29906,7 @@ var init_record = __esm({
     init_run();
     init_scenarios();
     GIF_VIEWPORT = { width: 800, height: 600 };
-    GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true };
+    GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true, userAgent: MOBILE_USER_AGENT };
     gifContext = (device) => device === "mobile" ? GIF_MOBILE : { viewport: GIF_VIEWPORT };
     GIF_MAX_BYTES = 2 * 1024 * 1024;
     FPS = 10;
@@ -30149,7 +30149,7 @@ async function runCapture(projectDir, ids, { electronLauncher } = {}) {
   }
   return result;
 }
-var CAPTURE_VIEWPORT, MOBILE_VIEWPORT, MOBILE;
+var CAPTURE_VIEWPORT, MOBILE_VIEWPORT, MOBILE_USER_AGENT, MOBILE;
 var init_capture = __esm({
   "skills/docent/scripts/src/commands/capture.mjs"() {
     init_cli_text();
@@ -30162,7 +30162,8 @@ var init_capture = __esm({
     init_run();
     CAPTURE_VIEWPORT = { width: 1280, height: 800 };
     MOBILE_VIEWPORT = { width: 390, height: 844 };
-    MOBILE = { isMobile: true, hasTouch: true };
+    MOBILE_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
+    MOBILE = { isMobile: true, hasTouch: true, userAgent: MOBILE_USER_AGENT };
   }
 });
 
@@ -30228,7 +30229,8 @@ import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
 var PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 var PLACEHOLDER_GAP = 160;
-var INLINE_TAG = /<\/?(?:b|strong|em|i|u|s|mark|small|span|code|kbd|sup|sub|a|br)(?:\s[^<>]*)?\/?>/g;
+var INLINE_TAG = /<\/?(?:b|strong|em|i|u|s|mark|small|span|code|kbd|sup|sub|a)(?:\s(?:[^<>{}]|\{[^{}]*\})*)?\/?>/g;
+var BREAK_TAG = /<br\s*\/?>/g;
 var JSX_COMMENT = /\{\s*\/\*[\s\S]*?\*\/\s*\}/g;
 var JSX_SPACE = /\{\s*(?:"\s*"|'\s*'|`\s*`)\s*\}/g;
 var MAX_PLACEHOLDERS = 20;
@@ -30319,7 +30321,7 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   }
   const squash = (t2) => t2.replace(/\s+/g, " ").trim();
   const joined = squash(window2.join(" "));
-  const plain = squash(joined.replace(JSX_COMMENT, "").replace(INLINE_TAG, "").replace(JSX_SPACE, " "));
+  const plain = squash(joined.replace(JSX_COMMENT, "").replace(BREAK_TAG, " ").replace(INLINE_TAG, "").replace(JSX_SPACE, " "));
   const found = (text) => {
     if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text)) || plain.includes(squash(text))) return true;
     return matchesWithPlaceholders(squash(text), joined) || matchesWithPlaceholders(squash(text), plain);
@@ -30438,7 +30440,10 @@ var NAV = [
 var zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 <script>if (window.mediumZoom) mediumZoom('[data-zoomable]', { margin: 24, background: 'rgba(12, 12, 16, 0.86)' });</script>
 `;
-var isPhone = (input) => input.options?.device === "mobile";
+var isPhone = (input, id) => {
+  const device = id !== void 0 ? input.inventory.screens.find((e) => e.id === id)?.device : void 0;
+  return (device ?? input.options?.device) === "mobile";
+};
 function frame(img, url = "", phone = false) {
   return `<figure class="frame${phone ? " phone" : ""}"><div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i>${url ? `<span class="frame-url">${escapeHtml(url)}</span>` : ""}</div>${img}</figure>`;
 }
@@ -30546,7 +30551,7 @@ function introBody(input, { from = "root", heading = true } = {}) {
 <div class="preview">${gifs.map((e) => {
     const title2 = escapeHtml(screenTitle(screens, e.id));
     const src = input.printAnchors ? `${prefix}media/img/${escapeHtml(e.id)}.png` : `${prefix}media/gif/${escapeHtml(e.id)}.gif`;
-    return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title2)}" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title2}</a></div>`;
+    return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title2)}" data-zoomable>`, "", isPhone(input, e.id))}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title2}</a></div>`;
   }).join("")}</div>` : "";
   const notice = media.images.size || media.gifs.size ? "" : `<p class="notice">${T.noCapture}</p>
 `;
@@ -30611,7 +30616,7 @@ function cardsBody(input, { prefix = "" } = {}) {
   const media = mediaOf(input);
   const cards = inventory.screens.map((entry) => {
     const s = screens.get(entry.id);
-    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? "", isPhone(input)) : `<p class="no-shot">${T.noShot}</p>`;
+    const shot = media.images.has(entry.id) ? frame(`<img src="${prefix}media/img/${escapeHtml(entry.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? "", isPhone(input, entry.id)) : `<p class="no-shot">${T.noShot}</p>`;
     const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${escapeHtml(entry.id)}.gif">${T.watchDemo}</a>` : "";
     return `<article class="card" id="${escapeHtml(entry.id)}">
 ${shot}
@@ -30683,11 +30688,11 @@ ${messageTable(list)}
 <aside class="callout caution"><p class="callout-title">${T.unknownsTitle}</p><ul class="unknowns">${s.unknowns.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul></aside>` : "";
   const sources = presetOf(input) === "handover" ? `<h2>${T.sources}</h2><ul class="sources">${entry.files.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join("")}</ul>` : "";
   const media = mediaOf(input);
-  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input))}
+  const shot = media.images.has(s.id) ? `${frame(`<img src="${prefix}media/img/${escapeHtml(s.id)}.png" alt="${escapeHtml(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input, s.id))}
 ` : input.printAnchors ? `<p class="no-shot">${T.noShot}</p>
 ` : "";
   const gif = media.gifs.has(s.id) && !input.printAnchors ? `<h2>${T.demo}</h2>
-${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input))}
+${frame(`<img src="${prefix}media/gif/${escapeHtml(s.id)}.gif" alt="${escapeHtml(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? "", isPhone(input, s.id))}
 ` : "";
   return `<${headingTag}>${escapeHtml(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${escapeHtml(s.purpose.value)}${ev(s.purpose.evidence)}</p>
@@ -30870,6 +30875,8 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
 .frame.phone { max-width: 400px; margin-inline: auto; }
 .card .frame.phone, .preview .frame.phone { max-width: none; }
+/* \uD734\uB300\uD3F0 \uCEA1\uCC98\uB97C 16:10\uC73C\uB85C \uC790\uB974\uBA74 \uBA38\uB9AC \uC904\uB9CC \uB0A8\uB294\uB2E4 \u2014 \uC138\uB85C\uB85C \uAE38\uAC8C \uC704\uCABD\uBD80\uD130 */
+.card .frame.phone img, .preview .frame.phone img { aspect-ratio: 3 / 4; object-fit: cover; object-position: top; }
 .medium-zoom-overlay, .medium-zoom-image--opened { z-index: 999; }
 
 /* \uD654\uBA74 \uBAA9\uB85D */
@@ -37103,7 +37110,9 @@ function renameApp(part, ws, title2) {
     id: re(e.id),
     ...e.parentId ? { parentId: re(e.parentId) } : {},
     ...e.menuPath ? { menuPath: [title2, ...e.menuPath] } : {},
-    app: title2
+    app: title2,
+    // 앱마다 캡처 크기가 다를 수 있다(관리자 웹은 데스크톱, 수강생 앱은 휴대폰)
+    device: part.config.capture.device
   }));
   const screens = /* @__PURE__ */ new Map();
   for (const [id, s] of part.screens) {

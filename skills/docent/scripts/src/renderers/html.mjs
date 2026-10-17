@@ -40,7 +40,11 @@ const zoomScript = (root) => `<script src="${root}assets/zoom.min.js"></script>
 `;
 
 // 브라우저 창 모양의 틀. 주소 칸에 화면 경로를 보인다
-const isPhone = (input) => input.options?.device === 'mobile';
+// 휴대폰 크기 캡처인지: 합친 매뉴얼은 화면(앱)마다, 아니면 config의 capture.device
+const isPhone = (input, id) => {
+  const device = id !== undefined ? input.inventory.screens.find((e) => e.id === id)?.device : undefined;
+  return (device ?? input.options?.device) === 'mobile';
+};
 
 // phone: 휴대폰 크기로 찍은 캡처는 휴대폰 폭으로(데스크톱 폭으로 늘리면 글자가 커지고 한 화면에 안 들어온다)
 function frame(img, url = '', phone = false) {
@@ -174,7 +178,7 @@ export function introBody(input, { from = 'root', heading = true } = {}) {
         .map((e) => {
           const title = h(screenTitle(screens, e.id));
           const src = input.printAnchors ? `${prefix}media/img/${h(e.id)}.png` : `${prefix}media/gif/${h(e.id)}.gif`;
-          return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title)}" data-zoomable>`)}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title}</a></div>`;
+          return `<div class="preview-item">${frame(`<img src="${src}" alt="${T.demoAlt(title)}" data-zoomable>`, '', isPhone(input, e.id))}<a class="preview-title" href="${screenHref(input, e.id, from)}">${title}</a></div>`;
         })
         .join('')}</div>`
     : '';
@@ -246,7 +250,7 @@ export function cardsBody(input, { prefix = '' } = {}) {
     .map((entry) => {
       const s = screens.get(entry.id);
       const shot = media.images.has(entry.id)
-        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? '', isPhone(input))
+        ? frame(`<img src="${prefix}media/img/${h(entry.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(entry.route) ?? '', isPhone(input, entry.id))
         : `<p class="no-shot">${T.noShot}</p>`;
       const gif = media.gifs.has(entry.id) ? `<a class="button" href="${prefix}media/gif/${h(entry.id)}.gif">${T.watchDemo}</a>` : '';
       return `<article class="card" id="${h(entry.id)}">
@@ -347,13 +351,13 @@ ${messageTable(list)}
 
   const media = mediaOf(input);
   const shot = media.images.has(s.id)
-    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input))}\n`
+    ? `${frame(`<img src="${prefix}media/img/${h(s.id)}.png" alt="${h(T.shotAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input, s.id))}\n`
     : input.printAnchors
       ? `<p class="no-shot">${T.noShot}</p>\n`
       : '';
   const gif =
     media.gifs.has(s.id) && !input.printAnchors
-      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input))}\n`
+      ? `<h2>${T.demo}</h2>\n${frame(`<img src="${prefix}media/gif/${h(s.id)}.gif" alt="${h(T.demoAlt(s.title.value))}" data-zoomable>`, urlPath(s.route) ?? '', isPhone(input, s.id))}\n`
       : '';
   return `<${headingTag}>${h(s.title.value)}${ev(s.title.evidence)}</${headingTag}>
 <p class="lead">${flag(s.purpose, T)}${h(s.purpose.value)}${ev(s.purpose.evidence)}</p>
@@ -546,6 +550,8 @@ main > ul:not([class]), main ul:not([class]) ul { padding-left: 1.2rem; }
 .frame img { display: block; width: 100%; height: auto; cursor: zoom-in; }
 .frame.phone { max-width: 400px; margin-inline: auto; }
 .card .frame.phone, .preview .frame.phone { max-width: none; }
+/* 휴대폰 캡처를 16:10으로 자르면 머리 줄만 남는다 — 세로로 길게 위쪽부터 */
+.card .frame.phone img, .preview .frame.phone img { aspect-ratio: 3 / 4; object-fit: cover; object-position: top; }
 .medium-zoom-overlay, .medium-zoom-image--opened { z-index: 999; }
 
 /* 화면 목록 */

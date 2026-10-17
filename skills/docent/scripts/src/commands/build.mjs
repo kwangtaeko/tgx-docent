@@ -120,6 +120,8 @@ function renameApp(part, ws, title) {
     ...(e.parentId ? { parentId: re(e.parentId) } : {}),
     ...(e.menuPath ? { menuPath: [title, ...e.menuPath] } : {}),
     app: title,
+    // 앱마다 캡처 크기가 다를 수 있다(관리자 웹은 데스크톱, 수강생 앱은 휴대폰)
+    device: part.config.capture.device,
   }));
   const screens = new Map();
   for (const [id, s] of part.screens) {

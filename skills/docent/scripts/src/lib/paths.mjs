@@ -20,6 +20,7 @@ export function normalizeRel(p) {
 // (가로챔 `(.)photo`는 그대로 둔다). inventory의 route는 파일 구조를 따르는 열쇠라 바꾸지 않고, 산출물에 보일 때만 쓴다
 export function urlPath(route) {
   if (!route) return route;
-  const segs = route.split('/').filter((seg) => seg && !(/^\([^.][^)]*\)$/.test(seg) || seg.startsWith('@')));
+  // route group 이름은 식별자뿐이다. (\d+)·(en|ko) 같은 경로 패턴은 남긴다
+  const segs = route.split('/').filter((seg) => seg && !(/^\([\w-]+\)$/.test(seg) || /^@[\w-]+$/.test(seg)));
   return '/' + segs.join('/');
 }

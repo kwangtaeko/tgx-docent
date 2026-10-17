@@ -9,13 +9,13 @@ import { maskContext, runSteps, usesEnvValue } from '../lib/steps.mjs';
 import { docentDir, readJson, readJsonIfExists } from '../lib/workspace.mjs';
 import { encodeGif } from '../renderers/gif.mjs';
 import { CONTEXT_PERMISSIONS, newContext } from './auth.mjs';
-import { isLoginPath, loadScenario, openScreen } from './capture.mjs';
+import { isLoginPath, loadScenario, MOBILE_USER_AGENT, openScreen } from './capture.mjs';
 import { loadRun } from './run.mjs';
 import { gifTargets } from './scenarios.mjs';
 
 export const GIF_VIEWPORT = { width: 800, height: 600 };
 // 휴대폰 화면 GIF(용량 때문에 1배 밀도)
-export const GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true };
+export const GIF_MOBILE = { viewport: { width: 390, height: 700 }, isMobile: true, hasTouch: true, userAgent: MOBILE_USER_AGENT };
 const gifContext = (device) => (device === 'mobile' ? GIF_MOBILE : { viewport: GIF_VIEWPORT });
 export const GIF_MAX_BYTES = 2 * 1024 * 1024;
 const FPS = 10;
