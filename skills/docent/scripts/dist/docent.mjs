@@ -29941,6 +29941,21 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
   .preview .frame img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
   .feature:hover, .card:hover { transform: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* \uC885\uC774\uC5D0\uB294 \uAC00\uB85C \uC2A4\uD06C\uB864\uC774 \uC5C6\uB2E4: \uD45C\uB97C \uD398\uC774\uC9C0 \uD3ED\uC5D0 \uB9DE\uCD94\uACE0 \uBAA8\uB4E0 \uCE78\uC774 \uC904\uC744 \uBC14\uAFBC\uB2E4(\uB118\uCE5C \uCE78\uC774 \uC798\uB9AC\uC9C0 \uC54A\uAC8C) */
+  .table-wrap { overflow: visible; }
+  th, td { white-space: normal; overflow-wrap: anywhere; }
+  .screen-list, table.messages { table-layout: fixed; }
+  table.messages th:first-child { width: 55%; }
+  thead { display: table-header-group; }
+  .screen-list td:nth-child(-n+4) { white-space: normal; }
+  .screen-list td:last-child { min-width: 0; }
+  .screen-list th:nth-child(1) { width: 21%; }
+  .screen-list th:nth-child(2) { width: 14%; }
+  .screen-list th:nth-child(3) { width: 12%; }
+  .screen-list th:nth-child(4) { width: 13%; }
+  .screen-list th:nth-child(5) { width: 8%; }
+  .screen-list th, .screen-list td { padding: 0.6rem 0.55rem; }
+  .screen-list code { white-space: normal; overflow-wrap: anywhere; }
 }
 `;
 var styleFor = (theme) => BASE_STYLE + themeCss(theme ?? DEFAULT_THEME);

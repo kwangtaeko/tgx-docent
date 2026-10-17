@@ -634,6 +634,21 @@ pre.mermaid { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: 
   .preview .frame img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
   .feature:hover, .card:hover { transform: none; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* 종이에는 가로 스크롤이 없다: 표를 페이지 폭에 맞추고 모든 칸이 줄을 바꾼다(넘친 칸이 잘리지 않게) */
+  .table-wrap { overflow: visible; }
+  th, td { white-space: normal; overflow-wrap: anywhere; }
+  .screen-list, table.messages { table-layout: fixed; }
+  table.messages th:first-child { width: 55%; }
+  thead { display: table-header-group; }
+  .screen-list td:nth-child(-n+4) { white-space: normal; }
+  .screen-list td:last-child { min-width: 0; }
+  .screen-list th:nth-child(1) { width: 21%; }
+  .screen-list th:nth-child(2) { width: 14%; }
+  .screen-list th:nth-child(3) { width: 12%; }
+  .screen-list th:nth-child(4) { width: 13%; }
+  .screen-list th:nth-child(5) { width: 8%; }
+  .screen-list th, .screen-list td { padding: 0.6rem 0.55rem; }
+  .screen-list code { white-space: normal; overflow-wrap: anywhere; }
 }
 `;
 

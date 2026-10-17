@@ -234,3 +234,11 @@ test('handover는 effectEvidence도 근거 주석으로 남긴다', async () => 
   input.screens.get('orders-new').actions[0].effectEvidence = ['app/actions/orders.ts:12'];
   assert.match(renderSite(input).get('screens/orders-new.html'), /<!-- evidence: app\/actions\/orders\.ts:12 -->/);
 });
+
+test('인쇄(PDF)에서는 표가 가로로 넘치지 않고 모든 칸이 줄을 바꾼다', async () => {
+  const css = renderSite(await loadGolden()).get('assets/style.css');
+  const print = css.slice(css.indexOf('@media print'));
+  for (const rule of ['.table-wrap { overflow: visible; }', '.screen-list td:nth-child(-n+4) { white-space: normal; }', '.screen-list td:last-child { min-width: 0; }', 'table-layout: fixed']) {
+    assert.ok(print.includes(rule), rule);
+  }
+});
