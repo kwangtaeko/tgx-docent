@@ -146,6 +146,13 @@ test('Mermaid 예약어와 겹치는 화면 ID', async () => {
   assert.ok(renderSite(input).get('workflows.html').includes('s_end --> s_orders'));
 });
 
+test('메뉴로 옮겨 가는 단계는 점선과 "메뉴"로 그린다', async () => {
+  const input = await loadGolden();
+  // 주문 목록 → 사용자 관리: 버튼 연결은 없고 사용자 관리가 메뉴에 있다
+  input.summary.workflows.push({ name: '메뉴 이동', description: '메뉴 이동', steps: ['orders', 'admin-users'] });
+  assert.ok(renderSite(input).get('workflows.html').includes('s_orders -. 메뉴 .-> s_admin_users'));
+});
+
 test('HTML 메뉴 트리는 메뉴 근거(파일·줄) 순서를 따른다', async () => {
   const { renderSite } = await import('../../skills/docent/scripts/src/renderers/html.mjs');
   const { loadGolden } = await import('../helpers/golden.mjs');

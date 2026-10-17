@@ -2,6 +2,7 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { checkEvidence } from '../lib/evidence.mjs';
+import { edgeKind } from '../lib/workflow.mjs';
 import { t } from '../lib/cli-text.mjs';
 import { validateInventory, validateScenario, validateScreen, validateSummary } from '../lib/schema.mjs';
 import { hashFiles } from '../lib/source-hash.mjs';
@@ -98,14 +99,6 @@ async function checkScreen(projectDir, s, ids, problems) {
   }
 }
 
-// a → b: a의 버튼이 b로 이동·b를 열거나, a가 b의 하위 화면(닫고 돌아감)
-// a → b: a의 버튼이 b로 가거나 b를 열거나, a가 b 위에 뜬 창(모달·팝업)이라 닫으면 b로 돌아간다.
-// view(메뉴로 바뀌는 화면)는 닫히는 창이 아니므로 부모로 돌아가는 연결로 보지 않는다
-function hasEdge(screens, a, b) {
-  const s = screens.get(a);
-  return (s.parentId === b && s.kind !== 'view') || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
-}
-
 // known: 존재하는 화면 ID(파일이 깨져 읽지 못한 화면 포함). 읽지 못한 화면은 따로 보고됐으므로 여기서는 건너뛴다.
 function checkSummary(summary, screens, known, problems) {
   const exists = (id) => known.has(id);
@@ -129,7 +122,7 @@ function checkSummary(summary, screens, known, problems) {
     for (let i = 0; i + 1 < wf.steps.length; i++) {
       const [a, b] = [wf.steps[i], wf.steps[i + 1]];
       if (!loaded(a) || !loaded(b)) continue;
-      if (!hasEdge(screens, a, b)) problems.push(`summary.json: ${t('워크플로우 "{0}"의 {1} → {2} 연결이 화면 동작에 없습니다', wf.name, a, b)}`);
+      if (!edgeKind(screens, a, b)) problems.push(`summary.json: ${t('워크플로우 "{0}"의 {1} → {2} 연결이 화면 동작에도 메뉴에도 없습니다', wf.name, a, b)}`);
     }
   }
 }

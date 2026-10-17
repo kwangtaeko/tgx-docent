@@ -11,8 +11,8 @@ export default {
   '"{0}"를 뒷받침하는 화면이 모두 확신도 low입니다': 'All screens backing "{0}" have low confidence',
   '워크플로우 "{0}"의 없는 화면 {1}': 'Workflow "{0}" refers to screens that do not exist: {1}',
   '워크플로우 "{0}"는 화면 2개 이상을 오가야 합니다': 'Workflow "{0}" must move between at least 2 screens',
-  '워크플로우 "{0}"의 {1} → {2} 연결이 화면 동작에 없습니다':
-    'Workflow "{0}": no screen action links {1} → {2}',
+  '워크플로우 "{0}"의 {1} → {2} 연결이 화면 동작에도 메뉴에도 없습니다':
+    'Workflow "{0}": neither a screen action nor the menu links {1} → {2}',
   '파일 이름과 screenId({0})가 다릅니다': 'File name does not match screenId ({0})',
   '없는 화면 {0}': 'Screen does not exist: {0}',
   '디렉터리 없음': 'Directory not found',

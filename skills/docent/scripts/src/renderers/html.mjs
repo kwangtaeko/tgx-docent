@@ -4,6 +4,7 @@ import { escapeComment, escapeHtml as h } from './escape.mjs';
 import { textOf } from './i18n.mjs';
 import { orderedMenuEntries } from './menu.mjs';
 import { DEFAULT_THEME, mermaidInit, themeCss } from './theme.mjs';
+import { edgeKind } from '../lib/workflow.mjs';
 
 // 실행 중 값이 채워지는 자리({버전})는 흐린 칩으로 보인다
 const messageText = (text) => h(text).replace(/\{([^{}\n]{1,30})\}/g, '<span class="ph">$1</span>');
@@ -378,8 +379,12 @@ export function workflowMermaid(input, wf, { forHtml = true } = {}) {
   };
   const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${label(id)}"]`);
   const edges = [];
+  const menu = forHtml ? h(textOf(input).menuEdge) : textOf(input).menuEdge;
   for (let i = 0; i + 1 < wf.steps.length; i++) {
-    const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
+    const [a, b] = [wf.steps[i], wf.steps[i + 1]];
+    // 메뉴로 옮겨 가는 단계는 점선과 "메뉴" 표시로 버튼 연결과 구분한다
+    const arrow = edgeKind(screens, a, b) === 'menu' ? `-. ${menu} .->` : '-->';
+    const edge = `  ${nodeId(a)} ${arrow} ${nodeId(b)}`;
     if (!edges.includes(edge)) edges.push(edge);
   }
   return ['flowchart LR', ...nodes, ...edges].join('\n');

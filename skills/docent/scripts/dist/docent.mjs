@@ -27505,7 +27505,8 @@ var ko = {
   fields: "\uC785\uB825 \uD56D\uBAA9",
   actions: "\uBC84\uD2BC\uACFC \uB3D9\uC791",
   messages: "\uC548\uB0B4 \uBA54\uC2DC\uC9C0",
-  workflowsLead: "\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC73C\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.",
+  workflowsLead: "\uD654\uBA74 \uC0AC\uC774\uB97C \uC624\uAC00\uBA70 \uC5C5\uBB34\uB97C \uCC98\uB9AC\uD558\uB294 \uD750\uB984\uC785\uB2C8\uB2E4. \uD654\uBA74\uC758 \uBC84\uD2BC \uB3D9\uC791\uC774\uB098 \uBA54\uB274(\uC810\uC120)\uB85C \uD655\uC778\uB41C \uC5F0\uACB0\uB9CC \uADF8\uB838\uC2B5\uB2C8\uB2E4.",
+  menuEdge: "\uBA54\uB274",
   // PPTX
   continued: " (\uACC4\uC18D)",
   noMenu: "\uBA54\uB274 \uC815\uBCF4 \uC5C6\uC74C",
@@ -27574,7 +27575,8 @@ var en = {
   fields: "Input fields",
   actions: "Buttons and actions",
   messages: "Messages",
-  workflowsLead: "Flows that move between screens to get a task done. Only links confirmed by button actions on the screens are drawn.",
+  workflowsLead: "Flows that move between screens to get a task done. Only links confirmed by button actions or the menu (dotted) are drawn.",
+  menuEdge: "menu",
   continued: " (cont.)",
   noMenu: "No menu information",
   kindField: "Field",
@@ -27605,7 +27607,7 @@ var commands_a_default = {
   '"{0}"\uB97C \uB4B7\uBC1B\uCE68\uD558\uB294 \uD654\uBA74\uC774 \uBAA8\uB450 \uD655\uC2E0\uB3C4 low\uC785\uB2C8\uB2E4': 'All screens backing "{0}" have low confidence',
   '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 \uC5C6\uB294 \uD654\uBA74 {1}': 'Workflow "{0}" refers to screens that do not exist: {1}',
   '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uB294 \uD654\uBA74 2\uAC1C \uC774\uC0C1\uC744 \uC624\uAC00\uC57C \uD569\uB2C8\uB2E4': 'Workflow "{0}" must move between at least 2 screens',
-  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4': 'Workflow "{0}": no screen action links {1} \u2192 {2}',
+  '\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0\uB3C4 \uBA54\uB274\uC5D0\uB3C4 \uC5C6\uC2B5\uB2C8\uB2E4': 'Workflow "{0}": neither a screen action nor the menu links {1} \u2192 {2}',
   "\uD30C\uC77C \uC774\uB984\uACFC screenId({0})\uAC00 \uB2E4\uB985\uB2C8\uB2E4": "File name does not match screenId ({0})",
   "\uC5C6\uB294 \uD654\uBA74 {0}": "Screen does not exist: {0}",
   "\uB514\uB809\uD130\uB9AC \uC5C6\uC74C": "Directory not found",
@@ -29380,6 +29382,18 @@ function mermaidInit(name5) {
 })()`;
 }
 
+// skills/docent/scripts/src/lib/workflow.mjs
+var WINDOW = /* @__PURE__ */ new Set(["modal", "popup"]);
+function edgeKind(screens, a, b) {
+  const from = screens.get(a);
+  const to = screens.get(b);
+  if (!from || !to) return void 0;
+  if (from.parentId === b && from.kind !== "view") return "action";
+  if (from.actions.some((x) => x.navigatesTo === b || x.opens === b)) return "action";
+  if (!WINDOW.has(from.kind) && !WINDOW.has(to.kind) && to.menuPath) return "menu";
+  return void 0;
+}
+
 // skills/docent/scripts/src/renderers/html.mjs
 var messageText = (text) => escapeHtml(text).replace(/\{([^{}\n]{1,30})\}/g, '<span class="ph">$1</span>');
 var LOOSE_MESSAGE_LIMIT = 5;
@@ -29678,8 +29692,11 @@ function workflowMermaid(input, wf, { forHtml = true } = {}) {
   };
   const nodes = [...new Set(wf.steps)].map((id) => `  ${nodeId(id)}["${label(id)}"]`);
   const edges = [];
+  const menu = forHtml ? escapeHtml(textOf(input).menuEdge) : textOf(input).menuEdge;
   for (let i = 0; i + 1 < wf.steps.length; i++) {
-    const edge = `  ${nodeId(wf.steps[i])} --> ${nodeId(wf.steps[i + 1])}`;
+    const [a, b] = [wf.steps[i], wf.steps[i + 1]];
+    const arrow = edgeKind(screens, a, b) === "menu" ? `-. ${menu} .->` : "-->";
+    const edge = `  ${nodeId(a)} ${arrow} ${nodeId(b)}`;
     if (!edges.includes(edge)) edges.push(edge);
   }
   return ["flowchart LR", ...nodes, ...edges].join("\n");
@@ -35831,10 +35848,6 @@ async function checkScreen(projectDir, s, ids, problems) {
     problems.push(`${s.id}: ${err.message}`);
   }
 }
-function hasEdge(screens, a, b) {
-  const s = screens.get(a);
-  return s.parentId === b && s.kind !== "view" || s.actions.some((x) => x.navigatesTo === b || x.opens === b);
-}
 function checkSummary(summary, screens, known, problems) {
   const exists4 = (id) => known.has(id);
   const loaded = (id) => screens.has(id);
@@ -35857,7 +35870,7 @@ function checkSummary(summary, screens, known, problems) {
     for (let i = 0; i + 1 < wf.steps.length; i++) {
       const [a, b] = [wf.steps[i], wf.steps[i + 1]];
       if (!loaded(a) || !loaded(b)) continue;
-      if (!hasEdge(screens, a, b)) problems.push(`summary.json: ${t('\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4', wf.name, a, b)}`);
+      if (!edgeKind(screens, a, b)) problems.push(`summary.json: ${t('\uC6CC\uD06C\uD50C\uB85C\uC6B0 "{0}"\uC758 {1} \u2192 {2} \uC5F0\uACB0\uC774 \uD654\uBA74 \uB3D9\uC791\uC5D0\uB3C4 \uBA54\uB274\uC5D0\uB3C4 \uC5C6\uC2B5\uB2C8\uB2E4', wf.name, a, b)}`);
     }
   }
 }

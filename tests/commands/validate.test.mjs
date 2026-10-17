@@ -148,6 +148,13 @@ test('view는 부모로 닫혀 돌아가는 연결이 아니다(모달·팝업�
   await writeJsonFile(path, screen);
   child.kind = 'view';
   await writeJsonFile(join(docent, 'inventory.json'), inventory);
+  // 부모가 메뉴에 있으면 메뉴로 옮겨 가는 연결이다
+  assert.deepEqual((await runValidate(dir)).problems, []);
+  // 메뉴에도 없으면 연결이 없다
+  const parentPath = join(docent, 'screens', `${child.parentId}.json`);
+  const parent = await readJsonFile(parentPath);
+  delete parent.menuPath;
+  await writeJsonFile(parentPath, parent);
   const { problems } = await runValidate(dir);
   assert.ok(problems.some((p) => p.includes(`${child.id} → ${child.parentId}`)), problems.join('\n'));
 });
@@ -225,4 +232,21 @@ test('unlabeled 동작은 라벨 글자를 찾지 않고, section은 sections의
   s.sections = [{ title: '없는 구획', evidence: s.actions[0].evidence }];
   await writeJsonFile(path, s);
   assert.deepEqual((await runValidate(dir)).problems, []);
+});
+
+test('워크플로우: 메뉴에 있는 화면으로는 메뉴 이동 연결, 창에서 바로는 안 된다', async () => {
+  const { edgeKind } = await import('../../skills/docent/scripts/src/lib/workflow.mjs');
+  const screens = new Map([
+    ['a', { kind: 'page', actions: [{ label: 'x', opens: 'a--m' }], menuPath: { value: ['A'] } }],
+    ['a--m', { kind: 'modal', parentId: 'a', actions: [] }],
+    ['b', { kind: 'page', actions: [], menuPath: { value: ['B'] } }],
+    ['c', { kind: 'page', actions: [] }],
+    ['v', { kind: 'view', parentId: 'b', actions: [] }],
+  ]);
+  assert.equal(edgeKind(screens, 'a', 'a--m'), 'action');
+  assert.equal(edgeKind(screens, 'a--m', 'a'), 'action');
+  assert.equal(edgeKind(screens, 'a', 'b'), 'menu');
+  assert.equal(edgeKind(screens, 'a--m', 'b'), undefined); // 창을 닫고 돌아간 뒤에 메뉴로
+  assert.equal(edgeKind(screens, 'a', 'c'), undefined); // 메뉴에 없는 화면
+  assert.equal(edgeKind(screens, 'v', 'b'), 'menu'); // view의 부모는 닫고 돌아감이 아니지만 메뉴에 있으면 메뉴 이동
 });
