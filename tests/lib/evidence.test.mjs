@@ -146,3 +146,14 @@ test('자리 표시가 많아도 빨리 끝난다(정규식 되돌아가기 없�
   assert.equal(matchesWithPlaceholders('row-{n}">{목록}</div>', source), true);
   assert.equal(matchesWithPlaceholders('{a}{b}', source), false);
 });
+
+test('JSX 인라인 태그·{" "}로 끊긴 문장도 화면 글자 그대로 찾는다', async () => {
+  const { mkdtemp, writeFile } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'docent-jsx-'));
+  await writeFile(join(dir, 'a.tsx'), 'export default () => (\n  <p>\n    취소 가능한 시간은 <b>{deadline}</b>까지예요.{" "}\n    이후에는 <strong>1회</strong>가 차감됩니다.\n  </p>\n);\n');
+  assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '이후에는 1회가 차감됩니다.' })).ok, true);
+  assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '취소 가능한 시간은 {마감}까지예요. 이후에는 1회가 차감됩니다.' })).ok, true);
+  assert.equal((await checkEvidence(dir, 'a.tsx:3', { expectText: '이후에는 2회가 차감됩니다.' })).ok, false);
+});

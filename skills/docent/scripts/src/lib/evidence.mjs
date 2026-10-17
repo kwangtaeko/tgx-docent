@@ -7,6 +7,9 @@ export const TEXT_WINDOW = 5;
 // 문구 안의 자리 표시({버전}, {name})와 그 자리에 올 수 있는 소스 글자 수
 const PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 const PLACEHOLDER_GAP = 160;
+// 문장 안에 끼는 JSX 인라인 태그와 공백 표현({" "}·{' '})
+const INLINE_TAG = /<\/?(?:b|strong|em|i|u|s|mark|small|span|code|kbd|sup|sub|a|br)(?:\s[^<>]*)?\/?>/g;
+const JSX_SPACE = /\{\s*(?:"\s*"|'\s*'|`\s*`)\s*\}/g;
 const MAX_PLACEHOLDERS = 20;
 
 const LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
@@ -111,10 +114,12 @@ export async function checkEvidence(rootDir, evidence, opts = {}) {
   // 문구가 여러 줄로 나뉘어 있을 수 있으므로 공백을 하나로 모은 창 전체에서도 찾는다
   const squash = (t) => t.replace(/\s+/g, ' ').trim();
   const joined = squash(window.join(' '));
+  // JSX에서 한 문장이 인라인 태그(<b>·<strong>·<br/> 등)나 {" "}로 끊겨 있어도 화면에는 이어진 글자로 보인다
+  const plain = squash(joined.replace(INLINE_TAG, '').replace(JSX_SPACE, ' '));
   const found = (text) => {
-    if (window.some((line) => line.includes(text)) || joined.includes(squash(text))) return true;
+    if (window.some((line) => line.includes(text)) || joined.includes(squash(text)) || plain.includes(squash(text))) return true;
     // 실행 중에 값이 채워지는 문구: {이름} 자리는 소스의 ${...}·변수 등 짧은 글자로 본다(나머지 글자는 그대로 있어야 함)
-    return matchesWithPlaceholders(squash(text), joined);
+    return matchesWithPlaceholders(squash(text), joined) || matchesWithPlaceholders(squash(text), plain);
   };
   if (opts.expectText !== undefined && !found(opts.expectText)) {
     return { ok: false, reason: t('{0} 근처(±{1}줄)에 "{2}" 없음', evidence, TEXT_WINDOW, opts.expectText) };

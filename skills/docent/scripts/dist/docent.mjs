@@ -30228,6 +30228,8 @@ import { isAbsolute, resolve as resolve2, sep } from "node:path";
 var TEXT_WINDOW = 5;
 var PLACEHOLDER = /\{[^{}\n]{1,30}\}/;
 var PLACEHOLDER_GAP = 160;
+var INLINE_TAG = /<\/?(?:b|strong|em|i|u|s|mark|small|span|code|kbd|sup|sub|a|br)(?:\s[^<>]*)?\/?>/g;
+var JSX_SPACE = /\{\s*(?:"\s*"|'\s*'|`\s*`)\s*\}/g;
 var MAX_PLACEHOLDERS = 20;
 var LINE_RANGE = /^(\d+)(?:-(\d+))?$/;
 var SYMBOL = /^[A-Za-z_$][\w$.]*$/;
@@ -30316,9 +30318,10 @@ async function checkEvidence(rootDir, evidence, opts = {}) {
   }
   const squash = (t2) => t2.replace(/\s+/g, " ").trim();
   const joined = squash(window2.join(" "));
+  const plain = squash(joined.replace(INLINE_TAG, "").replace(JSX_SPACE, " "));
   const found = (text) => {
-    if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text))) return true;
-    return matchesWithPlaceholders(squash(text), joined);
+    if (window2.some((line2) => line2.includes(text)) || joined.includes(squash(text)) || plain.includes(squash(text))) return true;
+    return matchesWithPlaceholders(squash(text), joined) || matchesWithPlaceholders(squash(text), plain);
   };
   if (opts.expectText !== void 0 && !found(opts.expectText)) {
     return { ok: false, reason: t('{0} \uADFC\uCC98(\xB1{1}\uC904)\uC5D0 "{2}" \uC5C6\uC74C', evidence, TEXT_WINDOW, opts.expectText) };
